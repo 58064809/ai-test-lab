@@ -1,8 +1,0 @@
-20240410 14:24:28.862 | MainProcess | MainThread | conftest.set_env:28 | INFO: 运行环境：TEST
-20240410 14:24:28.922 | MainProcess | MainThread | conftest.pytest_terminal_summary:47 | SUCCESS: 用例总数: 1
-20240410 14:24:28.922 | MainProcess | MainThread | conftest.pytest_terminal_summary:48 | SUCCESS: 通过用例数: 0
-20240410 14:24:28.922 | MainProcess | MainThread | conftest.pytest_terminal_summary:49 | ERROR: 异常用例数: 0
-20240410 14:24:28.923 | MainProcess | MainThread | conftest.pytest_terminal_summary:50 | ERROR: 失败用例数: 1
-20240410 14:24:28.923 | MainProcess | MainThread | conftest.pytest_terminal_summary:51 | WARNING: 跳过用例数: 0
-20240410 14:24:28.923 | MainProcess | MainThread | conftest.pytest_terminal_summary:52 | INFO: 用例执行时长: 0.33 s
-20240410 14:24:28.923 | MainProcess | MainThread | conftest.pytest_terminal_summary:56 | INFO: 用例成功率: 0.00 %

@@ -7,7 +7,5 @@ from util.request_control import RequestControl
 
 
 class TestDemo1:
-    def test_case1(self):
-        RequestControl(0).request_method()
-
-
+    def test_case1(self,ysb):
+        print(ysb)

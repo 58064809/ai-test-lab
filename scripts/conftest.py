@@ -2,10 +2,12 @@
 # 2022/8/1 11:27
 
 from util.log_handle import log
+from util.request_control import RequestControl
 from util.yaml_handle import YamlHandle
-from util.enum import ENV
+from util.enum import *
 import pytest,time
-
+import urllib3,requests
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def pytest_addoption(parser):
     parser.addini("env", help="choose env: test,dev,prod", type=None, default="test")
@@ -28,8 +30,52 @@ def set_env(request):
         log.info("运行环境：%s" % conf[ENV.Active.value]['activation'].upper())
 
 
-# @pytest.fixture(scope="session",name="oa")
-# def get_oa_token(get_env):
+@pytest.fixture(scope="session",name="oa")
+def get_oa_token(request):
+    session = YamlHandle().get_session
+    resp = RequestControl(Domain.OA.value).request_method("/common/open/login/loginByPassword", "JPOST", param={
+        "phoneNumber":session[Domain.OA.value]['username'],
+        "password": session[Domain.OA.value]['password']
+    }).json()
+    conf = YamlHandle().get_activation()
+    env = request.config.getini("env").upper()
+    env_name = list(conf[getattr(ENV, env).value].keys())[0]
+    conf[getattr(ENV, env).value][env_name]['session'][Domain.OA.value]['headers']['Authorization'] = resp['data']['token']
+    YamlHandle().update_activation(conf)
+    return resp['data']['token']
+@pytest.fixture(scope="session")
+def login_ysb_get_pubEncrypt():
+    session = requests.session()
+    sess = YamlHandle().get_session
+    url = 'https://www.bejson.com/Bejson/Api/Rsa/pubEncrypt'
+
+
+    publicKey = '''-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuAltXJI4kMQkucWCeLGK4Zyqw7VUp1JYS1GkJb0eJK
+CgxqJBzwjl8XpStA1hCv9BEX6SEsm/d2T6SDo+G6ySpfV0RQeZ7v32kE9+Eh0BK1Q8wU91nCa1CM9yfBhKXsQ3D
+Kq2am5oLryNWXdKLXZPgoJbuIONG2G4oKakwUMX3aASp3Cj3rNXLea8ilXjFZ+OEp0DuZ4CsasO1MTaBS84mJhn
+zRNbuhHq5qyrVI02jw7Fim8siIBsmDDHgBd4l9hj6KAAr0jf9JOHaOp+KxfH76taqqaXI5lZIPG7lCP65iBuNNE
+qDSc21abcPhgvgK5K4xj9p5sG+V1FBISCE0dPrQIDAQAB
+-----END PUBLIC KEY-----'''
+    data = {
+        'publicKey': publicKey,
+        'encStr': '{"type":1,"account":"%s","password":"%s","reqTime":%s}etype:rsa2'%(sess[Domain.YSB.value]['username'],sess[Domain.YSB.value]['password'],int(time.time() * 1000)),
+        'etype': 'rsa2'}
+    resp = session.post(url, data,verify=False).json()
+    return resp['data']
+
+@pytest.fixture(scope="session",name="ysb")
+def get_ysb_token(request,login_ysb_get_pubEncrypt):
+    resp = RequestControl(Domain.YSB.value).request_method("/app/business/user/login", "JPOST", param={
+            "clientPublicKey":"",
+            "encryptedData": login_ysb_get_pubEncrypt
+                }).json()
+    conf = YamlHandle().get_activation()
+    env = request.config.getini("env").upper()
+    env_name = list(conf[getattr(ENV, env).value].keys())[0]
+    conf[getattr(ENV, env).value][env_name]['session'][Domain.YSB.value]['headers']['Authorization'] = resp['data']['token']
+    YamlHandle().update_activation(conf)
+    return resp['data']['token']
 
 
 

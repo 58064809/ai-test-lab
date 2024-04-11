@@ -48,8 +48,6 @@ class YamlHandle:
             yaml.safe_dump_all(data, f,allow_unicode=True)
 
 
-
-
     def write_date_to_yaml(self,activation,test, dev,pro):
         with open(self.config_path, 'a') as f:
             yaml.safe_dump_all([activation,test, dev,pro], f, allow_unicode=True, default_flow_style=False)
