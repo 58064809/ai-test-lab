@@ -1,0 +1,82 @@
+activation: TEST
+---
+test_environment:
+  DBConnection:
+    charset: utf8
+    database: api_report
+    host: 10.14.2.245
+    password: '123456'
+    port: 3306
+    user: root
+  session:
+  - domain: oa
+    headers:
+      Authorization: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2Jhc2VfaWQiOiI0Mjc0NHwxNzExNTE5OTY1NTEwIn0.XXG9fJxOnoxytK733YRw-TE-bU8SNXz7kxy_zEpvEGw
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/121.0.0.0 Safari/537.36
+    host: oasd.lianlianlvyou.com
+    port: 443
+    protocol: https://
+  - domain: ysb
+    headers:
+      Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFAiLCJpc3MiOiJsbC1hcHAtYnVzaW5lc3MiLCJ1c2VySWQiOiI0OTA1MzEiLCJpYXQiOjE3MTE2ODEwODV9.tOVbAwbVuIx500WgeinW3p8BEgjBPfZD_t5K4J1zq38
+      User-Agent: Mozilla/5.0 (Linux; Android 11; PCHM10 Build/RKQ1.200903.002; wv)
+        AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106 Mobile
+        Safari/537.36 uni-app Html5Plus/1.0 (Immersed/32.0)
+    host: pre-server-app-business.lianlianlvyou.com
+    port: 443
+    protocol: https://
+---
+dev_environment:
+  DBConnection:
+    charset: utf8
+    database: nearby_travel
+    host: pc-2ze8c757mjh350kql-public.rwlb.rds.aliyuncs.com
+    password: LLdev#2022zby
+    port: 3306
+    user: lldb_dev
+  session:
+  - domain: oa
+    headers:
+      Authorization: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2Jhc2VfaWQiOiI0Mjc0NHwxNzExNTE5OTY1NTEwIn0.XXG9fJxOnoxytK733YRw-TE-bU8SNXz7kxy_zEpvEGw
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/121.0.0.0 Safari/537.36
+    host: oasd.lianlianlvyou.com
+    port: 443
+    protocol: https://
+  - domain: ysb
+    headers:
+      Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFAiLCJpc3MiOiJsbC1hcHAtYnVzaW5lc3MiLCJ1c2VySWQiOiI0OTA1MzEiLCJpYXQiOjE3MTE2ODEwODV9.tOVbAwbVuIx500WgeinW3p8BEgjBPfZD_t5K4J1zq38
+      User-Agent: Mozilla/5.0 (Linux; Android 11; PCHM10 Build/RKQ1.200903.002; wv)
+        AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106 Mobile
+        Safari/537.36 uni-app Html5Plus/1.0 (Immersed/32.0)
+    host: pre-server-app-business.lianlianlvyou.com
+    port: 443
+    protocol: https://
+---
+pro_environment:
+  DBConnection:
+    charset: utf8
+    database: nearby_travel
+    host: pc-2ze8c757mjh350kql-public.rwlb.rds.aliyuncs.com
+    password: LLdev#2022zby
+    port: 3306
+    user: lldb_dev
+  session:
+  - domain: oa
+    headers:
+      Authorization: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2Jhc2VfaWQiOiI0Mjc0NHwxNzExNTE5OTY1NTEwIn0.XXG9fJxOnoxytK733YRw-TE-bU8SNXz7kxy_zEpvEGw
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/121.0.0.0 Safari/537.36
+    host: oasd.lianlianlvyou.com
+    port: 443
+    protocol: https://
+  - domain: ysb
+    headers:
+      Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFAiLCJpc3MiOiJsbC1hcHAtYnVzaW5lc3MiLCJ1c2VySWQiOiI0OTA1MzEiLCJpYXQiOjE3MTE2ODEwODV9.tOVbAwbVuIx500WgeinW3p8BEgjBPfZD_t5K4J1zq38
+      User-Agent: Mozilla/5.0 (Linux; Android 11; PCHM10 Build/RKQ1.200903.002; wv)
+        AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106 Mobile
+        Safari/537.36 uni-app Html5Plus/1.0 (Immersed/32.0)
+    host: pre-server-app-business.lianlianlvyou.com
+    port: 443
+    protocol: https://
