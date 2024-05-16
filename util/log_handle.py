@@ -1,12 +1,11 @@
-# # -*- coding: utf-8 -*-
-# # date = 2021/7/7
-import pendulum
+# coding=utf-8
+# 2024/4/12 17:13
 from loguru import logger
+import sys,pathlib,pendulum
 from config.settings import LOG_PATH
-import sys
 
 
-class Loggings:
+class Logging:
     _instance = None
 
     def __init__(self):
@@ -20,32 +19,39 @@ class Loggings:
     def get_log_path(self):
         return LOG_PATH.joinpath(pendulum.now().format("YYYY-MM-DD at HH-mm-ss") + ".log")
 
-    def logger_handler(self):
-        LOG_PATH.mkdir(parents=True, exist_ok=True)
-        logs_str_list = [path for path in LOG_PATH.iterdir()]
-        if len(logs_str_list) > 10:
-            for i in range(len(logs_str_list) - 10):
-                logs_str_list.pop(0).unlink()
+    def clean_logs(self):
+        """清理日志文件，保留最近10个"""
+        logs = list(LOG_PATH.iterdir())
+        if len(logs) >= 10:
+            for log in logs[:-9]:
+                pathlib.Path(log).unlink()
 
-        logger.remove()
-        logger.add(sys.stdout, format="<green>{time:YYYYMMDD HH:mm:ss.SSS}</green> | "  # 颜色>时间
-                                      "{process.name} | "  # 进程名
-                                      "{thread.name} | "  # 进程名
-                                      "<cyan>{module}</cyan>.<cyan>{function}</cyan>"  # 模块名.方法名
-                                      ":<cyan>{line}</cyan> | "  # 行号
-                                      "<level>{level}</level>: "  # 等级
-                                      "<level>{message}</level>", enqueue=True,  # 日志内容
-                   backtrace=True, diagnose=True, catch=True)
-        logger.add(self.get_log_path(),
-                   format="<green>{time:YYYYMMDD HH:mm:ss.SSS}</green> | "  # 颜色>时间
-                          "{process.name} | "  # 进程名
-                          "{thread.name} | "  # 进程名
-                          "<cyan>{module}</cyan>.<cyan>{function}</cyan>"  # 模块名.方法名
-                          ":<cyan>{line}</cyan> | "  # 行号
-                          "<level>{level}</level>: "  # 等级
-                          "<level>{message}</level>",  # 日志内容
-                   rotation="500MB", retention='1 days', encoding="utf-8", enqueue=True,
-                   backtrace=True, diagnose=True, catch=True)
+    def logger_handler(self):
+        try:
+            LOG_PATH.mkdir(parents=True, exist_ok=True)
+            self.clean_logs()
+
+            logger.remove()
+            logger.add(sys.stdout, format="<green>{time:YYYY-MM-DD at HH:mm:ss.SSS}</green> | "
+                                          # "{process.name} | "
+                                          # "{thread.name} | "
+                                          "<cyan>{module}</cyan>.<cyan>{function}</cyan>"
+                                          ":<cyan>{line}</cyan> | "
+                                          "<level>{level}</level>: "
+                                          "<level>{message}</level>", enqueue=True,  # 日志内容
+                       backtrace=True, diagnose=True, catch=True)
+            logger.add(self.get_log_path(),
+                       format="<green>{time:YYYY-MM-DD at HH:mm:ss.SSS}</green> | "
+                              # "{process.name} | "
+                              # "{thread.name} | "
+                              "<cyan>{module}</cyan>.<cyan>{function}</cyan>"
+                              ":<cyan>{line}</cyan> | "
+                              "<level>{level}</level>: "
+                              "<level>{message}</level>",  # 日志内容
+                       rotation="10MB", retention='3 days', encoding="utf-8", enqueue=True,
+                       backtrace=True, diagnose=True, catch=True)
+        except Exception as e:
+            print(f"日志配置失败: {e}")
 
     @property
     def get_logger(self):
@@ -53,9 +59,9 @@ class Loggings:
 
 
 '''
-# 实例化日志类
+实例化日志类
 '''
-log = Loggings().get_logger
+log = Logging().get_logger
 
 if __name__ == '__main__':
     log.debug('调试代码')
@@ -64,4 +70,3 @@ if __name__ == '__main__':
     log.warning('错误警告')
     log.error('代码错误')
     log.critical('崩溃输出')
-

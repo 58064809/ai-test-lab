@@ -3,12 +3,12 @@
 from pathlib import Path
 from util.log_handle import log
 
+
 class PathHandle:
 
     def __init__(self):
         self.ROOT = Path(__file__).parent.parent.resolve()
-        log.info('获取到项目根目录为%s'%self.ROOT)
-
+        log.info('获取到项目根目录为%s' % self.ROOT)
 
     def create_dir(self, path):
         '''构建目录'''
@@ -21,11 +21,11 @@ class PathHandle:
         dst = self.ROOT.joinpath(dst)
         if not dst.exists():
             self.ROOT.joinpath(src).rename(dst)
-            log.info('将【{}】重命名为【{}】'.format(src,dst))
+            log.info('将【{}】重命名为【{}】'.format(src, dst))
             return
         log.warning("{}已存在".format(dst))
 
-    def file_golb(self,path,pattern,recursive=False):
+    def file_golb(self, path, pattern, recursive=False):
         '''列出所有满足pattern的文件'''
         dir = self.ROOT.joinpath(path)
         if not dir.is_dir():
@@ -33,20 +33,24 @@ class PathHandle:
             return
         if not recursive:
             file_list = list(dir.glob(pattern))
-            log.info("{}目录下所有包含{}的文件列表为{} ！非递归".format(dir,pattern,file_list))
+            log.info("{}目录下所有包含{}的文件列表为{} ！非递归".format(dir, pattern, file_list))
         else:
             file_list = list(dir.rglob(pattern))
-            log.info("{}目录下所有包含{}的文件列表为{} ！递归".format(dir,pattern,file_list))
+            log.info("{}目录下所有包含{}的文件列表为{} ！递归".format(dir, pattern, file_list))
         return file_list
 
-    def get_suffixe(self,path):
+    def get_suffixe(self, path):
+        '''获取文件后缀'''
         file = self.ROOT.joinpath(path)
+        print(file)
         if file:
             suffix = self.ROOT.joinpath(path).suffix
-            log.info("{}的后缀为{}".format(file,suffix))
+            log.info("{}的后缀为{}".format(file, suffix))
             return suffix
         log.warning('{}不是文件'.format(file))
 
+    def exists(self, path):
+        return self.ROOT.joinpath(path).exists()
 
 
 if __name__ == '__main__':
@@ -54,6 +58,5 @@ if __name__ == '__main__':
     # p.create_dir('data2')
     # p.rename('data2','data3')
     # p.file_golb('util','*.py')
-    p.get_suffixe('util/common.py')
-
-
+    # p.get_suffixe('config/config.yaml')
+    print(p.exists('config/config.yaml'))

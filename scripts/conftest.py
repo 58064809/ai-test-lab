@@ -3,52 +3,47 @@
 
 from util.log_handle import log
 from util.request_control import RequestControl
-from util.yaml_handle import YamlHandle
+from util.config_handle import ConfigHandle
 from util.enum import *
-import pytest,time
-import urllib3,requests
+from util.model import EnvModel
+from config.settings import Settings
+from pydantic import ValidationError
+import pytest, time
+import urllib3, requests
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 def pytest_addoption(parser):
-    parser.addini("env", help="choose env: test,dev,prod", type=None, default="test")
+    '''添加pytest.ini  env'''
+    parser.addini("env", help="choose env: TEST,DEV,PROD", type=None, default="TEST")
 
 
-@pytest.fixture(scope="session",autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def set_env(request):
     env = request.config.getini("env").upper()
-    conf = YamlHandle().get_activation()
-    if not hasattr(ENV,env):
-        conf[ENV.Active.value]['activation'] = '环境名错误，可选环境名:TEST,DEV,PRO'
-        YamlHandle().update_activation(conf)
-        raise Exception("环境名错误，可选环境名:TEST,DEV,PRO")
-    else:
-        if env is None or env == '':
-            conf[ENV.Active.value]['activation'] = 'test'
-        else:
-            conf[ENV.Active.value]['activation'] = env.upper()
-        YamlHandle().update_activation(conf)
-        log.info("运行环境：%s" % conf[ENV.Active.value]['activation'].upper())
+    EnvModel(env=ENV[env].value)
+    log.success("运行环境：%s" % env)
 
 
-@pytest.fixture(scope="session",name="oa")
+@pytest.fixture(scope="session", name="oa", autouse=True)
 def get_oa_token(request):
-    session = YamlHandle().get_session
-    resp = RequestControl(Domain.OA.value).request_method("/common/open/login/loginByPassword", "JPOST", param={
-        "phoneNumber":session[Domain.OA.value]['username'],
-        "password": session[Domain.OA.value]['password']
+    '''获取OAToken'''
+    session = ConfigHandle().get_domain(Domain.OA.value)
+    resp = RequestControl('oa').request_method("/common/open/login/loginByPassword", "POST", type='json', data={
+        "phoneNumber": session['username'],
+        "password": session['password']
     }).json()
-    conf = YamlHandle().get_activation()
-    env = request.config.getini("env").upper()
-    env_name = list(conf[getattr(ENV, env).value].keys())[0]
-    conf[getattr(ENV, env).value][env_name]['session'][Domain.OA.value]['headers']['Authorization'] = resp['data']['token']
-    YamlHandle().update_activation(conf)
-    return resp['data']['token']
+    assert resp['code'] == 200, "获取OAtoken失败"
+    token = resp['data']['token']
+    Settings.global_params.update({'OA': {"Authorization": token}})
+
+
 @pytest.fixture(scope="session")
 def login_ysb_get_pubEncrypt():
     session = requests.session()
-    sess = YamlHandle().get_session
+    sess = ConfigHandle().get_domain(Domain.YSB.value)
     url = 'https://www.bejson.com/Bejson/Api/Rsa/pubEncrypt'
-
 
     publicKey = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuAltXJI4kMQkucWCeLGK4Zyqw7VUp1JYS1GkJb0eJK
@@ -59,31 +54,29 @@ qDSc21abcPhgvgK5K4xj9p5sG+V1FBISCE0dPrQIDAQAB
 -----END PUBLIC KEY-----'''
     data = {
         'publicKey': publicKey,
-        'encStr': '{"type":1,"account":"%s","password":"%s","reqTime":%s}etype:rsa2'%(sess[Domain.YSB.value]['username'],sess[Domain.YSB.value]['password'],int(time.time() * 1000)),
+        'encStr': '{"type":1,"account":"%s","password":"%s","reqTime":%s}etype:rsa2' % (
+            sess['username'], sess['password'], int(time.time() * 1000)),
         'etype': 'rsa2'}
-    resp = session.post(url, data,verify=False).json()
+    resp = session.post(url, data, verify=False).json()
     return resp['data']
 
-@pytest.fixture(scope="session",name="ysb")
-def get_ysb_token(request,login_ysb_get_pubEncrypt):
-    resp = RequestControl(Domain.YSB.value).request_method("/app/business/user/login", "JPOST", param={
-            "clientPublicKey":"",
-            "encryptedData": login_ysb_get_pubEncrypt
-                }).json()
-    conf = YamlHandle().get_activation()
-    env = request.config.getini("env").upper()
-    env_name = list(conf[getattr(ENV, env).value].keys())[0]
-    conf[getattr(ENV, env).value][env_name]['session'][Domain.YSB.value]['headers']['Authorization'] = resp['data']['token']
-    YamlHandle().update_activation(conf)
-    return resp['data']['token']
 
+@pytest.fixture(scope="session", name="ysb", autouse=True)
+def get_ysb_token(request, login_ysb_get_pubEncrypt):
+    '''获取营商宝Token'''
+    resp = RequestControl('ysb').request_method("/app/business/user/login", "POST", type='json', data={
+        "clientPublicKey": "",
+        "encryptedData": login_ysb_get_pubEncrypt
+    }).json()
+    assert resp['code'] == 200, "获取营商宝token失败"
+    token = resp['data']['token']
+    Settings.global_params.update({'YSB': {"Authorization": token}})
 
 
 def pytest_terminal_summary(terminalreporter):
     """
     收集测试结果
     """
-
     _PASSED = len([i for i in terminalreporter.stats.get('passed', []) if i.when != 'teardown'])
     _ERROR = len([i for i in terminalreporter.stats.get('error', []) if i.when != 'teardown'])
     _FAILED = len([i for i in terminalreporter.stats.get('failed', []) if i.when != 'teardown'])
