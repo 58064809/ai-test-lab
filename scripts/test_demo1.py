@@ -2,8 +2,6 @@
 # 2024/4/8 16:24
 
 
-from util.log_handle import log
-
 from util.case_handle import CaseHandle
 
 

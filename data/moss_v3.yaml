@@ -2,15 +2,13 @@
 case_common:
   allureEpic: 周边游项目
   allureFeature: 上单业务
-  allureStory: 收藏网址列表接口
-  skip:
+  allureStory: MOSS上单
   skip_reason: 该用例已废弃
+  skip:
 ...
 ---
 global:
-  merchantId: 603781
-  a: 1
-  b: 2
+  phone: 13550087714
 ...
 ---
 title: "商户列表(服务合同)查询"
@@ -22,18 +20,18 @@ request:
   url: /contract/merchant/my/list
   request_type: params
   data:
-    {"pageSize":10,"pageIndex":1}
+    { "pageSize": 10,"pageIndex": 1 }
   'headers':
     'User-Agent': 'Mozilla/5.0 (Linux; Android 11; PCHM10 Build/RKQ1.200903.002;
       wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106
       Mobile Safari/537.36 uni-app Html5Plus/1.0 (Immersed/32.0)'
 extract:
-  code: [ status_code, (.*), "0" ] # R.1. 提取数据，用于断言或接口关联
+  { "merchantId": "data.data[0].id" }
 valid:
   equals: # 断言相等
     状态码断言:
-      - ${assert_code}         # P.3. 断言也使用变量
-      - ${code}                # R.2. 使用提前到的变量进行断言
+      - 200         # P.3. 断言也使用变量
+
 ...
 ---
 title: 选择店铺创建产品
@@ -45,14 +43,12 @@ request:
   url: /contract/settle/getInfo/other
   request_type: params
   data:
-    {"merchantId":"603781"}
+    { "merchantId": "${merchantId}" }
   headers:
 extract:
-  code: [ status_code, (.*), "0" ] # R.1. 提取数据，用于断言或接口关联
 valid:
   equals: # 断言相等
     状态码断言:
-      - ${assert_code}         # P.3. 断言也使用变量
-      - ${code}                # R.2. 使用提前到的变量进行断言
+      - 200
 ...
 

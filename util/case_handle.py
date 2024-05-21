@@ -1,8 +1,5 @@
 # coding=utf-8
 # 2024/4/12 17:13
-import requests
-from pydantic import ValidationError
-
 from util.yaml_handle import YamlHandle
 from config.settings import SOURCE_DATA_PATH
 from util.log_handle import log
@@ -10,6 +7,7 @@ from requests import Response
 from util.request_control import RequestControl
 from config.settings import Settings
 from util.model import CaseModel
+from util.depend_handle import DependentCase
 from typing import *
 
 
@@ -20,6 +18,7 @@ class CaseHandle:
         self.case = YamlHandle(SOURCE_DATA_PATH.joinpath(filename)).read_yaml()
         self.case_common = self.get_case_common()['case_common']
         self.case_global = self.get_case_common()['global']
+        self.dependentcase = DependentCase()
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -67,32 +66,36 @@ class CaseHandle:
             raise ValueError(f"域名{domain}在Settings.global_dict中未找到")
         return {**token, **data.request.headers} if data.request.headers else token
 
-    def replace_data(self, data: Dict) -> None:
-        """替换数据"""
-        pass
+
 
     def case_run(self, data: Dict, **kwargs) -> Response:
         """获取用例请求数据"""
-        case = CaseModel(**data)
+        case_mode = CaseModel(**data)
         log.success('=========开始执行=========')
-        log.success(f'Request:{case.title}')
-        headers = self.prepare_headers(case)
-        RequestControl(case.request.domain).request_log(case.request.url, case.request.method,
-                                                        case.request.request_type, case.request.data, headers,
-                                                        case.request.files, **kwargs)
+        log.info(f'Request:{case_mode.title}')
+        headers = self.prepare_headers(case_mode)
         self.set_global_params()
+        case_mode = self.dependentcase.replace_data(case_mode)
+        case_mode = self.dependentcase.replace_dependencies(case_mode)
+        RequestControl(case_mode.request.domain).request_log(case_mode.request.url, case_mode.request.method,
+                                                             case_mode.request.request_type, case_mode.request.data,
+                                                             headers,
+                                                             case_mode.request.files, **kwargs)
         try:
-            resp = RequestControl(case.request.domain).request_method(
-                case.request.url,
-                case.request.method,
-                type=case.request.request_type,
-                data=case.request.data,
+            resp = RequestControl(case_mode.request.domain).request_method(
+                case_mode.request.url,
+                case_mode.request.method,
+                type=case_mode.request.request_type,
+                data=case_mode.request.data,
                 headers=headers,
-                files=case.request.files,
+                files=case_mode.request.files,
                 **kwargs
             )
-            log.info(f"Response:{case.title}")
+            log.info(f"Response:{case_mode.title}")
             log.info(f"响应==>>{resp.json()}")
+            log.success("接口响应时长: {} ms".format(round(resp.elapsed.total_seconds() * 1000, 2)))
+            self.dependentcase.get_extract(case_mode, resp)
+
             return resp
         except Exception as e:
             log.error(f"请求过程中发生错误: {e}")

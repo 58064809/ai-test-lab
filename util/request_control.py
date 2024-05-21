@@ -67,7 +67,6 @@ class RequestControl:
                        headers: Optional[Dict[str, str]] = None, files: Optional[Dict[str, Any]] = None,
                        timeout: int = 10,**kwargs) -> requests.Response:
         """根据指定的HTTP方法发送请求"""
-        # self.request_log(url, method, data, headers, files,**kwargs)
         try:
             if method.upper() == 'GET':
                 result = self.get(url, params=data, headers=headers, timeout=timeout,**kwargs)
@@ -89,6 +88,7 @@ class RequestControl:
         log.info("接口请求参数 ==>> {}".format(data))
         log.info("接口上传附件 files 参数 ==>> {}".format(files))
         log.info("自定义参数参数 ==>> {}".format(kwargs))
+
 
 if __name__ == '__main__':
     request = RequestControl('OA')
