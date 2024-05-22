@@ -24,6 +24,28 @@ class HttpMethod(str,Enum):
     HEAD = "HEAD"
     OPTIONS = "OPTIONS"
     TRACE = "TRACE"
+@unique
+class AssertTypeEnum(str,Enum):
+    JSON = 'json'
+    RE = 're'
+
+
+@unique
+class AssertEnum(IntEnum):
+    RESULT = 0
+    COMPARISON = 1
+    EXPECTED = 2
+
+class ComparisonOperatorEnum(str,Enum):
+    EQUAL = '=='
+    NOT_EQUAL = '!='
+    GREATER_THAN = '>'
+    LESS_THAN = '<'
+    GREATER_EQUAL = '>='
+    LESS_EQUAL = "<="
+    IN = 'in'
+    NOT_IN = 'not in'
+
 
 
 if __name__ == '__main__':

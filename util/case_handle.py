@@ -8,6 +8,7 @@ from util.request_control import RequestControl
 from config.settings import Settings
 from util.model import CaseModel
 from util.depend_handle import DependentCase
+from util.assert_handle import AssertHandle
 from typing import *
 
 
@@ -19,6 +20,7 @@ class CaseHandle:
         self.case_common = self.get_case_common()['case_common']
         self.case_global = self.get_case_common()['global']
         self.dependentcase = DependentCase()
+        self.asserthandle = AssertHandle()
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -55,7 +57,7 @@ class CaseHandle:
     @property
     def get_cases(self) -> List[Any]:
         """获取用例"""
-        return [item for item in self.case if item['skip'] is None or item['skip'] == 'y' or item['skip'] is True]
+        return [item for item in self.case if item['skip'] is None or item['skip'] in ['y', 'Y', 'true', 'True']]
 
     def prepare_headers(self, data: CaseModel) -> Optional[Dict[str, Any]]:
         """准备并更新请求头"""
@@ -81,26 +83,28 @@ class CaseHandle:
                                                              case_mode.request.request_type, case_mode.request.data,
                                                              headers,
                                                              case_mode.request.files, **kwargs)
-        try:
-            resp = RequestControl(case_mode.request.domain).request_method(
-                case_mode.request.url,
-                case_mode.request.method,
-                type=case_mode.request.request_type,
-                data=case_mode.request.data,
-                headers=headers,
-                files=case_mode.request.files,
-                **kwargs
-            )
-            log.info(f"Response:{case_mode.title}")
-            log.info(f"响应==>>{resp.json()}")
-            log.success("接口响应时长: {} ms".format(round(resp.elapsed.total_seconds() * 1000, 2)))
-            self.dependentcase.get_extract(case_mode, resp)
+        # try:
+        resp = RequestControl(case_mode.request.domain).request_method(
+            case_mode.request.url,
+            case_mode.request.method,
+            type=case_mode.request.request_type,
+            data=case_mode.request.data,
+            headers=headers,
+            files=case_mode.request.files,
+            **kwargs
+        )
+        log.info(f"Response:{case_mode.title}")
+        log.info(f"响应==>>{resp.json()}")
+        self.dependentcase.get_extract(case_mode, resp)
+        self.asserthandle.assert_handle(case_mode,resp)
+        log.success("接口响应时长: {} ms".format(round(resp.elapsed.total_seconds() * 1000, 2)))
 
-            return resp
-        except Exception as e:
-            log.error(f"请求过程中发生错误: {e}")
-        finally:
-            log.success('=========结束执行=========\n')
+
+        return resp
+        # except Exception as e:
+        #     log.error(f"请求过程中发生错误: {e}")
+        # finally:
+        #     log.success('=========结束执行=========\n')
 
 
 if __name__ == '__main__':

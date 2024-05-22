@@ -24,7 +24,7 @@ class CaseModel(BaseModel):
     skip: Optional[bool] = Field(default=None, description='跳过')
     request: RequestModel
     extract: Optional[Dict] = Field(default=None, description='提取')
-    valid: Dict = Field(default=None, description='断言')
+    valid: Union[List[Dict[str,List]],None] = Field(default=list(), description='断言')
 
 
 
