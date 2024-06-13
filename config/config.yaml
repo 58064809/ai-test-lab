@@ -20,6 +20,12 @@
     'port': '443'
     'protocol': 'https://'
     'username': '13550087714'
+  - 'domain': 'partner'
+    'host': 'partner.llzby.top'
+    'password': '123456'
+    'port': '443'
+    'protocol': 'https://'
+    'username': '13550086666'
 ...
 ---
 'dev_environment':
@@ -43,6 +49,12 @@
     'port': '443'
     'protocol': 'https://'
     'username': '13550087714'
+  - 'domain': 'partner'
+    'host': 'partner.llzby.top'
+    'password': '123456'
+    'port': '443'
+    'protocol': 'https://'
+    'username': '13550088888'
 ...
 ---
 'pro_environment':
@@ -66,4 +78,10 @@
     'port': '443'
     'protocol': 'https://'
     'username': '13550087714'
+  - 'domain': 'partner'
+    'host': 'partner.llzby.top'
+    'password': '123456'
+    'port': '443'
+    'protocol': 'https://'
+    'username': '13550088888'
 ...

@@ -8,7 +8,7 @@ from util.case_handle import CaseHandle
 
 import pytest,allure
 
-cases = CaseHandle('moss_v3.yaml')
+cases = CaseHandle('partner.yaml')
 
 
 @allure.epic(cases.get_allureEpic)

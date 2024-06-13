@@ -15,7 +15,9 @@ class RequestModel(BaseModel):
     request_type: str = Field(default=..., description='请求类型')
     data: Optional[Dict] = Field(default=None, description='请求参数')
     headers: Optional[Dict] = Field(default=dict(), description='请求头')
-    files: Optional[Dict] = Field(default=None, description='文件')
+    files: Union[Dict,List,None] = Field(default=None, description='文件')
+    sleep: Optional[int] = Field(default=None, description='请求延迟')
+
 
 
 class CaseModel(BaseModel):
@@ -25,6 +27,8 @@ class CaseModel(BaseModel):
     request: RequestModel
     extract: Optional[Dict] = Field(default=None, description='提取')
     valid: Union[List[Dict[str,List]],None] = Field(default=list(), description='断言')
+
+
 
 
 

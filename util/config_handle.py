@@ -19,7 +19,7 @@ class ConfigHandle:
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = object.__new__(cls)
-            YamlHandle(CONFIG_PATH).write_yaml(Settings().ENV_DATA)
+            # YamlHandle(CONFIG_PATH).write_yaml(Settings().ENV_DATA)
         return cls._instance
 
     @property
@@ -29,8 +29,20 @@ class ConfigHandle:
         return env
 
     @property
+    def switch_domain(self) -> Dict:
+        switch = {}
+        self.config.read(PYTEST_INI_PATH)
+        switch_domain = self.config.get('pytest', 'switch_domain').upper().split(',')
+        switch['oa'] = True if "OA" in switch_domain else False
+        switch['ysb'] = True if "YSB" in switch_domain else False
+        switch['partner'] = True if "PARTNER" in switch_domain else False
+        return switch
+
+    @property
     def read_config(self) -> Dict:
         try:
+            if not self.yaml.read_yaml():
+                self.yaml.write_yaml(Settings().ENV_DATA)
             return self.yaml.read_yaml()[ENV[self.get_env].value]
         except KeyError:
             raise KeyError('环境名错误，可选环境名:TEST,DEV,PRO')
@@ -45,9 +57,8 @@ class ConfigHandle:
     def read_db(self) -> Dict:
         return self.read_config['%s_environment' % self.get_env.lower()]['DBConnection']
 
-
     def get_domain(self, domain: str) -> Dict:
-        domain_dict = {"oa": 0, "ysb": 1}
+        domain_dict = {"oa": 0, "ysb": 1, "partner": 2}
         return self.read_session[domain_dict[Domain[domain.upper()].value]]
 
 
@@ -56,3 +67,4 @@ if __name__ == '__main__':
     print(config.read_config)
     # print(config.read_session)
     # print(config.read_db)
+    # print(config.switch_domain)

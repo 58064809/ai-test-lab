@@ -1,11 +1,18 @@
 # coding=utf-8
 # 2024/5/17 上午9:46
+import random
+import time
 from typing import *
+
+import pendulum
+
 from util.log_handle import log
 from util.model import CaseModel
 from config.settings import Settings
 import jmespath, re, json
 from requests import Response
+
+random_number = None
 
 
 class DependentCase:
@@ -13,7 +20,7 @@ class DependentCase:
 
     def __init__(self):
         # 这里假设初始化时可以提供一个函数名称的白名单。
-        self.safe_functions = ['sum']
+        self.safe_functions = ['sum', "current_timestamp", "random_number", "timeShift"]
 
     def replace_data(self, case: CaseModel) -> Union[CaseModel, None]:
         """
@@ -55,6 +62,7 @@ class DependentCase:
             return func(*args)
         except KeyError as e:
             raise KeyError(f"内置方法 {func.__name__} 调用失败: {e}")
+
     def replace_dependencies(self, case: CaseModel) -> Union[CaseModel, None]:
         """
         替换依赖数据
@@ -75,7 +83,6 @@ class DependentCase:
                 return str(result)
             except AttributeError as e:
                 raise AttributeError(f"处理匹配项 {matched_group} 时出错: {e}")
-
 
         res = re.sub(r'\${__(.*?)}', replacement, depend_data)
 
@@ -109,7 +116,53 @@ class DependentCase:
                 except Exception as e:
                     log.error(f"提取失败: {e}")
 
-    def sum(self,*args: str):
+    def sum(self, *args: str):
+        """
+        内置函数，用于计算多个参数的和。
+        :param args: 参数列表，每个参数都是一个字符串，表示一个整数。
+        :return: 参数之和。
+        """
         if not args:
             raise ValueError("参数不能为空")
-        return sum(map(int,args))
+        return sum(map(int, args))
+
+    def current_timestamp(self, len: int = 10):
+        '''返回当前时间搓'''
+        if len == 10:
+            # 10位时间搓
+            return pendulum.now().int_timestamp
+        return int(pendulum.now().timestamp() * 1000)
+
+    def random_number(self):
+        global random_number
+        if not random_number:
+            random_number = random.randint(100000, 999999)
+        return random_number
+
+    def current_timezone(self, timezone=None):
+        '''返回timezone时间,默认为当前timezone'''
+        if timezone:
+            return pendulum.now().in_timezone(timezone)
+        return pendulum.now()
+
+    def timeShift(self, format:str, key: str = None, value: float = None):
+        '''
+        :param kwargs: years=3 months=-4 weeks=1 hours=-9
+        时间单位参数还支持小数，比如加上一天半可以写成 days=1.5
+        :return:
+        例如:  c.update_time(years=2,days=1,hours=-3.5)
+        '''
+        if key and value:
+            if format == 'date':
+                return self.current_timezone().add(**{key: float(value)}).to_date_string()
+            elif format == 'time':
+                return self.current_timezone().add(**{key: float(value)}).to_time_string()
+            else:
+                return self.current_timezone().add(**{key: float(value)}).to_datetime_string()
+        else:
+            if format == 'date':
+                return self.current_timezone().add().to_date_string()
+            elif format == 'time':
+                return self.current_timezone().add().to_time_string()
+            else:
+                return self.current_timezone().add().to_datetime_string()

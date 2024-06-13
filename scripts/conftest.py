@@ -7,26 +7,28 @@ from util.config_handle import ConfigHandle
 from util.enum import *
 from util.model import EnvModel
 from config.settings import Settings
-from pydantic import ValidationError
+from pyfiglet import Figlet
 import pytest, time
 import urllib3, requests
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-
+f = Figlet(font='slant')
 def pytest_addoption(parser):
     '''添加pytest.ini  env'''
     parser.addini("env", help="choose env: TEST,DEV,PROD", type=None, default="TEST")
+    parser.addini("switch", help="[oa,ysb,partner]", type=None, default="")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def set_env(request):
+    log.info("\n" + f.renderText('Start Test'))
     env = request.config.getini("env").upper()
     EnvModel(env=ENV[env].value)
     log.success("运行环境：%s" % env)
 
 
-@pytest.fixture(scope="session", name="oa", autouse=True)
+@pytest.fixture(scope="session", name="oa", autouse=ConfigHandle().switch_domain['oa'])
 def get_oa_token(request):
     '''获取OAToken'''
     session = ConfigHandle().get_domain(Domain.OA.value)
@@ -61,7 +63,7 @@ qDSc21abcPhgvgK5K4xj9p5sG+V1FBISCE0dPrQIDAQAB
     return resp['data']
 
 
-@pytest.fixture(scope="session", name="ysb", autouse=True)
+@pytest.fixture(scope="session", name="ysb", autouse=ConfigHandle().switch_domain['ysb'])
 def get_ysb_token(request, login_ysb_get_pubEncrypt):
     '''获取营商宝Token'''
     resp = RequestControl('ysb').request_method("/app/business/user/login", "POST", type='json', data={
@@ -71,6 +73,24 @@ def get_ysb_token(request, login_ysb_get_pubEncrypt):
     assert resp['code'] == 200, "获取营商宝token失败"
     token = resp['data']['token']
     Settings.global_params.update({'YSB': {"Authorization": token}})
+
+
+@pytest.fixture(scope="session", name="partner", autouse=ConfigHandle().switch_domain['partner'])
+def get_partner_token(request):
+    '''获取OAToken'''
+    session = ConfigHandle().get_domain(Domain.PARTNER.value)
+    resp = RequestControl('partner').request_method("/sys/login", "POST", type='json', data={
+        "username": session['username'],
+        "password": session['password'],
+        "captcha": "0000",
+        "remember": True,
+        "checkKey": int(time.time() / 1000)
+    }).json()
+    print(session['username'])
+    print(session['password'])
+    assert resp['code'] == 200, "获取合伙人Token失败"
+    token = resp['result']['token']
+    Settings.global_params.update({'PARTNER': {"X-Access-Token": token}})
 
 
 def pytest_terminal_summary(terminalreporter):
@@ -95,3 +115,5 @@ def pytest_terminal_summary(terminalreporter):
         log.info("用例成功率: %.2f" % _RATE + " %")
     except ZeroDivisionError:
         log.info("用例成功率: 0.00 %")
+    finally:
+        log.info("\n" + f.renderText('End'))

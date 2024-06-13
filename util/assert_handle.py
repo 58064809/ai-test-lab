@@ -52,7 +52,7 @@ class AssertHandle:
                 raise ValueError("断言配置错误")
 
             assertion_type = next((k for k in [AssertTypeEnum.JSON.value, AssertTypeEnum.RE.value] if k in item), None)
-            if assertion_type == AssertTypeEnum.JSON.value and response.headers.get('Content-Type') == 'application/json':
+            if assertion_type == AssertTypeEnum.JSON.value:
                 result = self._get_json_result(item[assertion_type][AssertEnum.RESULT.value], response.json())
                 self._compare_values(result, item[assertion_type][AssertEnum.COMPARISON.value], item[assertion_type][AssertEnum.EXPECTED.value])
             elif assertion_type == AssertTypeEnum.RE.value:

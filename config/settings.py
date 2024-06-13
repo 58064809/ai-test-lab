@@ -46,6 +46,10 @@ class Settings:
                              "host": "pre-server-app-business.lianlianlvyou.com",
                              "port": "443", 'username': '13550087714',
                              'password': '123456'
+                             },{"domain": "partner", "protocol": "https://",
+                             "host": "partner.llzby.top",
+                             "port": "443", 'username': '13550086666',
+                             'password': '123456'
                              }],
                 "DBConnection": {"host": "10.14.2.245", "port": "3306", "user": "root", "password": "123456",
                                  "database": "api_report", "charset": "utf8"}
@@ -61,6 +65,10 @@ class Settings:
                              "host": "pre-server-app-business.lianlianlvyou.com",
                              "port": "443",
                              'username': '13550087714',
+                             'password': '123456'
+                             },{"domain": "partner", "protocol": "https://",
+                             "host": "partner.llzby.top",
+                             "port": "443", 'username': '13550088888',
                              'password': '123456'
                              }],
                 "DBConnection": {"host": "pc-2ze8c757mjh350kql-public.rwlb.rds.aliyuncs.com", "port": "3306",
@@ -79,6 +87,10 @@ class Settings:
                              "port": "443",
                              'username': '13550087714',
                              'password': '123456'
+                             },{"domain": "partner", "protocol": "https://",
+                             "host": "partner.llzby.top",
+                             "port": "443", 'username': '13550088888',
+                             'password': '123456'
                              }],
                 "DBConnection": {"host": "pc-2ze8c757mjh350kql-public.rwlb.rds.aliyuncs.com", "port": "3306",
                                  "user": "lldb_dev", "password": "LLdev#2022zby",
@@ -86,6 +98,7 @@ class Settings:
             }}
 
         return [test_environment, dev_environment, pro_environment]
+
 
 
 if __name__ == '__main__':

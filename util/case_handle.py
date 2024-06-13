@@ -1,5 +1,8 @@
 # coding=utf-8
 # 2024/4/12 17:13
+import time
+
+from util.allure_handle import AllureHandle
 from util.yaml_handle import YamlHandle
 from config.settings import SOURCE_DATA_PATH
 from util.log_handle import log
@@ -21,6 +24,7 @@ class CaseHandle:
         self.case_global = self.get_case_common()['global']
         self.dependentcase = DependentCase()
         self.asserthandle = AssertHandle()
+        self.allure_handle = AllureHandle()
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -57,7 +61,7 @@ class CaseHandle:
     @property
     def get_cases(self) -> List[Any]:
         """获取用例"""
-        return [item for item in self.case if item['skip'] is None or item['skip'] in ['y', 'Y', 'true', 'True']]
+        return [item for item in self.case if item['skip'] is None]
 
     def prepare_headers(self, data: CaseModel) -> Optional[Dict[str, Any]]:
         """准备并更新请求头"""
@@ -67,8 +71,6 @@ class CaseHandle:
         except KeyError:
             raise ValueError(f"域名{domain}在Settings.global_dict中未找到")
         return {**token, **data.request.headers} if data.request.headers else token
-
-
 
     def case_run(self, data: Dict, **kwargs) -> Response:
         """获取用例请求数据"""
@@ -83,31 +85,40 @@ class CaseHandle:
                                                              case_mode.request.request_type, case_mode.request.data,
                                                              headers,
                                                              case_mode.request.files, **kwargs)
-        # try:
-        resp = RequestControl(case_mode.request.domain).request_method(
-            case_mode.request.url,
-            case_mode.request.method,
-            type=case_mode.request.request_type,
-            data=case_mode.request.data,
-            headers=headers,
-            files=case_mode.request.files,
-            **kwargs
-        )
-        log.info(f"Response:{case_mode.title}")
-        log.info(f"响应==>>{resp.json()}")
-        self.dependentcase.get_extract(case_mode, resp)
-        self.asserthandle.assert_handle(case_mode,resp)
-        log.success("接口响应时长: {} ms".format(round(resp.elapsed.total_seconds() * 1000, 2)))
+        if case_mode.request.sleep:
+            log.info(f"接口请求延迟: {case_mode.request.sleep}秒")
+            time.sleep(case_mode.request.sleep)
+            log.info(f"接口请求延迟结束")
+        try:
+            resp = RequestControl(case_mode.request.domain).request_method(
+                case_mode.request.url,
+                case_mode.request.method,
+                type=case_mode.request.request_type,
+                data=case_mode.request.data,
+                headers=headers,
+                files=case_mode.request.files,
+                **kwargs
+            )
+            log.info(f"Response:{case_mode.title}")
+            log.info(f"接口响应结果==>>{resp.json()}")
+            self.dependentcase.get_extract(case_mode, resp)
+            self.asserthandle.assert_handle(case_mode, resp)
+            log.success("接口响应时长: {} ms".format(round(resp.elapsed.total_seconds() * 1000, 2)))
+            self.allure_handle.details_to_allure(url=resp.request.url, method=case_mode.request.method,
+                                                 type=case_mode.request.request_type, data=case_mode.request.data,
+                                                 headers=headers, files=case_mode.request.files, response=resp.text,
+                                                 **kwargs)
 
-
-        return resp
-        # except Exception as e:
-        #     log.error(f"请求过程中发生错误: {e}")
-        # finally:
-        #     log.success('=========结束执行=========\n')
+            return resp
+        except Exception as e:
+            log.error(f"请求过程中发生错误: {e}")
+        finally:
+            log.success('=========结束执行=========\n')
 
 
 if __name__ == '__main__':
     case = CaseHandle('moss_v3.yaml')
     print(case.case_common)
     print(case.get_cases)
+
+
