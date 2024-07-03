@@ -30,8 +30,5 @@ for item in x:
         json=resp['data'],
         headers={
             "Authorization": "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2Jhc2VfaWQiOiIxOTc2MnwxNzE3NDk1NDk5MDc4In0.jgnD5vJXWyqSbN3WhjS9u6mQ84kIceYbpJhPQqzh0dA"}).json()
-    print(resp_send)
-    if resp_send['code'] == 200:
-        print('成功')
-    else:
-        print('失败')
+    if resp_send['code'] != 200:
+        print(resp_send,'失败')

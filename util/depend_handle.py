@@ -1,18 +1,14 @@
 # coding=utf-8
 # 2024/5/17 上午9:46
-import random
-import time
+
 from typing import *
-
-import pendulum
-
 from util.log_handle import log
 from util.model import CaseModel
 from config.settings import Settings
-import jmespath, re, json
 from requests import Response
+import jmespath, re, json,random,pendulum,threading
 
-random_number = None
+random_numbers = threading.local()
 
 
 class DependentCase:
@@ -134,10 +130,9 @@ class DependentCase:
         return int(pendulum.now().timestamp() * 1000)
 
     def random_number(self):
-        global random_number
-        if not random_number:
-            random_number = random.randint(100000, 999999)
-        return random_number
+        if not hasattr(random_numbers, 'number'):
+            random_numbers.number = random.randint(100000, 999999)
+        return random_numbers.number
 
     def current_timezone(self, timezone=None):
         '''返回timezone时间,默认为当前timezone'''
@@ -145,24 +140,31 @@ class DependentCase:
             return pendulum.now().in_timezone(timezone)
         return pendulum.now()
 
-    def timeShift(self, format:str, key: str = None, value: float = None):
-        '''
-        :param kwargs: years=3 months=-4 weeks=1 hours=-9
-        时间单位参数还支持小数，比如加上一天半可以写成 days=1.5
-        :return:
-        例如:  c.update_time(years=2,days=1,hours=-3.5)
-        '''
-        if key and value:
-            if format == 'date':
-                return self.current_timezone().add(**{key: float(value)}).to_date_string()
-            elif format == 'time':
-                return self.current_timezone().add(**{key: float(value)}).to_time_string()
+    def timeShift(self, format:str = 'datetime', key: str = None, value: float = None):
+        """
+        根据提供的单位（如年、月、周、小时等）调整时间。
+
+        参数:
+        format: 输出时间字符串的格式，默认为'datetime'。
+        key: 用于时间偏移的单位，如'years', 'months'等。
+        value: 在指定时间单位上增加或减去的数值。
+
+        返回:
+        偏移后的时间字符串。
+
+        异常:
+        ValueError: 指定的时间单位无效时抛出。
+        RuntimeError: 执行时间偏移操作时发生错误。
+        """
+        valid_units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds']
+        if key and value and key not in valid_units:
+            raise ValueError(f"Invalid time unit: {key}. Valid units are: {', '.join(valid_units)}")
+        try:
+            current_time = self.current_timezone()
+            if key and value:
+                shifted_time = current_time.add(**{key: float(value)})
             else:
-                return self.current_timezone().add(**{key: float(value)}).to_datetime_string()
-        else:
-            if format == 'date':
-                return self.current_timezone().add().to_date_string()
-            elif format == 'time':
-                return self.current_timezone().add().to_time_string()
-            else:
-                return self.current_timezone().add().to_datetime_string()
+                shifted_time = current_time.add()
+            return getattr(shifted_time, f'to_{format}_string')()
+        except Exception as e:
+            raise RuntimeError(f"Error shifting time: {e}")

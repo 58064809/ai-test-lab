@@ -8,7 +8,7 @@ case_common:
 ...
 ---
 global:
-  phone: 13550086666
+  phone: 13155555555
   singleMin: 1
   singleMax: 10
   stockAmount: 1000
@@ -566,7 +566,7 @@ valid:
 ---
 title: 提交服务商管理员审核
 description: 提交服务商管理员审核
-skip:
+skip: asd
 request:
   sleep:
   domain: partner
@@ -575,6 +575,66 @@ request:
   request_type: json
   data:
     { "productId": "${product_id}" }
+  'headers':
+    { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36' }
+extract:
+valid:
+  [
+    json: [ "code","==", 200 ],
+  ]
+...
+---
+title: 选择服务商身份
+description: 选择服务商身份
+# skip填充则跳过用例
+skip: dfs
+request:
+  domain: partner
+  method: PUT
+  url: /sys/selectDepart
+  request_type: json
+  data:
+    { "orgCode": "A03A01A03A01","username": "${phone}" }
+  'headers':
+    { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36' }
+extract:
+valid:
+  [
+    json: [ "code","==", 200 ],
+  ]
+...
+---
+title: 服务商管理员-审核通过
+description: 服务商管理员-审核通过
+# skip填充则跳过用例
+skip: asdf
+request:
+  domain: partner
+  method: POST
+  url: /product/service/provider/admin/approval
+  request_type: json
+  data:
+    {"approvalResult":true,"approvalRejectReason":"","productId":"${product_id}"}
+  'headers':
+    { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36' }
+extract:
+valid:
+  [
+    json: [ "code","==", 200 ],
+  ]
+...
+---
+title: 营商宝-商家确认
+description: 营商宝-商家确认
+# skip填充则跳过用例
+skip: asdf
+request:
+  domain: ysb
+  method: POST
+  url: /app/business/product/manage/confirm
+  request_type: json
+  data:
+    {"operateType":1,"confirmList":[{"id":195,"merchantId":"${merchantId}","platformCode":"kuaishou","platformName":"快手","confirmFlag":1,"createDate":null,"updateDate":null,"createUser":null,"createUserId":null,"contractTemplateVersionId":null,"contractHtmlPath":"https://nb-biz.lianlianlvyou.com/business-app/protocal/kwai-service-fee.html","agreementName":"《生态平台服务费扣除说明》","bizProductId":"${product_id}","value":"kuaishou"}],"productId":"${product_id}"}
   'headers':
     { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36' }
 extract:
