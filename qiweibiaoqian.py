@@ -12,8 +12,7 @@ import asyncio,aiohttp
 
 
 rate_limit = AsyncLimiter(8000, 60)
-# rate_limit = AsyncLimiter(9000, 60)
-# semaphore = asyncio.Semaphore(10)
+
 class Connection:
     db = None
     session = None
@@ -178,7 +177,6 @@ class WeiXin:
     async def mark_tag(self,client,item):
         '''打标'''
         async with rate_limit:
-        # async with semaphore:
             tag_list = item['lable_name_list'].replace("{", '').replace("}", '').replace("'",'').strip().split(',')
             new_tag_list = []
             for tag in tag_list:
@@ -214,8 +212,8 @@ class WeiXin:
 
 if __name__ == '__main__':
     wx = WeiXin()
-    # wx.del_corp_tag()
-    # wx.add_corp_tag()
+    wx.del_corp_tag()
+    wx.add_corp_tag()
     total = wx.get_all_user()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(wx.main(total))
