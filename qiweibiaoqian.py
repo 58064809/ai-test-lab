@@ -11,7 +11,7 @@ import requests, pendulum, pathlib, pymysql
 import asyncio,aiohttp
 
 
-rate_limit = AsyncLimiter(4, 2)
+rate_limit = AsyncLimiter(8000, 60)
 # rate_limit = AsyncLimiter(9000, 60)
 # semaphore = asyncio.Semaphore(10)
 class Connection:
