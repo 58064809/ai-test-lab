@@ -48,7 +48,7 @@ class Logging:
                               ":<cyan>{line}</cyan> | "
                               "<level>{level}</level>: "
                               "<level>{message}</level>",  # 日志内容
-                       rotation="10MB", retention='3 days', encoding="utf-8", enqueue=True,
+                       rotation="1024MB", retention='3 days', encoding="utf-8", enqueue=True,
                        backtrace=True, diagnose=True, catch=True)
         except Exception as e:
             print(f"日志配置失败: {e}")
