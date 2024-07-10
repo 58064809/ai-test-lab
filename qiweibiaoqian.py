@@ -1,5 +1,7 @@
 # coding=utf-8
 # 2024/7/2 下午4:59
+import time
+
 from dbutils.pooled_db import PooledDB
 from pymysql.cursors import SSDictCursor
 from util.log_handle import log
@@ -153,6 +155,7 @@ class WeiXin:
                     self.connect.commit()
                 else:
                     log.error(f'添加标签组【{group_name}】,【{tag_name}】失败,{resp}')
+            time.sleep(0.1)
 
     def get_all_user(self):
         sql = 'select * from `douyin`.`ads_wework_user_lable_d`'
