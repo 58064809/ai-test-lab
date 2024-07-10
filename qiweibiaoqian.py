@@ -5,13 +5,25 @@ import time
 from dbutils.pooled_db import PooledDB
 from pymysql.cursors import SSDictCursor
 from util.log_handle import log
+from requests import adapters
+from aiolimiter import AsyncLimiter
 import requests, pendulum, pathlib, pymysql
 import asyncio,aiohttp
 
-semaphore = asyncio.Semaphore(10)
+
+rate_limit = AsyncLimiter(4, 2)
+# rate_limit = AsyncLimiter(9000, 60)
+# semaphore = asyncio.Semaphore(10)
 class Connection:
     db = None
-
+    session = None
+    @classmethod
+    def get_session(cls):
+        if cls.session is None:
+            requests.adapters.DEFAULT_RETRIES = 5  # 增加重连次数
+            cls.session = requests.session()
+            cls.session.keep_alive = False  # 关闭多余连接
+        return cls.session
     @classmethod
     def get_db_connect(cls):
         if cls.db is None:
@@ -44,7 +56,7 @@ class WeiXin:
         self.corpid = "ww2c0040069d754cc0"
         self.corpsecret = "u2tn3-Klcezmkuyxud5zA9YzDuBxsg-cDt9qCKYKIkg"
         self.path = pathlib.Path('./qywx_token.txt')
-        self.session = requests.Session()
+        self.session = Connection.get_session()
         self.token = self.get_access_token()
         self.connect, self.cursor = Connection.get_db_connect()
 
@@ -165,7 +177,8 @@ class WeiXin:
 
     async def mark_tag(self,client,item):
         '''打标'''
-        async with semaphore:
+        async with rate_limit:
+        # async with semaphore:
             tag_list = item['lable_name_list'].replace("{", '').replace("}", '').replace("'",'').strip().split(',')
             new_tag_list = []
             for tag in tag_list:
@@ -189,7 +202,7 @@ class WeiXin:
                 else:
                     print(result)
                     log.error(f'给{item["userid"]}打标失败')
-                time.sleep(0.5)
+
 
     async def main(self,total):
         timeout = aiohttp.ClientTimeout(total=None)
