@@ -8,7 +8,7 @@ from util.log_handle import log
 import requests, pendulum, pathlib, pymysql
 import asyncio,aiohttp
 
-semaphore = asyncio.Semaphore(100)
+semaphore = asyncio.Semaphore(10)
 class Connection:
     db = None
 
