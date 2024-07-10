@@ -186,6 +186,7 @@ class WeiXin:
                 else:
                     print(result)
                     log.error(f'给{item["userid"]}打标失败')
+                await asyncio.sleep(1)
     async def main(self,total):
         timeout = aiohttp.ClientTimeout(total=None)
         connector = aiohttp.TCPConnector(verify_ssl=False)
