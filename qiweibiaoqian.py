@@ -109,7 +109,6 @@ class WeiXin:
         sql = 'select `group_id` from `douyin`.`ads_wework_item`'
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
-        # print({item['group_id'] for item in result})
         url = f'https://qyapi.weixin.qq.com/cgi-bin/externalcontact/del_corp_tag?access_token={self.token}'
         data = {
             "group_id": list({item['group_id'] for item in result})
@@ -161,7 +160,7 @@ class WeiXin:
         sql = 'select * from `douyin`.`ads_wework_user_lable_d`'
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
-        return result
+        return list(reversed(result))
 
 
     async def mark_tag(self,client,item):
@@ -175,7 +174,8 @@ class WeiXin:
                 sql = 'select * from `douyin`.`ads_wework_item` where `group_name`=%s and `tag_name`=%s'
                 self.cursor.execute(sql, (group_name, tag_name))
                 item_result = self.cursor.fetchall()
-                new_tag_list.append(item_result[0]['tag_id'])
+                if item_result:
+                    new_tag_list.append(item_result[0]['tag_id'])
             url = f'https://qyapi.weixin.qq.com/cgi-bin/externalcontact/mark_tag?access_token={self.token}'
             data = {
                 "userid": item['userid'],
@@ -189,7 +189,8 @@ class WeiXin:
                 else:
                     print(result)
                     log.error(f'给{item["userid"]}打标失败')
-                await asyncio.sleep(1)
+                time.sleep(0.5)
+
     async def main(self,total):
         timeout = aiohttp.ClientTimeout(total=None)
         connector = aiohttp.TCPConnector(verify_ssl=False)
@@ -200,8 +201,8 @@ class WeiXin:
 
 if __name__ == '__main__':
     wx = WeiXin()
-    wx.del_corp_tag()
-    wx.add_corp_tag()
+    # wx.del_corp_tag()
+    # wx.add_corp_tag()
     total = wx.get_all_user()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(wx.main(total))
