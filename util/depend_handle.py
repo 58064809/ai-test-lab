@@ -11,7 +11,7 @@ import jmespath, re, json,random,pendulum,threading
 random_numbers = threading.local()
 
 
-class DependentCase:
+class DependentCase():
     """ 处理依赖相关的业务 """
 
     def __init__(self):

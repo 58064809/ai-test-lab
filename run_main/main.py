@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 # date = 2021/7/1
 from config.settings import REPORT_RESULT_PATH, REPORT_HTML_PATH
-import os
+import os,pytest
 
 
 class RunMain:
     @staticmethod
     def run_main():
         try:
-            os.system('pytest')
+            pytest.main()
+            # os.system('pytest')
             # 生产静态报告
             os.system('allure generate %s -o %s --clean' % (REPORT_RESULT_PATH, REPORT_HTML_PATH))
             # 也可以打开web服务供其他人查看
@@ -27,3 +28,4 @@ class RunMain:
 
 if __name__ == '__main__':
     RunMain.run_main()
+

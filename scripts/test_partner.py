@@ -3,9 +3,6 @@
 
 
 from util.case_handle import CaseHandle
-
-
-
 import pytest,allure
 
 cases = CaseHandle('partner.yaml')
@@ -13,7 +10,7 @@ cases = CaseHandle('partner.yaml')
 
 @allure.epic(cases.get_allureEpic)
 @allure.feature(cases.get_allureFeature)
-class TestDemo1:
+class TestPartner:
 
     @pytest.mark.skipif(cases.case_common['skip'],reason=cases.get_allureEpic if not cases.case_common['skip'] else cases.case_common['skip_reason'])
     @pytest.mark.parametrize('case',cases.get_cases)

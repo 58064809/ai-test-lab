@@ -8,7 +8,7 @@ case_common:
 ...
 ---
 global:
-  phone: 13155555555
+  phone: 13188888888
   singleMin: 1
   singleMax: 10
   stockAmount: 1000
@@ -107,7 +107,8 @@ request:
                                                                                       "dbValue": [ 131, 132, 133 ] },
                                                                      "onlineLocations": { "show": true, "dbValue": [ 1 ],
                                                                                           "empty": false },
-                                                                     "onlineChanel": { "show": true, "templateValueType": 3,
+                                                                     "onlineChanel": { "show": true,
+                                                                                       "templateValueType": 3,
                                                                                        "templateValue": {
                                                                                          "exp": [ "wechatPublic",
                                                                                                   "wechatApplet",
@@ -125,36 +126,39 @@ request:
                                                                        "rule": "!result.productInfo.baseInfo.shopInfos.dbValue",
                                                                        "info": "上架门店不能为空" } ],
                                                                                     "empty": true, "dbValue": [
-                                                                         { "shopId": { "dbValue": "${shopId}" }, "shopName": {
-                                                                           "dbValue": "${shopName}" },
+                                                                         { "shopId": { "dbValue": "${shopId}" },
+                                                                           "shopName": {
+                                                                             "dbValue": "${shopName}" },
                                                                            "telephone": { "dbValue": "${telephone}" },
                                                                            "shopAddress": {
-                                                                             "dbValue": "${shopAddress}" } },
+                                                                             "dbValue": "${shopAddress}" } }
                                                                        ] } },
-                                                       "productSettingInfo": { "show": true, "settingMode": { "show": true,
-                                                                                                              "tips": [ {
-                                                                                                                "name": "",
-                                                                                                                "color": "orange",
-                                                                                                                "tips": "t+5表示订单核销5天后可申请提现" } ],
-                                                                                                              "templateValueType": 3,
-                                                                                                              "templateValue": {
-                                                                                                                "exp": 8 },
-                                                                                                              "dbValue": 8 },
+                                                       "productSettingInfo": { "show": true,
+                                                                               "settingMode": { "show": true, "tips": [
+                                                                                 { "name": "", "color": "orange",
+                                                                                   "tips": "t+5表示订单核销5天后可申请提现" } ],
+                                                                                                "templateValueType": 3,
+                                                                                                "templateValue": {
+                                                                                                  "exp": 8 },
+                                                                                                "dbValue": 8 },
                                                                                "settingType": { "show": true, "tips": [
                                                                                  { "name": "", "color": "orange",
                                                                                    "tips": "温馨提示：本产品统一收款选择“商户”，需商家在营商宝维护总部收款账户，提现则会打款至总部收款账户; 按门店收款选择“店铺”，需商家在营商宝维护门店收款账户，提现则会打款至各门店收款账户" } ],
                                                                                                 "templateValueType": 1,
-                                                                                                "templateValue": { "exp": 1 },
+                                                                                                "templateValue": {
+                                                                                                  "exp": 1 },
                                                                                                 "disabled": false,
                                                                                                 "dbValue": 1 },
                                                                                "tnSettleDay": { "show": true,
                                                                                                 "templateValueType": 1,
-                                                                                                "templateValue": { "exp": 5 },
+                                                                                                "templateValue": {
+                                                                                                  "exp": 5 },
                                                                                                 "disabled": false,
                                                                                                 "dbValue": 5 } },
                                                        "workOrderInfo": { "designOnlineTime": { } },
                                                        "productAdvancePaymentInfo": { "advance": { "show": false },
-                                                                                      "advanceApprovalId": { "show": false },
+                                                                                      "advanceApprovalId": {
+                                                                                        "show": false },
                                                                                       "advancePaymentAmount": {
                                                                                         "show": false, "dbValue": 0 } },
                                                        "productInvoiceInfo": { "invoiceType": { "show": false } },
@@ -170,9 +174,9 @@ request:
                                                                                                           "info": "最多上传六张banner图片" } ],
                                                                                                       "empty": true,
                                                                                                       "dbValue": [ {
-                                                                                                        "url": "https://debug.lianlianlvyou.com/lianlian/common/900_600_1716884356004.jpg" },
+                                                                                                        "url": "https://debug.lianlianlvyou.com/lianlian/common/900_600_1725346437350.jpg" },
                                                                                                         {
-                                                                                                          "url": "https://debug.lianlianlvyou.com/lianlian/common/900_600_1716884358472.jpg" } ] },
+                                                                                                          "url": "https://debug.lianlianlvyou.com/lianlian/common/900_600_1725346441712.jpg" } ] },
                                                                         "faceImg": { "show": true, "valueCheck": [ {
                                                                           "rule": "!result.productInfo.articleInfo.faceImg.dbValue",
                                                                           "info": "请至少上传一张封面图片" },
@@ -180,8 +184,16 @@ request:
                                                                             "rule": "result.productInfo.articleInfo.faceImg.dbValue.length < 1",
                                                                             "info": "请至少上传一张封面图片" } ],
                                                                                      "empty": true, "dbValue": [ {
-                                                                            "url": "https://debug.lianlianlvyou.com/lianlian/common/1200_600_1716884342676.jpg" } ] } },
-                                                       "show": true } }
+                                                                            "url": "https://debug.lianlianlvyou.com/lianlian/common/1200_600_1725346433659.jpg" } ] },
+                                                                        "appFaceImg": { "show": true, "valueCheck": [ {
+                                                                          "rule": "!result.productInfo.articleInfo.appFaceImg.dbValue",
+                                                                          "info": "请至少上传一张APP封面图片" },
+                                                                          {
+                                                                            "rule": "result.productInfo.articleInfo.appFaceImg.dbValue.length < 1",
+                                                                            "info": "请至少上传一张APP封面图片" } ],
+                                                                                        "empty": true, "dbValue": [ {
+                                                                            "url": "https://debug.lianlianlvyou.com/lianlian/common/v2-d05f7c0cbe39d2da61ad277a6524f854_720w_1725346451043.gif" } ] } },
+                                                       "show": true, "textEdit": { "show": true, "dbValue": false } } }
   'headers':
 extract:
   { "product_id": "result" }
@@ -566,7 +578,7 @@ valid:
 ---
 title: 提交服务商管理员审核
 description: 提交服务商管理员审核
-skip: asd
+skip:
 request:
   sleep:
   domain: partner
@@ -587,7 +599,7 @@ valid:
 title: 选择服务商身份
 description: 选择服务商身份
 # skip填充则跳过用例
-skip: dfs
+skip:
 request:
   domain: partner
   method: PUT
@@ -607,7 +619,7 @@ valid:
 title: 服务商管理员-审核通过
 description: 服务商管理员-审核通过
 # skip填充则跳过用例
-skip: asdf
+skip:
 request:
   domain: partner
   method: POST
@@ -627,7 +639,7 @@ valid:
 title: 营商宝-商家确认
 description: 营商宝-商家确认
 # skip填充则跳过用例
-skip: asdf
+skip:
 request:
   domain: ysb
   method: POST
