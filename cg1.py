@@ -5,8 +5,8 @@ url = 'https://thirdd.lianlianlvyou.com/nearby/v/third/service/order/request'
 data =[{
     "id":1,
     "codeType": 112,
-    "orderId": 100100999,
-    "productItemId": 4662579,
+    "orderId": 1021999971,
+    "productItemId": 4662632,
     "usingDate": "2022-04-14",
     "amount": 2,
     "bookingCustomerName": "test",

@@ -16,7 +16,7 @@ class ShenJi:
     def __init__(self):
         self.env = 'shenji'
         self.connect, self.cursor = Connection.get_db_connect(self.env)
-        self.filename = r"C:\Users\ll07\Desktop\汇总v2_20241226_01.xlsx"
+        self.filename = r"C:\Users\ll07\Desktop\汇总V2_20250116.xlsx"
         self.workbook = load_workbook(self.filename)
         self.host = 'https://oasd.lianlianlvyou.com'
         self.session = requests.session()
@@ -35,8 +35,9 @@ class ShenJi:
             # 构建数据列表
             sheet_data = []
             for row in ws.iter_rows(min_row=3, values_only=True):  # 从第3行开始
-                row_dict = dict(zip(headers, row))
-                sheet_data.append(row_dict)
+                if any(cell for cell in row):
+                    row_dict = dict(zip(headers, row))
+                    sheet_data.append(row_dict)
 
             all_sheets_data[sheet_name] = sheet_data
         return all_sheets_data
@@ -49,6 +50,15 @@ class ShenJi:
             log.success(f"工作表 {sheet} 的数据:")
             for item in data:
                 log.info(item)
+                if isinstance(item['openedDate'], str):
+                    item['openedDate'] = item['openedDate'].replace('/', '-')
+                    item['openedDate'] = datetime.strptime(item['openedDate'], '%Y-%m-%d %H:%M:%S')
+                if isinstance(item['reviewedDate'], str):
+                    item['reviewedDate'] = item['reviewedDate'].replace('/', '-')
+                    item['reviewedDate'] = datetime.strptime(item['reviewedDate'], '%Y-%m-%d %H:%M:%S')
+                if isinstance(item['closedDate'], str):
+                    item['closedDate'] = item['closedDate'].replace('/', '-')
+                    item['closedDate'] = datetime.strptime(item['closedDate'], '%Y-%m-%d %H:%M:%S')
                 if int(item['product']) == 8:
                     item['project'] = 12
                     reviewedBy = '叶忠海'
@@ -61,6 +71,7 @@ class ShenJi:
                 if item['status'] == 'active':
                     item['closedBy'] = ""
                     item['closedDate'] = None
+
                 sql = "INSERT INTO `zentao`.`zt_story`(product,title,pri,status,stage,openedBy,openedDate,assignedTo,assignedDate,lastEditedBy,lastEditedDate,reviewedBy,reviewedDate,closedBy,closedDate,closedReason) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
                 self.cursor.execute(sql, (
                     item['product'], item['title'], item['pri'], item['status'],
@@ -100,6 +111,20 @@ class ShenJi:
             log.success(f"工作表 {sheet} 的数据:")
             for item in data:
                 log.info(item)
+                if isinstance(item['openedDate'], str):
+                    item['openedDate'] = item['openedDate'].replace('/', '-')
+                    item['openedDate'] = datetime.strptime(item['openedDate'], '%Y-%m-%d %H:%M:%S')
+                if isinstance(item['resolvedDate'], str):
+                    item['resolvedDate'] = item['resolvedDate'].replace('/', '-')
+                    item['resolvedDate'] = datetime.strptime(item['resolvedDate'], '%Y-%m-%d %H:%M:%S')
+                if isinstance(item['closedDate'], str):
+                    item['closedDate'] = item['closedDate'].replace('/', '-')
+                    item['closedDate'] = datetime.strptime(item['closedDate'], '%Y-%m-%d %H:%M:%S')
+                if item['status'] == 'active':
+                    item['resolvedBy'] = ""
+                    item['resolvedDate'] = None
+                    item['closedBy'] = ""
+                    item['closedDate'] = None
                 sql = "INSERT INTO `zentao`.`zt_bug`(`project`, `product`, `storyVersion`,`title`, `severity`, `pri`, `type`, `steps`, `status`,`confirmed`, `openedBy`, `openedDate`, `openedBuild`, `assignedTo`, `assignedDate`, `deadline`, `resolvedBy`, `resolution`, `resolvedBuild`, `resolvedDate`, `closedBy`, `closedDate`,`linkBug`,`lastEditedBy`, `lastEditedDate`) VALUES (%s,%s,%s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s,%s, %s,%s, %s, %s, %s,%s,%s, %s);"
                 self.cursor.execute(sql, (
                     item['project'], item['product'], 1, item['title'], item['severity'], item['pri'], 'codeerror',
@@ -147,6 +172,7 @@ class ShenJi:
             for i, record in enumerate(records):
                 # 处理字符串时间为 datetime 格式（如果需要）
                 if isinstance(record['申请时间'], str):
+                    record['申请时间'] = record['申请时间'].replace('/', '-')
                     record['申请时间'] = datetime.strptime(record['申请时间'], '%Y-%m-%d %H:%M:%S')
                 # 记录所属的申请类型
                 record['sheet'] = sheet
@@ -330,18 +356,18 @@ class ShenJi:
 
 if __name__ == '__main__':
     shenji = ShenJi()
-    try:
-        shenji.connect.begin()
-        # # 需求向
-        shenji.insert_store()
-        # BUG向
-        shenji.insert_bug()
+    # try:
+    #     shenji.connect.begin()
+    #     # # 需求向
+    #     shenji.insert_store()
+    #     # BUG向
+    #     shenji.insert_bug()
+    #
+    #     shenji.connect.commit()
+    # except Exception as e:
+    #     shenji.connect.rollback()
+    #     traceback.print_exc()
 
-        shenji.connect.commit()
-    except Exception as e:
-        shenji.connect.rollback()
-        traceback.print_exc()
 
-
-    # token = shenji.login()
-    # shenji.apply(token)
+    token = shenji.login()
+    shenji.apply(token)
