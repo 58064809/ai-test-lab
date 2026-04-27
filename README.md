@@ -2,7 +2,7 @@
 
 个人执行型 AI 测试助手资产库。
 
-本项目不是传统测试平台，也不是团队协作平台，而是面向个人测试工作的 AI 工作台。目标是在 ChatGPT、Codex、OpenHands、Claude Code、PyCharm、命令行等入口中，通过自然语言完成需求分析、测试设计、接口测试、UI 检查、日志分析、缺陷定位、脚本生成和报告整理。
+本项目不是传统测试平台，也不是团队协作平台，而是面向个人测试工作的 AI 工作台。目标是在 ChatGPT、Codex、OpenHands、PyCharm、命令行等真实可用入口中，通过自然语言完成需求分析、测试设计、接口测试、UI 检查、日志分析、缺陷定位、脚本生成和报告整理。
 
 ## 一、项目定位
 
@@ -70,55 +70,57 @@ AI 输出可直接使用的结果
 先完成以下事情：
 
 1. 建立项目资产目录。
-2. 固化测试专家 Agent 规则。
+2. 固化项目级 Agent 规则。
 3. 固化需求分析、测试用例设计、接口测试、UI 检查、日志分析等核心技能模板。
-4. 设计第一个可执行工作流：商家后台商品创建流程检查。
+4. 使用工业级工具原生支持的项目上下文入口，例如 `AGENTS.md`、`.github/copilot-instructions.md`。
 5. 预留 OpenHands、Playwright MCP、Schemathesis、Keploy、Pytest 的接入方式。
 
 ## 四、项目目录
 
 ```text
 ai-test-lab/
-├── agents/                 # Agent 角色定义
-├── skills/                 # 可复用测试技能
-├── workflows/              # 任务工作流
-├── memory/                 # 项目记忆与个人偏好
-├── tools/                  # 工具接入说明
-├── templates/              # 用例、缺陷、报告模板
-├── examples/               # 真实任务样例
-└── docs/                   # 架构、选型、路线文档
+├── AGENTS.md                       # Agent 通用项目规则入口
+├── .github/
+│   └── copilot-instructions.md     # GitHub Copilot 仓库级指令入口
+├── agents/                         # Agent 角色定义
+├── skills/                         # 可复用测试技能
+├── workflows/                      # 任务工作流
+├── tools/                          # 工具接入说明
+├── templates/                      # 用例、缺陷、报告模板
+├── examples/                       # 真实任务样例
+└── docs/                           # 架构、选型、路线文档
 ```
 
 ## 五、落地原则
 
+- 不造轮子，优先复用工业级通用工具、代码、组件和生态规范。
+- 先使用工具原生支持的项目上下文机制，再考虑自定义记忆目录。
 - 先资产化，再自动化。
 - 先跑通单任务，再考虑多 Agent。
-- 先复用成熟轮子，再评估是否需要封装。
-- 所有输出默认中文，除非必要才使用英文。
+- 先复用成熟轮子，再评估是否需要少量胶水代码。
+- 所有 Markdown 文档和日常输出默认中文，除非必要才使用英文。
 - 所有结果尽量可直接用于测试工作。
 
-## 六、第一个验证场景
-
-场景：检查商家后台商品创建流程有没有问题。
-
-目标工作流：
+## 六、第一批落地产物
 
 ```text
-用户提出任务
-↓
-AI 读取商家后台商品创建流程规则
-↓
-AI 使用 Playwright MCP 打开浏览器
-↓
-AI 登录商家后台
-↓
-AI 创建商品
-↓
-AI 截图并记录关键步骤
-↓
-AI 判断页面、接口、数据是否符合预期
-↓
-AI 生成测试步骤
-↓
-AI 发现异常时整理缺陷报告
+AGENTS.md
+.github/copilot-instructions.md
+docs/tool-selection.md
+docs/roadmap.md
+templates/testcase-table.md
+templates/defect-report.md
+skills/requirement-analysis.md
+skills/testcase-design.md
+```
+
+## 七、暂不做
+
+```text
+不做自研记忆系统
+不做自研知识库平台
+不做自研任务编排框架
+不做团队平台
+不做 Web 管理界面
+不把某个具体业务域写死进通用架构
 ```
