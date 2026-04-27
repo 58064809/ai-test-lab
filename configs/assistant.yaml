@@ -1,0 +1,4 @@
+memory:
+  backend: sqlite
+  sqlite_path: .assistant/memory.sqlite3
+
