@@ -20,19 +20,19 @@
 
 - `AGENTS.md`
 - `codex-tasks/001-foundation.md`
-- `tools/mcp.md`
-- `tools/playwright-mcp.md`
-- `tools/pytest-allure.md`
-- `tools/schemathesis.md`
-- `tools/keploy.md`
-- `tools/sources.md`
+- `docs/tools/mcp.md`
+- `docs/tools/playwright-mcp.md`
+- `docs/tools/pytest-allure.md`
+- `docs/tools/schemathesis.md`
+- `docs/tools/keploy.md`
+- `docs/tools/sources.md`
 
 ## 实现范围
 
 请实现：
 
 ```text
-src/ai_test_assistant/tools/
+src/ai_test_assistant/tool_registry/
   __init__.py
   models.py
   registry.py

@@ -139,41 +139,34 @@ Agent 接到自然语言任务后，应先判断任务类型：
 .
 ├── AGENTS.md
 ├── README.md
-├── prompts/
-│   ├── test-case-generation.md
-│   ├── requirement-analysis.md
-│   ├── log-analysis.md
-│   └── bug-report.md
-├── workflows/
-│   ├── api-test-workflow.md
-│   ├── ui-test-workflow.md
-│   └── defect-analysis-workflow.md
-├── templates/
-│   ├── test-case-template.md
-│   ├── bug-report-template.md
-│   └── test-summary-template.md
-├── examples/
-│   ├── api-test-example.md
-│   ├── pytest-example.md
-│   └── log-analysis-example.md
-└── tools/
-    ├── codex.md
-    ├── openhands.md
-    ├── playwright-mcp.md
-    ├── schemathesis.md
-    ├── keploy.md
-    └── pytest-allure.md
+├── agent-assets/
+│   ├── prompts/
+│   ├── workflows/
+│   ├── templates/
+│   └── examples/
+├── docs/
+│   └── tools/
+├── src/
+│   └── ai_test_assistant/
+│       ├── memory/
+│       ├── intent/
+│       ├── orchestrator/
+│       ├── tool_registry/
+│       ├── runtime/
+│       └── schemas/
+└── tests/
 ```
 
 说明：
 
 - `AGENTS.md`：AI Agent 的主入口规则
 - `README.md`：给人看的项目说明
-- `prompts/`：沉淀高频提示词
-- `workflows/`：沉淀可复用任务流程
-- `templates/`：沉淀输出模板
-- `examples/`：沉淀优秀样例
-- `tools/`：记录成熟工具的使用方式
+- `agent-assets/prompts/`：沉淀高频提示词
+- `agent-assets/workflows/`：沉淀可复用任务流程
+- `agent-assets/templates/`：沉淀输出模板
+- `agent-assets/examples/`：沉淀优秀样例
+- `docs/tools/`：记录成熟工具的使用方式
+- `src/ai_test_assistant/`：沉淀 Python 工程代码
 
 ## 5. 当前不自研的事情
 

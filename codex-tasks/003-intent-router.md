@@ -11,10 +11,10 @@
 - `AGENTS.md`
 - `codex-tasks/001-foundation.md`
 - `codex-tasks/002-memory-foundation.md`
-- `prompts/requirement-analysis.md`
-- `prompts/test-case-generation.md`
-- `prompts/log-analysis.md`
-- `prompts/bug-report.md`
+- `agent-assets/prompts/requirement-analysis.md`
+- `agent-assets/prompts/test-case-generation.md`
+- `agent-assets/prompts/log-analysis.md`
+- `agent-assets/prompts/bug-report.md`
 
 ## 实现范围
 

@@ -65,7 +65,7 @@ __pycache__/
 当前文档里出现类似：
 
 ```text
-/D:/TestHome/ai-test-lab/...
+../src/ai_test_assistant/...
 ```
 
 这是本地机器路径，不适合提交到仓库文档。

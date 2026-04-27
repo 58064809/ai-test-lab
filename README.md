@@ -2,16 +2,15 @@
 
 个人专用的执行型 AI 测试助手仓库。
 
-本仓库不定位为传统测试平台，也不定位为团队协作平台。当前目标是让 Codex、OpenHands、PyCharm、命令行等入口能够读取仓库规则、提示词、工作流、模板和工具说明，从而更稳定地完成测试工程任务。
+本仓库不定位为传统测试平台，也不定位为团队协作平台。当前目标是让 Codex、OpenHands、PyCharm、命令行等入口能够读取仓库规则、Agent 资产、工具说明和 Python 工程代码，从而更稳定地完成测试工程任务。
 
 ## 当前已落地
 
 - `AGENTS.md`：仓库级 Agent 工作规则，供 Codex / OpenHands / 其他工程 Agent 读取。
-- `prompts/`：测试任务提示词。
-- `workflows/`：可复用测试工作流。
-- `templates/`：常用输出模板。
-- `examples/`：示例输入与示例输出。
-- `tools/`：成熟工具的官方来源、适用场景、接入状态与验证命令。
+- `agent-assets/`：提示词、工作流、模板、示例等 Agent 资产。
+- `docs/tools/`：成熟工具的官方来源、适用场景、接入状态与验证命令。
+- `src/ai_test_assistant/`：Python 工程代码。
+- `memory` 最小底座：已落地 SQLite 持久化记忆能力。
 
 ## 原则
 
@@ -34,4 +33,19 @@
 
 ## 当前状态
 
-本仓库当前处于“基础骨架落地”阶段。文件内容只记录官方可验证能力、使用边界、待验证事项和推荐工作方式；没有把未验证能力伪装成已完成集成。
+本仓库当前处于“memory 底座已落地、其余模块待接入”阶段。
+
+已实现：
+
+- SQLite 持久化 memory store
+- `MemoryService` 配置加载
+- `tests/test_memory_store.py`
+
+尚未实现：
+
+- intent router
+- orchestrator
+- tool registry
+- runtime CLI
+
+仓库中的工具说明和 Agent 资产仍然以文档形式沉淀，未把未验证能力伪装成已完成集成。

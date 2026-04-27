@@ -3,6 +3,9 @@
 ## 已实现
 
 - `memory` 最小可运行底座已落地。
+- Agent 资产已统一迁移到 `agent-assets/`。
+- 工具说明文档已统一迁移到 `docs/tools/`。
+- Python 工程代码统一放在 `src/ai_test_assistant/`。
 - `SQLiteMemoryStore` 支持：
   - `put_memory`
   - `get_memory`
@@ -30,4 +33,3 @@
 - 当前搜索不是语义检索，只是 namespace 内文本匹配和简单过滤。
 - 当前没有工具执行能力。
 - 当前没有任务编排能力。
-

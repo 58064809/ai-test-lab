@@ -2,7 +2,7 @@
 
 ## 目标
 
-请基于本仓库现有 `AGENTS.md`、`README.md`、`tools/`、`prompts/`、`workflows/`、`templates/`，搭建一个可运行的个人执行型 AI 测试助手底座。
+请基于本仓库现有 `AGENTS.md`、`README.md`、`docs/tools/`、`agent-assets/prompts/`、`agent-assets/workflows/`、`agent-assets/templates/`，搭建一个可运行的个人执行型 AI 测试助手底座。
 
 这不是继续补 Markdown，也不是自研平台。目标是让仓库具备最小可运行的 memory、intent、orchestrator、tool registry、runtime CLI。
 
@@ -19,13 +19,13 @@
 
 - `AGENTS.md`
 - `README.md`
-- `tools/sources.md`
-- `tools/langgraph.md`
-- `tools/mcp.md`
-- `tools/pytest-allure.md`
-- `tools/playwright-mcp.md`
-- `tools/schemathesis.md`
-- `tools/keploy.md`
+- `docs/tools/sources.md`
+- `docs/tools/langgraph.md`
+- `docs/tools/mcp.md`
+- `docs/tools/pytest-allure.md`
+- `docs/tools/playwright-mcp.md`
+- `docs/tools/schemathesis.md`
+- `docs/tools/keploy.md`
 
 ## 目标目录
 
@@ -36,7 +36,7 @@ src/ai_test_assistant/
   memory/
   intent/
   orchestrator/
-  tools/
+  tool_registry/
   runtime/
   schemas/
 

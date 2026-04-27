@@ -15,7 +15,7 @@
 - `codex-tasks/004-orchestrator-langgraph.md`
 - `codex-tasks/005-tool-registry-and-mcp.md`
 - `codex-tasks/006-runtime-cli-and-tests.md`
-- `tools/sources.md`
+- `docs/tools/sources.md`
 
 ## 审查范围
 

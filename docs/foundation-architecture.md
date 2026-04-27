@@ -4,15 +4,30 @@
 
 本轮只实现 `memory` 最小可运行底座，不实现 `intent`、`orchestrator`、`tool registry`、`runtime CLI`。
 
+当前仓库结构已经完成分层：
+
+- `agent-assets/`：Agent 资产
+- `docs/tools/`：工具说明文档
+- `src/ai_test_assistant/`：Python 工程代码
+
 ## 已实现
 
-- 包入口：[src/ai_test_assistant/__init__.py](/D:/TestHome/ai-test-lab/src/ai_test_assistant/__init__.py:1)
-- memory 数据模型：[src/ai_test_assistant/memory/models.py](/D:/TestHome/ai-test-lab/src/ai_test_assistant/memory/models.py:1)
-- store 协议：[src/ai_test_assistant/memory/store.py](/D:/TestHome/ai-test-lab/src/ai_test_assistant/memory/store.py:1)
-- SQLite 持久化实现：[src/ai_test_assistant/memory/sqlite_store.py](/D:/TestHome/ai-test-lab/src/ai_test_assistant/memory/sqlite_store.py:1)
-- service 胶水层：[src/ai_test_assistant/memory/service.py](/D:/TestHome/ai-test-lab/src/ai_test_assistant/memory/service.py:1)
-- 配置文件：[configs/assistant.yaml](/D:/TestHome/ai-test-lab/configs/assistant.yaml:1)
-- 单测：[tests/test_memory_store.py](/D:/TestHome/ai-test-lab/tests/test_memory_store.py:1)
+- 包入口：`src/ai_test_assistant/__init__.py`
+- memory 数据模型：`src/ai_test_assistant/memory/models.py`
+- store 协议：`src/ai_test_assistant/memory/store.py`
+- SQLite 持久化实现：`src/ai_test_assistant/memory/sqlite_store.py`
+- service 胶水层：`src/ai_test_assistant/memory/service.py`
+- 配置文件：`configs/assistant.yaml`
+- 单测：`tests/test_memory_store.py`
+
+## 已预留但未实现
+
+- `src/ai_test_assistant/config/`
+- `src/ai_test_assistant/intent/`
+- `src/ai_test_assistant/orchestrator/`
+- `src/ai_test_assistant/tool_registry/`
+- `src/ai_test_assistant/runtime/`
+- `src/ai_test_assistant/schemas/`
 
 ## 当前设计
 
@@ -47,4 +62,3 @@ memory 底座遵循 `namespace + key + JSON value` 模型。
 - 不把 `AGENTS.md` 当 memory 数据库
 - 不自研复杂 memory 框架
 - 不把业务规则硬编码到 memory 实现
-

@@ -5,6 +5,8 @@
 1. 先用真实任务验证 memory 是否足够支撑 `intent` 读取项目规则和用户偏好。
 2. 再实现 `intent` 路由层，直接调用 `MemoryService` 读取 `project_rule` 和 `user_preference`。
 3. 之后再评估是否有必要引入 LangGraph 做编排。
+4. 后续新增 Agent 资产统一放在 `agent-assets/`。
+5. 后续工具说明统一放在 `docs/tools/`。
 
 ## 待接入项
 

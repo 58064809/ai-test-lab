@@ -18,8 +18,8 @@
 
 - `AGENTS.md`
 - `codex-tasks/001-foundation.md`
-- `tools/langgraph.md`
-- `tools/sources.md`
+- `docs/tools/langgraph.md`
+- `docs/tools/sources.md`
 
 ## 实现范围
 

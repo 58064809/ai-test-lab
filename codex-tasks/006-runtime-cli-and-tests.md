@@ -14,7 +14,7 @@
 - `codex-tasks/003-intent-router.md`
 - `codex-tasks/004-orchestrator-langgraph.md`
 - `codex-tasks/005-tool-registry-and-mcp.md`
-- `tools/pytest-allure.md`
+- `docs/tools/pytest-allure.md`
 
 ## 实现范围
 

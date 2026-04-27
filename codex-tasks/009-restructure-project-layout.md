@@ -187,7 +187,7 @@ __pycache__/
 - `templates/xxx.md` 改为 `agent-assets/templates/xxx.md`。
 - `workflows/xxx.md` 改为 `agent-assets/workflows/xxx.md`。
 - `examples/xxx.md` 改为 `agent-assets/examples/xxx.md`。
-- 删除所有本地绝对路径，例如 `D:/TestHome/...`。
+- 删除所有本地绝对路径，例如本地磁盘路径。
 
 ## 禁止事项
 
