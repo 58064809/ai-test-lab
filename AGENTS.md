@@ -53,17 +53,26 @@
 
 业务知识应后置、分层、可插拔、可迁移。未来换公司或换行业时，通用能力仍应可复用。
 
-### 2.3 先小步落地，再逐步增强
+### 2.3 能一次到位的基础能力就一次到位
 
-当前优先落地：
+本项目不追求“为了稳妥而故意慢慢做”。如果 Agent 当前具备足够能力，允许直接一次性搭好可用的基础骨架，包括：
 
 1. 项目级规则入口：`AGENTS.md`
 2. 测试任务提示词与工作流规则
 3. 常用输出模板
 4. 可执行的测试工具链说明
-5. 后续再接入 OpenHands、MCP、LangGraph、Schemathesis、Keploy 等能力
+5. 示例输入与示例输出
+6. Codex / OpenHands / MCP / LangGraph / Schemathesis / Keploy / Pytest + Allure 的接入说明
 
-不要一开始就设计复杂平台、复杂 UI、复杂知识库或复杂多 Agent 编排。
+但“一步到位”不等于自研复杂平台，也不等于一次性堆满所有功能。正确做法是：
+
+- 基础目录、规则、模板、工作流、工具说明可以一次建齐
+- 能直接复用成熟工具的能力，应直接按官方方案接入
+- 暂时缺少密钥、环境、权限或业务样例的能力，应先落文档和验证步骤
+- 不要为了完整感自研 memory、知识库、任务编排、UI 平台或多 Agent 聊天系统
+- 后续每个能力都必须能被真实任务验证，而不是只停留在架构图上
+
+目标是尽快形成一个“能被 Codex / OpenHands 读取并执行”的个人 AI 测试助手仓库，而不是慢慢堆概念。
 
 ### 2.4 遇到阻碍优先解决
 
@@ -166,13 +175,13 @@ Agent 接到自然语言任务后，应先判断任务类型：
 - `examples/`：沉淀优秀样例
 - `tools/`：记录成熟工具的使用方式
 
-## 5. 暂时不做的事情
+## 5. 当前不自研的事情
 
-当前阶段不要做以下事项，除非用户明确要求：
+当前阶段不要自研以下系统，除非用户明确要求：
 
-- 不做自研 memory 系统
-- 不做自研知识库
-- 不做自研任务编排系统
+- 不自研 memory 系统，优先使用 `AGENTS.md`、工具原生上下文机制，以及后续成熟记忆方案
+- 不自研知识库，后续如需要再选择 LangChain / LlamaIndex 等成熟生态
+- 不自研任务编排系统，后续如需要再选择 LangGraph / CrewAI / LangChain
 - 不做团队管理平台
 - 不做复杂 UI 页面
 - 不做 domains/ecommerce 这种强业务目录
@@ -180,6 +189,8 @@ Agent 接到自然语言任务后，应先判断任务类型：
 - 不创建 `.cursor/rules`，除非用户重新启用 Cursor
 - 不创建 `CLAUDE.md`，除非用户开始使用 Claude Code
 - 不把 `README.md` 当作 AI 核心记忆入口
+
+注意：不自研不代表不落地。成熟工具、官方规范、通用目录、模板、工作流、工具接入说明，可以直接一次性落到仓库中。
 
 ## 6. 输出规范
 
@@ -325,17 +336,17 @@ Agent 执行任务前应先判断：
 
 | 目标 | 优先工具 / 生态 | 当前状态 |
 | --- | --- | --- |
-| Agent 项目级规则 | AGENTS.md | 优先落地 |
+| Agent 项目级规则 | AGENTS.md | 已落地 |
 | Codex 项目执行 | OpenAI Codex | 优先推荐 |
-| 执行型工程 Agent | OpenHands | 后置接入 |
-| 任务编排 | LangGraph / LangGraph Supervisor / CrewAI / LangChain | 后置接入 |
-| 工具调用 | MCP 生态 | 后置接入 |
-| UI / 浏览器操作 | Playwright / Playwright MCP | 后置接入 |
-| 接口测试生成 | Schemathesis | 后置接入 |
-| API 测试与 Mock | Keploy | 后置接入 |
+| 执行型工程 Agent | OpenHands | 可规划接入 |
+| 任务编排 | LangGraph / LangGraph Supervisor / CrewAI / LangChain | 可规划接入 |
+| 工具调用 | MCP 生态 | 可规划接入 |
+| UI / 浏览器操作 | Playwright / Playwright MCP | 可规划接入 |
+| 接口测试生成 | Schemathesis | 可规划接入 |
+| API 测试与 Mock | Keploy | 可规划接入 |
 | 自动化测试执行 | Pytest + Allure | 持续使用 |
-| GitHub Copilot 规则 | `.github/copilot-instructions.md` | 后置 |
-| Skills 能力扩展 | Codex Agent Skills / Open Agent Skills | 后置 |
+| GitHub Copilot 规则 | `.github/copilot-instructions.md` | 后置，按需 |
+| Skills 能力扩展 | Codex Agent Skills / Open Agent Skills | 后置，按需 |
 
 ## 10. 重要提醒
 
