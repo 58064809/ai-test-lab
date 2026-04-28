@@ -29,6 +29,7 @@ class OrchestratorNodes:
             "task_id": task_id or "unknown-task",
             "task_text": task_text,
             "dry_run": bool(state.get("dry_run", True)),
+            "write_memory": bool(state.get("write_memory", False)),
             "errors": errors,
         }
 
@@ -102,15 +103,19 @@ class OrchestratorNodes:
             "intent": state["intent_result"].intent,
             "selected_workflow": state.get("selected_workflow"),
             "dry_run": state["dry_run"],
+            "write_memory": state.get("write_memory", False),
             "requires_confirmation": state.get("requires_confirmation", False),
             "execution_plan": list(state.get("execution_plan", [])),
         }
-        self.memory_service.put_memory(
-            namespace="task_result/orchestrator",
-            key=state["task_id"],
-            value=summary,
-            memory_type="task_result",
-            source="orchestrator",
-        )
+        if state.get("write_memory", False):
+            self.memory_service.put_memory(
+                namespace="task_result/orchestrator",
+                key=state["task_id"],
+                value=summary,
+                memory_type="task_result",
+                source="orchestrator",
+            )
+            summary["memory_write_status"] = "written"
+        else:
+            summary["memory_write_status"] = "skipped"
         return {"result": summary}
-

@@ -29,11 +29,13 @@
   - `plan`
   - `review`
   - `write_memory`
+- `TaskOrchestrator.run(..., write_memory=False)` 默认不写入 `task_result/orchestrator`。
+- 只有显式传 `write_memory=True` 或 CLI 传 `--write-memory` 时，才写入 `task_result/orchestrator`。
 - `tests/test_orchestrator_smoke.py` 覆盖 dry-run、澄清和非执行边界。
 - `ToolRegistry` 支持工具配置加载、状态查询和权限判定。
 - `tests/test_tool_registry.py` 覆盖注册表加载、状态风险检查和权限边界。
 - `runtime CLI` 支持 `task_text`、`--dry-run`、`--intent-only`、`--write-memory`、`--config`。
-- `tests/test_runtime_cli.py` 覆盖启动、intent-only、dry-run、澄清提示和配置异常。
+- `tests/test_runtime_cli.py` 覆盖启动、intent-only、dry-run、澄清提示、配置异常和 memory 写入开关语义。
 
 ## 待验证
 
@@ -53,3 +55,4 @@
 - 当前 orchestrator 只实现最小 LangGraph 骨架，不包含 checkpointer、HITL、工具执行和复杂状态流。
 - 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络，也不接入真实 MCP Server。
 - 当前 runtime CLI 只允许调用 intent-only 和 orchestrator dry-run 能力，不开放真实工具执行。
+- 当前默认不写入 `task_result/orchestrator`，需要显式 `--write-memory`。

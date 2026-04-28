@@ -31,10 +31,11 @@ class TaskOrchestrator:
         intent_router = IntentRouter.from_assistant_config(assistant_config_path)
         return cls(memory_service=memory_service, intent_router=intent_router)
 
-    def run(self, task_text: str, dry_run: bool = True) -> OrchestratorState:
+    def run(self, task_text: str, dry_run: bool = True, write_memory: bool = False) -> OrchestratorState:
         initial_state: OrchestratorState = {
             "task_text": task_text,
             "dry_run": dry_run,
+            "write_memory": write_memory,
             "errors": [],
         }
         return self.graph.invoke(initial_state)
@@ -60,4 +61,3 @@ class TaskOrchestrator:
         builder.add_edge("review", "write_memory")
         builder.add_edge("write_memory", END)
         return builder.compile()
-

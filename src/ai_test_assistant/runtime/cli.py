@@ -37,13 +37,7 @@ def run_cli(argv: list[str] | None = None) -> int:
         return 0
 
     orchestrator = TaskOrchestrator.from_config(config_path)
-    result = orchestrator.run(args.task_text, dry_run=args.dry_run)
-
-    if not args.write_memory:
-        # 当前 orchestrator 节点会写入 task_result 记忆。CLI 在无 write-memory 时仅承认输出，不扩展执行层。
-        # 后续 runtime 与 orchestrator 分层完善后，再把写入行为迁成可选。
-        pass
+    result = orchestrator.run(args.task_text, dry_run=args.dry_run, write_memory=args.write_memory)
 
     print(render_orchestrator_result(result, write_memory=args.write_memory))
     return 0
-

@@ -24,6 +24,9 @@
 - 非 `--intent-only` 走当前 `TaskOrchestrator` 的最小能力
 - 默认中文输出
 - 默认不执行外部工具、不执行本地命令、不访问外部网络
+- 默认不写入 `task_result/orchestrator` 记忆
+- 只有传 `--write-memory` 才允许写入 `task_result/orchestrator`
+- `--intent-only` 始终不写入 `task_result` 记忆
 
 ## 当前限制
 
@@ -32,7 +35,7 @@
 - 当前不执行真实工具
 - 当前不访问外部网络
 - 当前不执行本地命令
-- 当前 `--write-memory` 只是 runtime 层显式声明写记忆许可；真实更细粒度开关还需后续与 orchestrator 进一步分层
+- 当前 `--write-memory` 只控制 `task_result/orchestrator` 写入，不影响其他 memory 类型
 
 ## 待接入
 
@@ -46,4 +49,3 @@
 - 不做 Web UI
 - 不绕过 orchestrator 伪装成真实执行入口
 - 不在 dry-run 中执行真实命令
-

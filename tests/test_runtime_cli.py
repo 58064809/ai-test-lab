@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ai_test_assistant.memory.sqlite_store import SQLiteMemoryStore
 from ai_test_assistant.runtime.cli import build_parser, run_cli
 
 
@@ -58,6 +59,7 @@ def test_cli_dry_run_outputs_plan(tmp_path: Path, capsys) -> None:
     assert "识别意图：test_case_generation" in captured
     assert "下一步计划：" in captured
     assert "当前为 dry-run：仅生成任务计划，不执行外部工具。" in captured
+    assert "任务结果记忆写入：禁止" in captured
 
 
 def test_cli_ambiguous_task_returns_clarification_prompt(tmp_path: Path, capsys) -> None:
@@ -89,3 +91,40 @@ def test_cli_write_memory_flag_is_reflected_in_output(tmp_path: Path, capsys) ->
     assert exit_code == 0
     assert "任务结果记忆写入：允许" in captured
 
+
+def test_cli_without_write_memory_does_not_write_task_result_memory(tmp_path: Path, capsys) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    db_path = tmp_path / "memory.sqlite3"
+
+    exit_code = run_cli(["根据这个需求生成测试用例", "--dry-run", "--config", str(config_path)])
+
+    assert exit_code == 0
+    capsys.readouterr()
+    store = SQLiteMemoryStore(db_path)
+    assert store.search_memory("task_result/orchestrator") == []
+
+
+def test_cli_with_write_memory_writes_task_result_memory(tmp_path: Path, capsys) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    db_path = tmp_path / "memory.sqlite3"
+
+    exit_code = run_cli(["根据这个需求生成测试用例", "--dry-run", "--write-memory", "--config", str(config_path)])
+
+    assert exit_code == 0
+    capsys.readouterr()
+    store = SQLiteMemoryStore(db_path)
+    results = store.search_memory("task_result/orchestrator")
+    assert len(results) == 1
+    assert results[0].value["intent"] == "test_case_generation"
+
+
+def test_cli_intent_only_never_writes_task_result_memory(tmp_path: Path, capsys) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    db_path = tmp_path / "memory.sqlite3"
+
+    exit_code = run_cli(["分析这段报错日志", "--intent-only", "--write-memory", "--config", str(config_path)])
+
+    assert exit_code == 0
+    capsys.readouterr()
+    store = SQLiteMemoryStore(db_path)
+    assert store.search_memory("task_result/orchestrator") == []

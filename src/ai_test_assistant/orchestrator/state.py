@@ -10,6 +10,7 @@ class OrchestratorState(TypedDict, total=False):
     task_id: str
     task_text: str
     dry_run: bool
+    write_memory: bool
     intent_result: IntentRouteResult
     loaded_memory: dict[str, list[MemoryRecord]]
     selected_workflow: str | None
@@ -19,4 +20,3 @@ class OrchestratorState(TypedDict, total=False):
     requires_confirmation: bool
     result: dict[str, Any]
     errors: list[str]
-

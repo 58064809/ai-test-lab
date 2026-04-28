@@ -22,6 +22,7 @@
   - `review`
   - `write_memory`
 - 已支持 dry-run 任务计划生成
+- 已支持 `write_memory` 状态控制 `task_result/orchestrator` 是否真正写入
 - 已明确当前 `intent router` 只是 bootstrap / fallback，不是最终工业级 intent 系统
 
 ## 待接入
@@ -38,6 +39,7 @@
 - 当前只做最小线性 graph，不做复杂多 Agent 编排
 - 当前 dry-run 只生成计划，不执行外部工具
 - 当前非 dry-run 仍然只生成计划，不开放真实执行
+- 当前默认不写入 `task_result/orchestrator`，只有显式允许时才写入
 - 当前不实现 tool registry
 - 当前不实现 MCP
 - 当前不实现 runtime CLI
