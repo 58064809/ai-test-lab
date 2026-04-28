@@ -24,6 +24,8 @@
 - 第一版只做规则匹配，不做复杂 NLP。
 - 第一版不接入外部 LLM、向量检索或语义分类模型。
 - 输入过短、命中不足或多个 intent 冲突时，会返回 `clarification_required=true`。
+- `IntentRulesLoader` 会校验配置质量，包括重复 intent name、空 triggers、空 required_context，以及 `minimum_confidence` / `ambiguity_gap` 的取值范围。
+- `IntentRouter.from_assistant_config()` 中的相对 `rules_path` 按当前工作目录解析；绝对路径也支持。
 
 ## 待接入 / 待验证
 
@@ -36,4 +38,3 @@
 - 第一轮不实现 orchestrator。
 - 第一轮不实现 tool registry。
 - 第一轮不实现 runtime CLI。
-

@@ -11,6 +11,7 @@
 - `docs/tools/`：成熟工具的官方来源、适用场景、接入状态与验证命令。
 - `src/ai_test_assistant/`：Python 工程代码。
 - `memory` 最小底座：已落地 SQLite 持久化记忆能力。
+- `intent router`：已落地基于配置规则、关键词、置信度和澄清策略的意图路由底座。
 
 ## 原则
 
@@ -33,19 +34,25 @@
 
 ## 当前状态
 
-本仓库当前处于“memory 底座已落地、其余模块待接入”阶段。
+本仓库当前处于“memory 与 intent router 已落地、其余模块待接入”阶段。
 
 已实现：
 
 - SQLite 持久化 memory store
 - `MemoryService` 配置加载
 - `tests/test_memory_store.py`
+- 配置化 intent router
+- `configs/intents.yaml`
+- `tests/test_intent_router.py`
 
 尚未实现：
 
-- intent router
 - orchestrator
 - tool registry
 - runtime CLI
 
-仓库中的工具说明和 Agent 资产仍然以文档形式沉淀，未把未验证能力伪装成已完成集成。
+受限能力：
+
+- intent 第一版只是规则路由，不是复杂 NLP。
+- intent 第一版不调用外部 LLM。
+- 仓库中的工具说明和 Agent 资产仍然以文档形式沉淀，未把未验证能力伪装成已完成集成。

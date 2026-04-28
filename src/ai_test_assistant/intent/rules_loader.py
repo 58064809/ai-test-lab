@@ -37,10 +37,16 @@ class IntentRulesLoader:
         defaults = data.get("defaults", {})
         intents = data.get("intents", [])
 
+        minimum_confidence = float(defaults.get("minimum_confidence", 0.45))
+        ambiguity_gap = float(defaults.get("ambiguity_gap", 0.15))
+        cls._validate_probability("minimum_confidence", minimum_confidence)
+        cls._validate_probability("ambiguity_gap", ambiguity_gap)
+
         rules = [cls._build_rule(item) for item in intents]
+        cls._validate_rule_names(rules)
         return IntentRulesConfig(
-            minimum_confidence=float(defaults.get("minimum_confidence", 0.45)),
-            ambiguity_gap=float(defaults.get("ambiguity_gap", 0.15)),
+            minimum_confidence=minimum_confidence,
+            ambiguity_gap=ambiguity_gap,
             generic_clarification_questions=list(
                 defaults.get(
                     "generic_clarification_questions",
@@ -59,12 +65,19 @@ class IntentRulesLoader:
         if missing:
             raise ValueError(f"Intent rule missing required fields: {missing}")
 
+        triggers = cls._as_str_list(item["triggers"])
+        required_context = cls._as_str_list(item["required_context"])
+        if not triggers:
+            raise ValueError(f"Intent rule '{item['name']}' must define at least one trigger.")
+        if not required_context:
+            raise ValueError(f"Intent rule '{item['name']}' must define at least one required_context item.")
+
         return IntentRule(
             name=str(item["name"]),
             description=str(item["description"]),
-            triggers=cls._as_str_list(item["triggers"]),
+            triggers=triggers,
             negative_triggers=cls._as_str_list(item["negative_triggers"]),
-            required_context=cls._as_str_list(item["required_context"]),
+            required_context=required_context,
             optional_context=cls._as_str_list(item["optional_context"]),
             recommended_workflow=str(item["recommended_workflow"]),
             default_prompt=str(item["default_prompt"]),
@@ -76,3 +89,14 @@ class IntentRulesLoader:
             raise ValueError("Intent rule list fields must use YAML arrays.")
         return [str(item) for item in value]
 
+    @staticmethod
+    def _validate_probability(field_name: str, value: float) -> None:
+        if not 0 <= value <= 1:
+            raise ValueError(f"{field_name} must be within 0 and 1.")
+
+    @staticmethod
+    def _validate_rule_names(rules: list[IntentRule]) -> None:
+        names = [rule.name for rule in rules]
+        duplicates = sorted({name for name in names if names.count(name) > 1})
+        if duplicates:
+            raise ValueError(f"Duplicate intent rule names found: {duplicates}")

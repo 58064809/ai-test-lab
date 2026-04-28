@@ -2,15 +2,14 @@
 
 ## 建议顺序
 
-1. 先用真实任务验证 memory 是否足够支撑 `intent` 读取项目规则和用户偏好。
-2. 再实现 `intent` 路由层，直接调用 `MemoryService` 读取 `project_rule` 和 `user_preference`。
+1. 先用真实任务验证 `memory + intent router` 的配合是否足够稳定。
+2. 再实现 `orchestrator` 最小状态流，调用现有 `MemoryService` 和 `IntentRouter`。
 3. 之后再评估是否有必要引入 LangGraph 做编排。
 4. 后续新增 Agent 资产统一放在 `agent-assets/`。
 5. 后续工具说明统一放在 `docs/tools/`。
 
 ## 待接入项
 
-- 待接入：`intent` 规则配置和路由结果模型
 - 待接入：`orchestrator` 最小状态流
 - 待接入：工具注册和权限模型
 - 待接入：runtime CLI
