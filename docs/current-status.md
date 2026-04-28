@@ -8,6 +8,7 @@
 - LangGraph 最小 orchestrator 骨架已落地，支持 dry-run 计划生成。
 - tool registry 与权限模型底座已落地。
 - 最小 runtime CLI 已落地，支持 intent-only 与 dry-run 入口。
+- `python scripts/run_assistant.py ...` 已可从仓库根目录直接运行，不依赖测试注入 `src` 路径。
 - Agent 资产已统一迁移到 `agent-assets/`。
 - 工具说明文档已统一迁移到 `docs/tools/`。
 - Python 工程代码统一放在 `src/ai_test_assistant/`。
@@ -42,10 +43,14 @@
 - Windows 之外环境的 SQLite 文件行为。
 - 更大数据量下的搜索性能。
 - 后续多模块并发访问时的锁竞争行为。
+- 更真实任务文本下的 orchestrator 计划质量与澄清触发阈值。
 
 ## 待接入
 
-- MCP 的真实接入
+- MCP 的真实接入。
+- 真实工具执行层。
+- orchestrator 的正式执行分支。
+- 与 tool registry 联动的更细粒度执行授权。
 
 ## 受限能力
 
@@ -56,3 +61,10 @@
 - 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络，也不接入真实 MCP Server。
 - 当前 runtime CLI 只允许调用 intent-only 和 orchestrator dry-run 能力，不开放真实工具执行。
 - 当前默认不写入 `task_result/orchestrator`，需要显式 `--write-memory`。
+
+## 明确不做
+
+- 不自研 MCP 协议。
+- 不把规则路由、dry-run 计划或文档占位能力包装成工业级能力。
+- 不在当前阶段接入复杂多 Agent 聊天系统。
+- 不写死任何电商业务规则。
