@@ -24,10 +24,11 @@ tools:
 
   - name: pytest_runner
     description: Execute pytest test suites.
-    status: planned
+    status: enabled
     risk_level: execute_local_command
     category: testing
-    implementation: planned_local_command
+    implementation: local_python
+    notes: 只允许通过受控 adapter 执行 `python -m pytest <repo-relative-target>`；不是 shell 通用执行器，不支持额外 pytest 参数。
 
   - name: allure_report
     description: Generate or serve Allure reports.

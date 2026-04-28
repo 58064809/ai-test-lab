@@ -112,7 +112,7 @@ def test_risky_tool_samples_produce_expected_dry_run_authorization_results(tmp_p
     ui_result = runner.run_sample(samples["ui_test_design"])
 
     assert pytest_result.passed is True
-    assert pytest_result.actual_tool_statuses["pytest_runner"] == "planned"
+    assert pytest_result.actual_tool_statuses["pytest_runner"] == "enabled"
     assert pytest_result.actual_tool_allowed["pytest_runner"] is False
 
     assert repo_result.passed is True

@@ -1,5 +1,12 @@
 # Next Steps
 
+## 030 pytest_runner 最小真实执行之后
+
+- 下一步继续保持“单一受控工具入口”的节奏，不扩展成 shell 通用执行器。
+- 当前 `pytest_runner` 已可真实执行，后续重点是验证更多仓库内 target 场景，而不是开放额外参数。
+- 当前不接 Allure、不接报告服务、不开放 shell。
+- `filesystem_write`、`shell` 继续保持 `disabled`。
+
 ## 028 filesystem MCP runtime 只读接入之后
 
 - 下一步不再继续写复杂选型文档，直接围绕已接入的 `filesystem_mcp_read` 做边界内验证和稳定性补充。
@@ -28,7 +35,7 @@
 ## 待接入项
 
 - 待接入：除 `filesystem_mcp_read` 之外的其他 MCP 真实接入
-- 待接入：真实工具执行层
+- 待接入：除受控 `pytest_runner` 外的其他真实工具执行层
 - 待接入：orchestrator 正式执行分支
 - 待接入：tool registry 与 orchestrator 的正式执行授权联动
 - 待接入：更系统化的真实任务样本库扩展
@@ -39,6 +46,7 @@
 - 当前 `orchestrator` 仍然只是最小 dry-run 骨架，即使已经接入 tool registry 授权联动，也不应包装成完整执行平台。
 - 当前除 `filesystem_mcp_read` 之外，其余 MCP 规划文档不代表真实接入，不应把 planned 工具包装成 enabled。
 - 当前 filesystem_read 本地 adapter 只是 fallback，不应扩展成通用文件管理器。
+- 当前 `pytest_runner` 虽然已启用，但它只是受控 pytest 执行，不是 shell 通用执行器。
 - 当前文件读取上下文只支持显式单文件输入，不应扩展成自然语言自动多文件读取。
 - 当前不应继续开发多文件读取、目录读取、glob / 通配符读取、自动上下文收集或文件检索。
 - 当前虽然已接入成熟 filesystem MCP 的只读读取入口，但不代表任何写能力或 shell 能力已开放。

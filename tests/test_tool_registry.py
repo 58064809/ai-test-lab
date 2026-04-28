@@ -51,6 +51,10 @@ def test_registry_exposes_status_and_risk_level() -> None:
     assert filesystem_read_tool.status is ToolStatus.ENABLED
     assert filesystem_read_tool.risk_level is ToolRiskLevel.READ_ONLY
 
+    pytest_runner_tool = registry.get_tool("pytest_runner")
+    assert pytest_runner_tool.status is ToolStatus.ENABLED
+    assert pytest_runner_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
+
     filesystem_mcp_read_tool = registry.get_tool("filesystem_mcp_read")
     assert filesystem_mcp_read_tool.status is ToolStatus.ENABLED
     assert filesystem_mcp_read_tool.risk_level is ToolRiskLevel.READ_ONLY
@@ -83,6 +87,11 @@ def test_non_enabled_tools_are_not_executable(tool_name: str) -> None:
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
 
     decision = registry.evaluate_execution(tool_name)
+
+    if tool_name == "pytest_runner":
+        assert decision.allowed is False
+        assert any("dry-run" in reason for reason in decision.reasons)
+        return
 
     assert decision.allowed is False
     assert any("not enabled" in reason for reason in decision.reasons)

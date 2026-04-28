@@ -18,7 +18,7 @@
 
 - MCP 协议
 - 除 `filesystem_mcp_read` 外的其他 MCP Server 接入
-- 本地命令执行器
+- shell 通用本地命令执行器
 - 外部网络访问器
 - 写文件、shell、浏览器、数据库等真实工具执行
 
@@ -70,6 +70,9 @@
 - `filesystem_mcp_read` 当前已启用为 `enabled + read_only`
 - `filesystem_mcp_read` 的正式 runtime 入口是显式 `--mcp-read-file`
 - `filesystem_mcp_read` 固定采用官方 `mcp` Python SDK + `@modelcontextprotocol/server-filesystem`
+- `pytest_runner` 当前已启用为 `enabled + execute_local_command`
+- `pytest_runner` 的正式 runtime 入口是显式 `--run-pytest`
+- `pytest_runner` 只允许执行 `python -m pytest <repo-relative-target>`
 - `filesystem_write` 仍然保持 `disabled`
 - `shell` 仍然保持 `disabled`
 
@@ -79,10 +82,11 @@
 - 当前与 orchestrator 的联动只做风险评估和授权建议，不执行工具。
 - 当前不自研 MCP 协议。
 - 当前除 `filesystem_mcp_read` 外，不真实接入其他 MCP Server。
-- 当前不执行本地命令。
+- 当前不开放 shell 通用本地命令执行。
 - 当前不访问外部网络。
 - 当前不处理复杂工具参数 schema。
 - 当前 filesystem_read 虽然已同时支持本地只读 adapter 与 MCP 只读入口，但仍然只支持显式单文件读取。
+- 当前 pytest_runner 虽然已可真实执行，但仍只支持仓库内相对路径 target，不支持 Allure、glob 或额外参数。
 - 当前不开放目录读取、glob、多文件读取、自动上下文收集、filesystem_write 或 shell。
 
 ## 待接入

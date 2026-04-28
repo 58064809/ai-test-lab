@@ -158,10 +158,10 @@ def test_orchestrator_uses_planned_tools_for_pytest_and_ui_tasks(tmp_path: Path)
 
     assert pytest_result["intent_result"].intent == "pytest_execution"
     assert pytest_result["recommended_tools"] == ["pytest_runner"]
-    assert pytest_result["tool_decisions"][0]["status"] == "planned"
+    assert pytest_result["tool_decisions"][0]["status"] == "enabled"
     assert pytest_result["tool_decisions"][0]["risk_level"] == "execute_local_command"
     assert pytest_result["tool_decisions"][0]["allowed"] is False
-    assert any("planned" in reason for reason in pytest_result["tool_decisions"][0]["reasons"])
+    assert any("dry-run" in reason for reason in pytest_result["tool_decisions"][0]["reasons"])
 
     assert ui_result["intent_result"].intent == "ui_test_design"
     assert ui_result["recommended_tools"] == ["playwright_mcp"]

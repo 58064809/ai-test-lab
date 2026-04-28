@@ -1,5 +1,21 @@
 # Current Status
 
+## 030 pytest_runner 最小真实执行
+
+- 已新增 `src/ai_test_assistant/testing/pytest_runner.py`
+- 已新增 `PytestRunner` 薄 adapter 与 `PytestRunResult`
+- runtime CLI 已新增显式 `--run-pytest [TARGET]` 入口
+- `pytest_runner` 已改为 `enabled + execute_local_command`
+- `pytest_runner` 只允许执行 `sys.executable -m pytest <repo-relative-target>`
+- `subprocess.run` 使用 args list 且固定 `shell=False`
+- 默认 target 为 `tests`
+- 只允许仓库内相对路径 target
+- 已拒绝绝对路径、`..` 路径穿越、glob 和额外参数注入
+- 真实 pytest 执行结果已支持结构化输出
+- 当前不接 Allure
+- `shell` 仍保持 `disabled`
+- `filesystem_write` 仍保持 `disabled`
+
 ## 028 filesystem MCP runtime 只读接入
 
 - 已接入官方 Python MCP SDK 依赖：`mcp`
@@ -48,6 +64,7 @@
 - LangGraph 最小 orchestrator 骨架已落地，支持 dry-run 计划生成。
 - tool registry 与权限模型底座已落地。
 - 最小 runtime CLI 已落地，支持 intent-only 与 dry-run 入口。
+- 最小 pytest_runner 真实执行入口已落地，支持显式 `--run-pytest`。
 - 已新增真实任务样本集与 dry-run 验证器。
 - 已完成 MCP 接入前置选型文档与安全边界设计。
 - 已完成 filesystem_read 接入前安全策略设计。
@@ -100,9 +117,11 @@
 - `tests/test_filesystem_read_adapter.py` 覆盖允许读取、拒绝敏感路径、文件不存在、二进制文件和大文件处理。
 - `runtime CLI` 已支持显式 `--read-file` 单文件读取入口，只用于 dry-run 上下文展示。
 - `runtime CLI` 已支持 `--show-file-content`，默认只展示文件预览。
+- `runtime CLI` 已支持显式 `--run-pytest`，用于受控 pytest 真实执行。
 - 文件读取结果已接入 orchestrator dry-run 上下文。
 - `task_result/orchestrator` memory 只记录文件元信息，不保存完整文件内容。
 - `runtime CLI` 支持 `task_text`、`--dry-run`、`--intent-only`、`--write-memory`、`--config`。
+- `runtime CLI` 当前真实执行只开放 `pytest_runner`，不开放 shell 通用命令。
 - `tests/test_runtime_cli.py` 覆盖启动、intent-only、dry-run、澄清提示、配置异常、memory 写入开关语义和工具风险提示输出。
 - `tests/test_filesystem_mcp_selection_docs.py` 覆盖 filesystem MCP 文档存在性和配置边界一致性。
 - `tests/test_filesystem_mcp_manual_checklist.py` 覆盖人工确认清单存在性、未验证表述约束和工具配置边界。
@@ -117,6 +136,7 @@
 - 更真实任务文本下的 orchestrator 计划质量与澄清触发阈值。
 - tool-intent 映射在更多真实项目中的稳定性。
 - MCP 工具在更多 Windows 本地环境下的真实可运行性。
+- pytest 在更多 Windows 本地环境下的执行稳定性。
 - filesystem_read 策略模型与未来 MCP adapter 的真实对接方式。
 - filesystem_read 本地 adapter 与未来 MCP filesystem adapter 的替换细节。
 - `mcp` Python SDK 与官方 filesystem server 在用户本地环境中的依赖安装稳定性。
@@ -135,7 +155,7 @@
 - 当前 intent 不是复杂 NLP，只是规则匹配。
 - 当前 intent 不调用外部 LLM。
 - 当前 orchestrator 只实现最小 LangGraph 骨架，不包含 checkpointer、HITL、工具执行和复杂状态流。
-- 当前 orchestrator 的 tool registry 联动只做 dry-run 级风险评估，不会触发真实工具。
+- 当前 orchestrator 的 tool registry 联动仍以 dry-run 级风险评估为主；真实工具执行目前只开放显式 `pytest_runner`。
 - 当前 `memory_write` 只用于授权评估和风险提示，不会触发真实长期记忆写入。
 - 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络；真实 MCP 接入目前只开放 `filesystem_mcp_read`。
 - 除 `filesystem_mcp_read` 外，其他 MCP 相关文档仍只是选型与安全边界设计，不代表已接入。
@@ -144,7 +164,7 @@
 - 当前不继续扩展本地 adapter 为多文件读取、目录读取、自动上下文收集或文件检索系统。
 - 当前 filesystem_write 仍未开放。
 - 当前文件内容默认只展示预览，完整内容需要显式参数。
-- 当前 runtime CLI 只允许调用 intent-only、orchestrator dry-run 和显式只读文件读取能力，不开放写文件或 shell 执行。
+- 当前 runtime CLI 只允许调用 intent-only、orchestrator dry-run、显式只读文件读取和显式 `pytest_runner`，不开放写文件或 shell 执行。
 - 当前默认不写入 `task_result/orchestrator`，需要显式 `--write-memory`。
 
 ## 明确不做

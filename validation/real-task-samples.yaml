@@ -59,7 +59,7 @@ samples:
     expected_risk_level: medium
     expected_recommended_tools: ["pytest_runner"]
     expected_tool_statuses:
-      pytest_runner: planned
+      pytest_runner: enabled
     expected_tool_allowed:
       pytest_runner: false
     notes: "pytest 执行意图样本"

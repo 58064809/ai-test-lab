@@ -53,6 +53,28 @@ def test_cli_parser_supports_required_arguments() -> None:
     assert args.dry_run is True
 
 
+def test_cli_parser_supports_run_pytest_with_default_target() -> None:
+    parser = build_parser()
+    args = parser.parse_args(["请运行 pytest", "--run-pytest", "--config", "configs/assistant.yaml"])
+
+    assert args.run_pytest == "tests"
+
+
+def test_cli_parser_supports_run_pytest_with_explicit_target() -> None:
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "请运行 pytest",
+            "--run-pytest",
+            "tests/test_runtime_cli.py",
+            "--config",
+            "configs/assistant.yaml",
+        ]
+    )
+
+    assert args.run_pytest == "tests/test_runtime_cli.py"
+
+
 def test_cli_parser_supports_mcp_read_file_argument() -> None:
     parser = build_parser()
     args = parser.parse_args(
@@ -489,8 +511,8 @@ def test_cli_dry_run_outputs_tool_risk_for_planned_tools(tmp_path: Path, capsys)
     assert exit_code == 0
     assert "识别意图：pytest_execution" in captured
     assert "推荐工具：pytest_runner" in captured
-    assert "pytest_runner | 状态=planned | 风险=execute_local_command | 允许执行=否 | 需要确认=否" in captured
-    assert "拒绝原因：Tool 'pytest_runner' is not enabled. Current status: planned." in captured
+    assert "pytest_runner | 状态=enabled | 风险=execute_local_command | 允许执行=否 | 需要确认=否" in captured
+    assert "拒绝原因：Tool 'pytest_runner' cannot run local commands during dry-run." in captured
 
 
 def test_cli_dry_run_outputs_memory_write_risk(tmp_path: Path, capsys) -> None:
@@ -504,3 +526,92 @@ def test_cli_dry_run_outputs_memory_write_risk(tmp_path: Path, capsys) -> None:
     assert "推荐工具：memory_write" in captured
     assert "memory_write | 状态=disabled | 风险=restricted_action | 允许执行=否 | 需要确认=否" in captured
     assert "拒绝原因：Tool 'memory_write' is not enabled. Current status: disabled." in captured
+
+
+def test_cli_run_pytest_executes_default_target_and_outputs_structured_result(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    class StubPytestRunner:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def run(self, target: str = "tests") -> SimpleNamespace:
+            assert target == "tests"
+            return SimpleNamespace(
+                command=["python", "-m", "pytest", "tests"],
+                target="tests",
+                exit_code=0,
+                duration_seconds=1.23,
+                stdout="============================= test session starts =============================",
+                stderr="",
+                passed=True,
+                reason="Pytest run completed successfully.",
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.PytestRunner", StubPytestRunner)
+
+    exit_code = run_cli(["请运行 pytest", "--run-pytest", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "识别意图：pytest_execution" in captured
+    assert "真实 pytest 执行结果：" in captured
+    assert "target：tests" in captured
+    assert "exit_code：0" in captured
+    assert "passed：是" in captured
+
+
+def test_cli_run_pytest_executes_explicit_repo_relative_target(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    class StubPytestRunner:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def run(self, target: str = "tests") -> SimpleNamespace:
+            assert target == "tests/test_runtime_cli.py"
+            return SimpleNamespace(
+                command=["python", "-m", "pytest", target],
+                target=target,
+                exit_code=0,
+                duration_seconds=0.8,
+                stdout="ok",
+                stderr="",
+                passed=True,
+                reason="Pytest run completed successfully.",
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.PytestRunner", StubPytestRunner)
+
+    exit_code = run_cli(
+        [
+            "请运行 pytest",
+            "--run-pytest",
+            "tests/test_runtime_cli.py",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "target：tests/test_runtime_cli.py" in captured
+
+
+def test_cli_run_pytest_rejects_path_traversal_target(tmp_path: Path, capsys) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    exit_code = run_cli(["请运行 pytest", "--run-pytest", "..", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 2
+    assert "错误：pytest target 不合法" in captured
+    assert "reason：" in captured

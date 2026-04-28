@@ -42,6 +42,8 @@ def test_mcp_related_tools_remain_non_enabled_under_safe_defaults() -> None:
     tools = _load_tools()
     by_name = {str(tool["name"]): tool for tool in tools}
 
+    assert by_name["pytest_runner"]["status"] == "enabled"
+    assert by_name["pytest_runner"]["risk_level"] == "execute_local_command"
     assert by_name["shell"]["status"] != "enabled"
     assert by_name["playwright_mcp"]["status"] != "enabled"
     assert by_name["playwright_browser"]["status"] != "enabled"
@@ -52,6 +54,9 @@ def test_mcp_related_tools_remain_non_enabled_under_safe_defaults() -> None:
         risk_level = str(tool["risk_level"])
         status = str(tool["status"])
         if risk_level in {"external_network", "execute_local_command", "restricted_action"}:
+            if str(tool["name"]) == "pytest_runner":
+                assert status == "enabled"
+                continue
             assert status != "enabled"
 
 

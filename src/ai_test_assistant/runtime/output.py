@@ -4,6 +4,7 @@ from typing import Any
 
 from ai_test_assistant.intent.models import IntentRouteResult
 from ai_test_assistant.orchestrator.state import OrchestratorState
+from ai_test_assistant.testing import PytestRunResult
 
 
 def render_intent_only(task_text: str, result: IntentRouteResult) -> str:
@@ -34,6 +35,7 @@ def render_orchestrator_result(
     state: OrchestratorState,
     write_memory: bool,
     show_file_content: bool = False,
+    pytest_result: PytestRunResult | None = None,
 ) -> str:
     intent_result = state["intent_result"]
     loaded_memory = state.get("loaded_memory", {})
@@ -58,7 +60,11 @@ def render_orchestrator_result(
         f"- 显式文件读取请求：{requested_read_file or '无'}",
         f"- 工具授权评估：{'已完成' if state.get('tool_authorization_evaluated', False) else '未完成'}",
         f"- 推荐工具：{', '.join(recommended_tools) if recommended_tools else '无'}",
-        "- 工具风险提示：当前 runtime 不执行外部工具、不执行本地命令、不访问外部网络。",
+        (
+            "- 工具风险提示：当前 runtime 不执行外部工具、不执行本地命令、不访问外部网络。"
+            if pytest_result is None
+            else "- 工具风险提示：当前 runtime 不执行外部工具、不访问外部网络；本次仅通过受控 pytest_runner 执行显式 pytest。"
+        ),
         "- 下一步计划：",
     ]
 
@@ -111,6 +117,9 @@ def render_orchestrator_result(
         for question in intent_result.clarification_questions:
             lines.append(f"  - {question}")
 
+    if pytest_result is not None:
+        lines.extend(_render_pytest_result_block(pytest_result))
+
     return "\n".join(lines)
 
 
@@ -135,3 +144,34 @@ def _build_preview(content: str, max_lines: int = 20, max_chars: int = 4000) -> 
         else:
             preview = "..."
     return preview
+
+
+def _render_pytest_result_block(result: PytestRunResult) -> list[str]:
+    lines = [
+        "- 真实 pytest 执行结果：",
+        f"  - 命令：{' '.join(result.command)}",
+        f"  - target：{result.target}",
+        f"  - exit_code：{result.exit_code}",
+        f"  - passed：{'是' if result.passed else '否'}",
+        f"  - duration_seconds：{result.duration_seconds}",
+        f"  - 结果说明：{result.reason}",
+    ]
+
+    stdout_preview = _build_preview(result.stdout, max_chars=2000)
+    stderr_preview = _build_preview(result.stderr, max_chars=2000)
+
+    lines.append("  - stdout 预览：")
+    if stdout_preview:
+        for line in stdout_preview.splitlines():
+            lines.append(f"    {line}")
+    else:
+        lines.append("    <empty>")
+
+    lines.append("  - stderr 预览：")
+    if stderr_preview:
+        for line in stderr_preview.splitlines():
+            lines.append(f"    {line}")
+    else:
+        lines.append("    <empty>")
+
+    return lines

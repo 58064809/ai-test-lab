@@ -27,6 +27,7 @@ def test_rules_loader_loads_required_intents() -> None:
         ("请基于OpenAPI设计接口测试方案", "api_test_design", "agent-assets/workflows/api-test-workflow.md"),
         ("请设计UI自动化页面回归方案", "ui_test_design", "agent-assets/workflows/ui-test-workflow.md"),
         ("请运行pytest并分析allure结果", "pytest_execution", "docs/tools/pytest-allure.md"),
+        ("请运行 pytest", "pytest_execution", "docs/tools/pytest-allure.md"),
         ("分析这段报错日志", "log_analysis", "agent-assets/prompts/log-analysis.md"),
         ("请整理缺陷报告和复现步骤", "bug_report", "agent-assets/prompts/bug-report.md"),
         ("请做 code review", "code_review", "待接入：代码评审工作流"),
