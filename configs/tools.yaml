@@ -42,6 +42,15 @@ tools:
     risk_level: external_network
     category: browser
     implementation: planned_mcp
+    notes: 保留为当前 dry-run 风险评估别名；正式 MCP 拆分优先看 playwright_browser。
+
+  - name: playwright_browser
+    description: Future Playwright MCP browser session for UI smoke and readonly inspection.
+    status: planned
+    risk_level: external_network
+    category: browser
+    implementation: planned_mcp
+    notes: 第一阶段只评估 UI 冒烟、页面结构和只读检查，不做支付、下单、发券、删数据等高风险动作。
 
   - name: schemathesis
     description: API contract testing via schema-driven generation.
@@ -63,6 +72,23 @@ tools:
     risk_level: external_network
     category: scm
     implementation: planned_mcp
+    notes: 保留为当前 dry-run 风险评估别名；正式 MCP 拆分优先看 github_read / github_write。
+
+  - name: github_read
+    description: Read-only GitHub metadata and repository inspection through a future MCP tool.
+    status: planned
+    risk_level: external_network
+    category: scm
+    implementation: planned_mcp
+    notes: 仅用于只读仓库信息、issue/PR 元数据和目录查看；接入前仍需 token 和确认。
+
+  - name: github_write
+    description: GitHub write operations through a future MCP tool.
+    status: disabled
+    risk_level: external_network
+    category: scm
+    implementation: planned_mcp
+    notes: 创建 PR、评论、改状态等写操作默认不开放，必须人工确认。
 
   - name: filesystem
     description: File reading and writing integration.
@@ -70,6 +96,23 @@ tools:
     risk_level: write_project_files
     category: storage
     implementation: planned_mcp
+    notes: 保留为当前 dry-run 风险评估别名；正式 MCP 拆分优先看 filesystem_read / filesystem_write。
+
+  - name: filesystem_read
+    description: Read-only repository file access through a future filesystem MCP tool.
+    status: planned
+    risk_level: read_only
+    category: storage
+    implementation: planned_mcp
+    notes: 仅用于读取仓库文件和配置，不读取真实业务敏感文件。
+
+  - name: filesystem_write
+    description: Repository file write access through a future filesystem MCP tool.
+    status: disabled
+    risk_level: write_project_files
+    category: storage
+    implementation: planned_mcp
+    notes: 写仓库文件默认不开放，必须人工确认。
 
   - name: shell
     description: Local shell command execution.

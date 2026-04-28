@@ -20,10 +20,15 @@ def test_registry_loads_first_batch_tools() -> None:
         "pytest_runner",
         "allure_report",
         "playwright_mcp",
+        "playwright_browser",
         "schemathesis",
         "keploy",
         "github",
+        "github_read",
+        "github_write",
         "filesystem",
+        "filesystem_read",
+        "filesystem_write",
         "shell",
         "database_readonly",
         "redis_readonly",
@@ -44,6 +49,10 @@ def test_registry_exposes_status_and_risk_level() -> None:
     shell_tool = registry.get_tool("shell")
     assert shell_tool.status is ToolStatus.DISABLED
     assert shell_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
+
+    filesystem_write_tool = registry.get_tool("filesystem_write")
+    assert filesystem_write_tool.status is ToolStatus.DISABLED
+    assert filesystem_write_tool.risk_level is ToolRiskLevel.WRITE_PROJECT_FILES
 
 
 def test_enabled_read_only_tool_is_allowed_by_default() -> None:

@@ -9,6 +9,7 @@
 - tool registry 与权限模型底座已落地。
 - 最小 runtime CLI 已落地，支持 intent-only 与 dry-run 入口。
 - 已新增真实任务样本集与 dry-run 验证器。
+- 已完成 MCP 接入前置选型文档与安全边界设计。
 - `python scripts/run_assistant.py ...` 已可从仓库根目录直接运行，不依赖测试注入 `src` 路径。
 - Agent 资产已统一迁移到 `agent-assets/`。
 - 工具说明文档已统一迁移到 `docs/tools/`。
@@ -40,6 +41,9 @@
 - `tests/test_orchestrator_smoke.py` 覆盖 dry-run、澄清和非执行边界。
 - `ToolRegistry` 支持工具配置加载、状态查询和权限判定。
 - `tests/test_tool_registry.py` 覆盖注册表加载、状态风险检查和权限边界。
+- `docs/mcp-selection.md` 已定义 MCP 候选工具、接入顺序和暂缓接入项。
+- `docs/mcp-security-policy.md` 已定义 L0-L6 工具权限分层与默认禁止规则。
+- `tests/test_mcp_selection_docs.py` 覆盖 MCP 文档存在性和关键安全边界一致性。
 - `runtime CLI` 支持 `task_text`、`--dry-run`、`--intent-only`、`--write-memory`、`--config`。
 - `tests/test_runtime_cli.py` 覆盖启动、intent-only、dry-run、澄清提示、配置异常、memory 写入开关语义和工具风险提示输出。
 - `validation/real-task-samples.yaml` 覆盖 15 类通用测试工程样本。
@@ -52,6 +56,7 @@
 - 后续多模块并发访问时的锁竞争行为。
 - 更真实任务文本下的 orchestrator 计划质量与澄清触发阈值。
 - tool-intent 映射在更多真实项目中的稳定性。
+- MCP 工具在 Windows 本地环境下的真实可运行性。
 
 ## 待接入
 
@@ -70,6 +75,7 @@
 - 当前 orchestrator 的 tool registry 联动只做 dry-run 级风险评估，不会触发真实工具。
 - 当前 `memory_write` 只用于授权评估和风险提示，不会触发真实长期记忆写入。
 - 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络，也不接入真实 MCP Server。
+- 当前 MCP 相关文档只是选型与安全边界设计，不代表任何 MCP Server 已接入。
 - 当前 runtime CLI 只允许调用 intent-only 和 orchestrator dry-run 能力，不开放真实工具执行。
 - 当前默认不写入 `task_result/orchestrator`，需要显式 `--write-memory`。
 

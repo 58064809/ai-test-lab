@@ -11,6 +11,7 @@
 - 风险等级建模
 - 权限判定策略
 - dry-run 阶段与 orchestrator 的最小授权联动
+- MCP 接入前置选型与安全边界文档
 
 本阶段**未实现**：
 
@@ -42,6 +43,15 @@
 - orchestrator 可读取注册表并在 dry-run 结果里展示工具授权判断
 - `memory_read` 是只读能力，可用于读取 memory 辅助上下文
 - `memory_write` 用于更新长期记忆，当前默认不开放
+- 已新增 MCP 规划文档：
+  - `docs/mcp-selection.md`
+  - `docs/mcp-security-policy.md`
+- 已在 `configs/tools.yaml` 中补充后续 planned MCP 工具规划：
+  - `filesystem_read`
+  - `filesystem_write`
+  - `github_read`
+  - `github_write`
+  - `playwright_browser`
 
 ## 当前限制
 
@@ -66,3 +76,4 @@
 - 不把 `memory_write` 包装成默认可执行
 - 不让 `restricted_action` 默认开放
 - 不把注册表误写成自研 MCP 协议
+- 不把任何 MCP / 网络 / 命令 / 写文件类工具改成默认 `enabled`
