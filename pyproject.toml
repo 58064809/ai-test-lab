@@ -8,8 +8,9 @@ version = "0.1.0"
 description = "Personal execution-oriented AI testing assistant foundation."
 requires-python = ">=3.11,<4.0"
 dependencies = [
-  "langgraph>=0.4,<1",
+  "langgraph>=1.0.8,<1.1.0",
   "mcp>=1.26,<2",
+  "pydantic>=2.11.7,<3",
   "PyYAML>=6,<7",
 ]
 

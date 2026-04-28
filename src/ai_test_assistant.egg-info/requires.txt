@@ -1,0 +1,7 @@
+langgraph<1.1.0,>=1.0.8
+mcp<2,>=1.26
+pydantic<3,>=2.11.7
+PyYAML<7,>=6
+
+[test]
+pytest<10,>=9

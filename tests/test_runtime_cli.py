@@ -202,11 +202,50 @@ def test_cli_dry_run_reads_single_allowed_file_via_mcp_with_preview_by_default(
 
     captured = capsys.readouterr().out
     assert exit_code == 0
+    assert "识别意图：tool_research" in captured
     assert "显式文件读取请求：README.md" in captured
     assert "允许读取=是 | 来源=filesystem_mcp | 路径=README.md | 字符数=17 | 已截断=否" in captured
     assert "结果说明：Read allowed through filesystem MCP." in captured
     assert "文件预览：" in captured
     assert "文件内容：" not in captured
+
+
+def test_cli_mcp_readme_project_status_request_is_not_unknown(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    monkeypatch.chdir(repo_dir.resolve())
+
+    class StubMcpClient:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        async def read_text(self, repo_relative_path: str) -> SimpleNamespace:
+            return SimpleNamespace(
+                allowed=True,
+                path=repo_relative_path,
+                content="project status",
+                reason="Read allowed through filesystem MCP.",
+                truncated=False,
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.FilesystemMcpReadClient", StubMcpClient)
+
+    exit_code = run_cli(
+        [
+            "请读取 README 并分析项目状态",
+            "--dry-run",
+            "--mcp-read-file",
+            "README.md",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "识别意图：unknown" not in captured
+    assert "识别意图：tool_research" in captured
 
 
 def test_cli_dry_run_shows_full_mcp_file_content_only_with_explicit_flag(

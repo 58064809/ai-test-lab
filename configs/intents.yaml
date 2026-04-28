@@ -89,7 +89,7 @@ intents:
 
   - name: tool_research
     description: 调研工具能力、适用边界或接入方式。
-    triggers: ["调研工具", "接入", "MCP", "Schemathesis", "Keploy", "Playwright MCP", "工具说明"]
+    triggers: ["调研工具", "接入", "MCP", "Schemathesis", "Keploy", "Playwright MCP", "工具说明", "readme", "项目状态", "仓库状态"]
     negative_triggers: ["运行测试", "生成测试用例"]
     required_context: ["目标工具", "关注问题"]
     optional_context: ["运行环境", "权限边界"]

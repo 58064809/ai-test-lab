@@ -1,5 +1,7 @@
 # 本地环境前置条件
 
+本项目使用 `pyproject.toml` 作为唯一主依赖源，不维护 `requirements.txt` / `requirements-dev.txt`。
+
 ## 必装工具
 
 Windows 本地要完成当前仓库的基础开发、测试和 filesystem MCP 最小验证，至少需要：
@@ -42,11 +44,32 @@ npx -v
 
 ## Windows 安装建议
 
+- 推荐 Windows 使用项目独立 `.venv`，不要长期复用全局 Python 环境。
 - `Git`：安装官方 Windows 版本
 - `Python`：安装当前项目可用的 Python 版本，并确保命令行可直接使用 `python`
 - `pytest`：在当前 Python 环境内安装，不要跨环境混装
 - `Node.js`：优先安装 LTS 版本
 - `npm` / `npx`：通常随 `Node.js` 一起提供
+
+推荐初始化步骤：
+
+```powershell
+cd D:\TestHome\ai-test-lab
+python -m venv .venv
+.\.venv\Scripts\activate
+python -m pip install -U pip
+python -m pip install -e ".[test]"
+```
+
+推荐验证命令：
+
+```powershell
+python -c "import mcp; print('mcp ok')"
+python -c "import langgraph; print('langgraph ok')"
+pytest
+```
+
+如果全局 Python 环境里出现 `fastapi/starlette`、`langchain/langgraph` 之类的冲突，优先切换到项目独立 `.venv`，不要为了兼容全局环境去修改本项目依赖。
 
 ## filesystem MCP 最小启动命令
 

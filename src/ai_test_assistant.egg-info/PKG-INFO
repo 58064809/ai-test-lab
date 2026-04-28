@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: ai-test-assistant
+Version: 0.1.0
+Summary: Personal execution-oriented AI testing assistant foundation.
+Requires-Python: <4.0,>=3.11
+Requires-Dist: langgraph<1.1.0,>=1.0.8
+Requires-Dist: mcp<2,>=1.26
+Requires-Dist: pydantic<3,>=2.11.7
+Requires-Dist: PyYAML<7,>=6
+Provides-Extra: test
+Requires-Dist: pytest<10,>=9; extra == "test"

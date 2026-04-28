@@ -93,6 +93,22 @@ python scripts/run_assistant.py "请读取环境配置" --dry-run --mcp-read-fil
 python scripts/run_assistant.py "请读取 README 并分析项目状态" --dry-run --mcp-read-file README.md --show-file-content
 ```
 
+## live smoke 验证
+
+建议在项目独立 `.venv` 中执行下面三条命令：
+
+```powershell
+python scripts/run_assistant.py "请读取 README 并分析项目状态" --dry-run --mcp-read-file README.md
+python scripts/run_assistant.py "请读取环境配置" --dry-run --mcp-read-file .env
+python scripts/run_assistant.py "请读取 README 并分析项目状态" --dry-run --mcp-read-file README.md --show-file-content
+```
+
+预期：
+
+- 第一条会通过 `filesystem_mcp` 读取 `README.md`，且不再识别为 `unknown`
+- 第二条会被 `FilesystemReadPolicy` 拒绝，原因包含 `Sensitive file is blocked.`
+- 第三条只有显式传 `--show-file-content` 时才展示完整允许内容
+
 如果用于 MCP 客户端配置，继续使用绝对路径占位符：
 
 ```powershell

@@ -9,6 +9,9 @@ def test_local_environment_prerequisites_doc_contains_required_markers() -> None
     content = Path("docs/local-environment-prerequisites.md").read_text(encoding="utf-8")
 
     for marker in (
+        "pyproject.toml",
+        "requirements.txt",
+        "requirements-dev.txt",
         "## 必装工具",
         "## 可选工具",
         "## 版本检查命令",
@@ -24,13 +27,20 @@ def test_local_environment_prerequisites_doc_contains_required_markers() -> None
         "npx",
         "nvm-windows",
         "可选，不是必装",
+        ".venv",
+        "python -m venv .venv",
+        ".\\.venv\\Scripts\\activate",
+        "python -m pip install -U pip",
+        'python -m pip install -e ".[test]"',
+        "python -c \"import mcp; print('mcp ok')\"",
+        "python -c \"import langgraph; print('langgraph ok')\"",
         "@modelcontextprotocol/server-filesystem",
         "<ABSOLUTE_PATH_TO_AI_TEST_LAB>",
     ):
         assert marker in content
 
 
-def test_local_environment_prerequisites_doc_does_not_hardcode_local_path() -> None:
+def test_local_environment_prerequisites_doc_contains_expected_workspace_bootstrap_command() -> None:
     content = Path("docs/local-environment-prerequisites.md").read_text(encoding="utf-8")
 
-    assert "D:\\TestHome\\ai-test-lab" not in content
+    assert "cd D:\\TestHome\\ai-test-lab" in content
