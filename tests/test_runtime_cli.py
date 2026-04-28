@@ -30,11 +30,14 @@ def _write_assistant_config(tmp_path: Path) -> Path:
 
 def test_cli_parser_supports_required_arguments() -> None:
     parser = build_parser()
-    args = parser.parse_args(["根据这个需求生成测试用例", "--intent-only", "--write-memory", "--config", "configs/assistant.yaml"])
+    args = parser.parse_args(
+        ["根据这个需求生成测试用例", "--intent-only", "--write-memory", "--read-file", "README.md", "--config", "configs/assistant.yaml"]
+    )
 
     assert args.task_text == "根据这个需求生成测试用例"
     assert args.intent_only is True
     assert args.write_memory is True
+    assert args.read_file == "README.md"
     assert args.config == "configs/assistant.yaml"
     assert args.dry_run is True
 
@@ -66,6 +69,33 @@ def test_cli_dry_run_outputs_plan(tmp_path: Path, capsys) -> None:
     assert "工具授权评估：已完成" in captured
     assert "推荐工具：memory_read" in captured
     assert "memory_read | 状态=enabled | 风险=read_only | 允许执行=是 | 需要确认=否" in captured
+
+
+def test_cli_dry_run_reads_single_allowed_file_when_explicitly_requested(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    monkeypatch.chdir(Path.cwd())
+
+    exit_code = run_cli(["请读取 README 并分析项目状态", "--dry-run", "--read-file", "README.md", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "显式文件读取请求：README.md" in captured
+    assert "文件读取结果：" in captured
+    assert "允许读取=是 | 路径=README.md | 已截断=否" in captured
+    assert "结果说明：Read allowed." in captured
+
+
+def test_cli_dry_run_refuses_sensitive_file_read(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    monkeypatch.chdir(Path.cwd())
+
+    exit_code = run_cli(["请读取环境配置", "--dry-run", "--read-file", ".env", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "显式文件读取请求：.env" in captured
+    assert "允许读取=否 | 路径=.env | 已截断=否" in captured
+    assert "结果说明：Sensitive file is blocked." in captured
 
 
 def test_cli_ambiguous_task_returns_clarification_prompt(tmp_path: Path, capsys) -> None:

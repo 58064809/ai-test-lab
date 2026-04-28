@@ -19,6 +19,7 @@
   - `--dry-run`
   - `--intent-only`
   - `--write-memory`
+  - `--read-file`
   - `--config`
 - `--intent-only` 只做意图识别
 - 非 `--intent-only` 走当前 `TaskOrchestrator` 的最小能力
@@ -27,6 +28,8 @@
 - 默认不写入 `task_result/orchestrator` 记忆
 - 只有传 `--write-memory` 才允许写入 `task_result/orchestrator`
 - `--intent-only` 始终不写入 `task_result` 记忆
+- 只有显式传 `--read-file` 才允许单文件读取
+- `--read-file` 只支持仓库相对路径、白名单文本文件，且必须经过 `FilesystemReadPolicy`
 - dry-run 输出包含工具授权风险提示：
   - 推荐工具
   - 工具状态
@@ -44,6 +47,7 @@
 - 当前不执行本地命令
 - 当前 `--write-memory` 只控制 `task_result/orchestrator` 写入，不影响其他 memory 类型
 - 当前 tool 风险提示来自 dry-run 授权评估，不代表已经接入真实执行器
+- 当前 `--read-file` 只支持显式单文件读取，不自动根据自然语言猜测多个文件
 
 ## 待接入
 

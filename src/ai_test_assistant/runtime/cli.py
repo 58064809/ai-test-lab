@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from ai_test_assistant.filesystem import LocalFilesystemReadAdapter
 from ai_test_assistant.intent.router import IntentRouter
 from ai_test_assistant.orchestrator.graph import TaskOrchestrator
 from ai_test_assistant.runtime.output import render_error, render_intent_only, render_orchestrator_result
@@ -17,6 +18,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=True, help="只输出计划，不执行工具")
     parser.add_argument("--intent-only", action="store_true", help="只做意图识别，不进入 orchestrator")
     parser.add_argument("--write-memory", action="store_true", help="允许写入任务结果记忆")
+    parser.add_argument("--read-file", help="显式读取单个仓库相对路径文件，只支持白名单文本文件")
     parser.add_argument("--config", default="configs/assistant.yaml", help="指定配置文件路径")
     return parser
 
@@ -36,8 +38,20 @@ def run_cli(argv: list[str] | None = None) -> int:
         print(render_intent_only(args.task_text, result))
         return 0
 
+    file_read_result = None
+    if args.read_file:
+        adapter = LocalFilesystemReadAdapter(repo_root=Path.cwd())
+        file_read_result = adapter.read_text(args.read_file)
+
     orchestrator = TaskOrchestrator.from_config(config_path)
     result = orchestrator.run(args.task_text, dry_run=args.dry_run, write_memory=args.write_memory)
 
-    print(render_orchestrator_result(result, write_memory=args.write_memory))
+    print(
+        render_orchestrator_result(
+            result,
+            write_memory=args.write_memory,
+            requested_read_file=args.read_file,
+            file_read_result=file_read_result,
+        )
+    )
     return 0

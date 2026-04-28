@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ai_test_assistant.filesystem.adapter import FilesystemReadResult
 from ai_test_assistant.intent.models import IntentRouteResult
 from ai_test_assistant.orchestrator.state import OrchestratorState
 
@@ -30,7 +31,12 @@ def render_intent_only(task_text: str, result: IntentRouteResult) -> str:
     return "\n".join(lines)
 
 
-def render_orchestrator_result(state: OrchestratorState, write_memory: bool) -> str:
+def render_orchestrator_result(
+    state: OrchestratorState,
+    write_memory: bool,
+    requested_read_file: str | None = None,
+    file_read_result: FilesystemReadResult | None = None,
+) -> str:
     intent_result = state["intent_result"]
     loaded_memory = state.get("loaded_memory", {})
     recommended_tools = list(state.get("recommended_tools", []))
@@ -47,6 +53,7 @@ def render_orchestrator_result(state: OrchestratorState, write_memory: bool) -> 
         f"- 是否需要确认：{'是' if state.get('requires_confirmation', False) else '否'}",
         f"- 记忆摘要：project_rule={len(loaded_memory.get('project_rule', []))}，user_preference={len(loaded_memory.get('user_preference', []))}",
         f"- 任务结果记忆写入：{'允许' if write_memory else '禁止'}",
+        f"- 显式文件读取请求：{requested_read_file or '无'}",
         f"- 工具授权评估：{'已完成' if state.get('tool_authorization_evaluated', False) else '未完成'}",
         f"- 推荐工具：{', '.join(recommended_tools) if recommended_tools else '无'}",
         "- 工具风险提示：当前 runtime 不执行外部工具、不执行本地命令、不访问外部网络。",
@@ -70,6 +77,23 @@ def render_orchestrator_result(state: OrchestratorState, write_memory: bool) -> 
             reasons = list(decision.get("reasons", []))
             if reasons:
                 lines.append(f"    拒绝原因：{'；'.join(reasons)}")
+
+    if requested_read_file:
+        lines.append("- 文件读取结果：")
+        if file_read_result is None:
+            lines.append("  - 未执行读取。")
+        else:
+            lines.append(
+                "  - "
+                f"允许读取={'是' if file_read_result.allowed else '否'} | "
+                f"路径={file_read_result.path or '未归一化'} | "
+                f"已截断={'是' if file_read_result.truncated else '否'}"
+            )
+            lines.append(f"    结果说明：{file_read_result.reason}")
+            if file_read_result.allowed and file_read_result.content is not None:
+                lines.append("    文件内容：")
+                for content_line in file_read_result.content.splitlines():
+                    lines.append(f"      {content_line}")
 
     if intent_result.clarification_required and intent_result.clarification_questions:
         lines.append("- 澄清问题：")

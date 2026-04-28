@@ -99,12 +99,12 @@ tools:
     notes: 保留为当前 dry-run 风险评估别名；正式 MCP 拆分优先看 filesystem_read / filesystem_write。
 
   - name: filesystem_read
-    description: Read-only repository file access through a future filesystem MCP tool.
-    status: planned
+    description: Read-only repository file access through the local adapter, replaceable by a future filesystem MCP tool.
+    status: enabled
     risk_level: read_only
     category: storage
-    implementation: planned_mcp
-    notes: 仅用于读取仓库文件和配置，不读取真实业务敏感文件。
+    implementation: local_python
+    notes: 当前是本地白名单只读 adapter，不是 MCP 接入；只支持显式单文件读取，不读取真实业务敏感文件。
 
   - name: filesystem_write
     description: Repository file write access through a future filesystem MCP tool.

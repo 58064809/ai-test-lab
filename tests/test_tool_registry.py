@@ -46,6 +46,10 @@ def test_registry_exposes_status_and_risk_level() -> None:
     assert memory_write_tool.status is ToolStatus.DISABLED
     assert memory_write_tool.risk_level is ToolRiskLevel.RESTRICTED_ACTION
 
+    filesystem_read_tool = registry.get_tool("filesystem_read")
+    assert filesystem_read_tool.status is ToolStatus.ENABLED
+    assert filesystem_read_tool.risk_level is ToolRiskLevel.READ_ONLY
+
     shell_tool = registry.get_tool("shell")
     assert shell_tool.status is ToolStatus.DISABLED
     assert shell_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
@@ -58,7 +62,7 @@ def test_registry_exposes_status_and_risk_level() -> None:
 def test_enabled_read_only_tool_is_allowed_by_default() -> None:
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
 
-    decision = registry.evaluate_execution("memory_read")
+    decision = registry.evaluate_execution("filesystem_read")
 
     assert decision.allowed is True
     assert decision.requires_confirmation is False
