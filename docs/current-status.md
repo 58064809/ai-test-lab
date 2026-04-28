@@ -12,6 +12,7 @@
 - 已完成 MCP 接入前置选型文档与安全边界设计。
 - 已完成 filesystem_read 接入前安全策略设计。
 - 已落地 filesystem_read 本地白名单只读 adapter。
+- `codex-tasks/021-explicit-multi-file-read-context.md` 已暂停，不执行。
 - `python scripts/run_assistant.py ...` 已可从仓库根目录直接运行，不依赖测试注入 `src` 路径。
 - Agent 资产已统一迁移到 `agent-assets/`。
 - 工具说明文档已统一迁移到 `docs/tools/`。
@@ -71,6 +72,7 @@
 - MCP 工具在 Windows 本地环境下的真实可运行性。
 - filesystem_read 策略模型与未来 MCP adapter 的真实对接方式。
 - filesystem_read 本地 adapter 与未来 MCP filesystem adapter 的替换细节。
+- 成熟 filesystem MCP / 等价成熟工具在 Windows 下的只读模式与仓库根目录限制能力。
 
 ## 待接入
 
@@ -91,6 +93,8 @@
 - 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络，也不接入真实 MCP Server。
 - 当前 MCP 相关文档只是选型与安全边界设计，不代表任何 MCP Server 已接入。
 - 当前 filesystem_read 虽然能读取白名单文本文件，但只限显式单文件本地读取，不代表 MCP 已接入。
+- 当前 `LocalFilesystemReadAdapter` 只是 bootstrap / fallback，不是长期正式 filesystem 能力。
+- 当前不继续扩展本地 adapter 为多文件读取、目录读取、自动上下文收集或文件检索系统。
 - 当前 filesystem_write 仍未开放。
 - 当前文件内容默认只展示预览，完整内容需要显式参数。
 - 当前 runtime CLI 只允许调用 intent-only 和 orchestrator dry-run 能力，不开放真实工具执行。

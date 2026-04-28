@@ -51,6 +51,7 @@
 - `tool registry` 第一版只做注册和权限模型，不执行本地命令，不访问外部网络，不接入真实 MCP Server。
 - `runtime CLI` 当前只开放 `intent-only` 和 `dry-run`，不开放真实执行。
 - `memory` 当前只支持精确 key 读取、简单文本搜索和 `memory_type/source` 过滤，不是语义检索。
+- `LocalFilesystemReadAdapter` 当前只是 bootstrap / fallback，不是长期正式 filesystem 能力，也不会继续扩展为多文件或检索系统。
 
 ### 待接入
 
