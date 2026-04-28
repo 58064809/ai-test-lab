@@ -90,6 +90,7 @@ def render_orchestrator_result(
             lines.append(
                 "  - "
                 f"允许读取={'是' if item.get('allowed', False) else '否'} | "
+                f"来源={item.get('source') or 'unknown'} | "
                 f"路径={normalized_path} | "
                 f"字符数={len(content_text)} | "
                 f"已截断={'是' if item.get('truncated', False) else '否'}"

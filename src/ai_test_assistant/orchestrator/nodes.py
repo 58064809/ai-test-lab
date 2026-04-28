@@ -202,6 +202,7 @@ class OrchestratorNodes:
         return {
             "requested_path": item.get("requested_path"),
             "path": item.get("path"),
+            "source": item.get("source"),
             "allowed": bool(item.get("allowed", False)),
             "truncated": bool(item.get("truncated", False)),
             "reason": str(item.get("reason", "")),
@@ -215,6 +216,7 @@ class OrchestratorNodes:
         return {
             "requested_path": item.get("requested_path"),
             "path": item.get("path"),
+            "source": item.get("source"),
             "allowed": bool(item.get("allowed", False)),
             "truncated": bool(item.get("truncated", False)),
             "reason": str(item.get("reason", "")),

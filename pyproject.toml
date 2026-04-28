@@ -9,6 +9,7 @@ description = "Personal execution-oriented AI testing assistant foundation."
 requires-python = ">=3.11,<4.0"
 dependencies = [
   "langgraph>=0.4,<1",
+  "mcp>=1.26,<2",
   "PyYAML>=6,<7",
 ]
 

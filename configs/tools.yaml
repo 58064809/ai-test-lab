@@ -107,12 +107,12 @@ tools:
     notes: 当前是本地白名单只读 adapter，不是 MCP 接入；只支持显式单文件读取，不读取真实业务敏感文件。
 
   - name: filesystem_mcp_read
-    description: Future filesystem MCP read-only access scoped to the repository root.
-    status: planned
+    description: Filesystem MCP read-only access scoped to the repository root.
+    status: enabled
     risk_level: read_only
     category: storage
-    implementation: planned_mcp
-    notes: 023 仅完成选型与最小接入验证方案，未接入、未启用；正式接入前需人工确认 Windows 支持、只读模式和仓库根目录限制能力。
+    implementation: official_mcp
+    notes: 当前已接入 runtime 的显式单文件只读入口 `--mcp-read-file`；仅允许通过 `FilesystemReadPolicy` 读取仓库根目录内低风险文本文件，不开放 `filesystem_write`。
 
   - name: filesystem_write
     description: Repository file write access through a future filesystem MCP tool.

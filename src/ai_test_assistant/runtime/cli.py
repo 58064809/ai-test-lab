@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 from pathlib import Path
 
-from ai_test_assistant.filesystem import LocalFilesystemReadAdapter
+from ai_test_assistant.filesystem import FilesystemMcpReadClient, LocalFilesystemReadAdapter
 from ai_test_assistant.intent.router import IntentRouter
 from ai_test_assistant.orchestrator.graph import TaskOrchestrator
 from ai_test_assistant.runtime.output import render_error, render_intent_only, render_orchestrator_result
@@ -18,7 +19,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=True, help="只输出计划，不执行工具")
     parser.add_argument("--intent-only", action="store_true", help="只做意图识别，不进入 orchestrator")
     parser.add_argument("--write-memory", action="store_true", help="允许写入任务结果记忆")
-    parser.add_argument("--read-file", help="显式读取单个仓库相对路径文件，只支持白名单文本文件")
+    file_read_group = parser.add_mutually_exclusive_group()
+    file_read_group.add_argument(
+        "--read-file",
+        help="显式读取单个仓库相对路径文件，只支持白名单文本文件，使用本地 fallback adapter",
+    )
+    file_read_group.add_argument(
+        "--mcp-read-file",
+        help="显式通过 filesystem MCP 读取单个仓库相对路径文件，只支持白名单文本文件",
+    )
     parser.add_argument("--show-file-content", action="store_true", help="显式展示允许读取文件的完整内容")
     parser.add_argument("--config", default="configs/assistant.yaml", help="指定配置文件路径")
     return parser
@@ -43,16 +52,11 @@ def run_cli(argv: list[str] | None = None) -> int:
     if args.read_file:
         adapter = LocalFilesystemReadAdapter(repo_root=Path.cwd())
         file_read_result = adapter.read_text(args.read_file)
-        input_files.append(
-            {
-                "requested_path": args.read_file,
-                "path": file_read_result.path,
-                "allowed": file_read_result.allowed,
-                "content": file_read_result.content,
-                "reason": file_read_result.reason,
-                "truncated": file_read_result.truncated,
-            }
-        )
+        input_files.append(_build_input_file_entry(args.read_file, file_read_result, source="local_adapter"))
+    elif args.mcp_read_file:
+        client = FilesystemMcpReadClient(repo_root=Path.cwd())
+        file_read_result = asyncio.run(client.read_text(args.mcp_read_file))
+        input_files.append(_build_input_file_entry(args.mcp_read_file, file_read_result, source="filesystem_mcp"))
 
     orchestrator = TaskOrchestrator.from_config(config_path)
     result = orchestrator.run(
@@ -70,3 +74,20 @@ def run_cli(argv: list[str] | None = None) -> int:
         )
     )
     return 0
+
+
+def _build_input_file_entry(
+    requested_path: str,
+    file_read_result,
+    *,
+    source: str,
+) -> dict[str, object]:
+    return {
+        "requested_path": requested_path,
+        "path": file_read_result.path,
+        "allowed": file_read_result.allowed,
+        "content": file_read_result.content,
+        "reason": file_read_result.reason,
+        "truncated": file_read_result.truncated,
+        "source": source,
+    }

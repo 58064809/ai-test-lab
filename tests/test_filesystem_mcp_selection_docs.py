@@ -64,13 +64,14 @@ def test_filesystem_mcp_docs_mark_local_adapter_as_fallback_and_not_integrated()
     assert "已接入 filesystem MCP" not in plan
 
 
-def test_filesystem_mcp_tools_remain_non_enabled_and_write_stays_disabled() -> None:
+def test_filesystem_mcp_tools_keep_read_only_boundary_and_write_stays_disabled() -> None:
     tools = _load_tools()
     by_name = {str(tool["name"]): tool for tool in tools}
 
     assert by_name["filesystem_read"]["status"] == "enabled"
     assert by_name["filesystem_read"]["implementation"] == "local_python"
-    assert by_name["filesystem_mcp_read"]["status"] != "enabled"
-    assert by_name["filesystem_mcp_read"]["implementation"] == "planned_mcp"
+    assert by_name["filesystem_mcp_read"]["status"] == "enabled"
+    assert by_name["filesystem_mcp_read"]["implementation"] == "official_mcp"
+    assert by_name["filesystem_mcp_read"]["risk_level"] == "read_only"
     assert by_name["filesystem_write"]["status"] == "disabled"
     assert by_name["shell"]["status"] == "disabled"

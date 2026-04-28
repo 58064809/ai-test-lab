@@ -51,6 +51,10 @@ def test_registry_exposes_status_and_risk_level() -> None:
     assert filesystem_read_tool.status is ToolStatus.ENABLED
     assert filesystem_read_tool.risk_level is ToolRiskLevel.READ_ONLY
 
+    filesystem_mcp_read_tool = registry.get_tool("filesystem_mcp_read")
+    assert filesystem_mcp_read_tool.status is ToolStatus.ENABLED
+    assert filesystem_mcp_read_tool.risk_level is ToolRiskLevel.READ_ONLY
+
     shell_tool = registry.get_tool("shell")
     assert shell_tool.status is ToolStatus.DISABLED
     assert shell_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
@@ -64,10 +68,14 @@ def test_enabled_read_only_tool_is_allowed_by_default() -> None:
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
 
     decision = registry.evaluate_execution("filesystem_read")
+    mcp_decision = registry.evaluate_execution("filesystem_mcp_read")
 
     assert decision.allowed is True
     assert decision.requires_confirmation is False
     assert decision.reasons == []
+    assert mcp_decision.allowed is True
+    assert mcp_decision.requires_confirmation is False
+    assert mcp_decision.reasons == []
 
 
 @pytest.mark.parametrize("tool_name", ["pytest_runner", "playwright_mcp", "keploy", "shell", "database_readonly"])

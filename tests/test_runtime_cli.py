@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 from ai_test_assistant.memory.sqlite_store import SQLiteMemoryStore
 from ai_test_assistant.runtime.cli import build_parser, run_cli
@@ -52,6 +53,22 @@ def test_cli_parser_supports_required_arguments() -> None:
     assert args.dry_run is True
 
 
+def test_cli_parser_supports_mcp_read_file_argument() -> None:
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "请读取 README 并分析项目状态",
+            "--mcp-read-file",
+            "README.md",
+            "--config",
+            "configs/assistant.yaml",
+        ]
+    )
+
+    assert args.mcp_read_file == "README.md"
+    assert args.read_file is None
+
+
 def test_cli_intent_only_outputs_intent_result(tmp_path: Path, capsys) -> None:
     config_path = _write_assistant_config(tmp_path)
 
@@ -94,7 +111,7 @@ def test_cli_dry_run_reads_single_allowed_file_with_preview_by_default(tmp_path:
     assert exit_code == 0
     assert "显式文件读取请求：README.md" in captured
     assert "文件读取结果：" in captured
-    assert "允许读取=是 | 路径=README.md | 字符数=17 | 已截断=否" in captured
+    assert "允许读取=是 | 来源=local_adapter | 路径=README.md | 字符数=17 | 已截断=否" in captured
     assert "结果说明：Read allowed." in captured
     assert "文件预览：" in captured
     assert "line1" in captured
@@ -139,7 +156,141 @@ def test_cli_dry_run_refuses_sensitive_file_read(tmp_path: Path, capsys, monkeyp
     captured = capsys.readouterr().out
     assert exit_code == 0
     assert "显式文件读取请求：.env" in captured
-    assert "允许读取=否 | 路径=.env | 字符数=0 | 已截断=否" in captured
+    assert "允许读取=否 | 来源=local_adapter | 路径=.env | 字符数=0 | 已截断=否" in captured
+    assert "结果说明：Sensitive file is blocked." in captured
+    assert "文件预览：" not in captured
+    assert "文件内容：" not in captured
+
+
+def test_cli_dry_run_reads_single_allowed_file_via_mcp_with_preview_by_default(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    monkeypatch.chdir(repo_dir.resolve())
+
+    class StubMcpClient:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        async def read_text(self, repo_relative_path: str) -> SimpleNamespace:
+            assert repo_relative_path == "README.md"
+            assert self.repo_root == repo_dir.resolve()
+            return SimpleNamespace(
+                allowed=True,
+                path="README.md",
+                content="line1\nline2\nline3",
+                reason="Read allowed through filesystem MCP.",
+                truncated=False,
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.FilesystemMcpReadClient", StubMcpClient)
+
+    exit_code = run_cli(
+        [
+            "请读取 README 并分析项目状态",
+            "--dry-run",
+            "--mcp-read-file",
+            "README.md",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "显式文件读取请求：README.md" in captured
+    assert "允许读取=是 | 来源=filesystem_mcp | 路径=README.md | 字符数=17 | 已截断=否" in captured
+    assert "结果说明：Read allowed through filesystem MCP." in captured
+    assert "文件预览：" in captured
+    assert "文件内容：" not in captured
+
+
+def test_cli_dry_run_shows_full_mcp_file_content_only_with_explicit_flag(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    monkeypatch.chdir(repo_dir.resolve())
+
+    class StubMcpClient:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        async def read_text(self, repo_relative_path: str) -> SimpleNamespace:
+            return SimpleNamespace(
+                allowed=True,
+                path=repo_relative_path,
+                content="line1\nline2\nline3",
+                reason="Read allowed through filesystem MCP.",
+                truncated=False,
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.FilesystemMcpReadClient", StubMcpClient)
+
+    exit_code = run_cli(
+        [
+            "请读取 README 并分析项目状态",
+            "--dry-run",
+            "--mcp-read-file",
+            "README.md",
+            "--show-file-content",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "文件内容：" in captured
+    assert "line1" in captured
+    assert "line3" in captured
+    assert "文件预览：" not in captured
+
+
+def test_cli_dry_run_refuses_sensitive_mcp_file_read(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    monkeypatch.chdir(repo_dir.resolve())
+
+    class StubMcpClient:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        async def read_text(self, repo_relative_path: str) -> SimpleNamespace:
+            assert repo_relative_path == ".env"
+            return SimpleNamespace(
+                allowed=False,
+                path=".env",
+                content=None,
+                reason="Sensitive file is blocked.",
+                truncated=False,
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.FilesystemMcpReadClient", StubMcpClient)
+
+    exit_code = run_cli(
+        [
+            "请读取环境配置",
+            "--dry-run",
+            "--mcp-read-file",
+            ".env",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "显式文件读取请求：.env" in captured
+    assert "允许读取=否 | 来源=filesystem_mcp | 路径=.env | 字符数=0 | 已截断=否" in captured
     assert "结果说明：Sensitive file is blocked." in captured
     assert "文件预览：" not in captured
     assert "文件内容：" not in captured
@@ -228,6 +379,52 @@ def test_cli_write_memory_keeps_only_input_file_metadata(tmp_path: Path, capsys,
     assert len(results) == 1
     input_files = results[0].value["input_files"]
     assert input_files[0]["path"] == "README.md"
+    assert input_files[0]["content_length"] == len("line1\nline2\nline3")
+    assert "content" not in input_files[0]
+
+
+def test_cli_mcp_write_memory_keeps_only_input_file_metadata(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    db_path = tmp_path / "memory.sqlite3"
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    monkeypatch.chdir(repo_dir.resolve())
+
+    class StubMcpClient:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        async def read_text(self, repo_relative_path: str) -> SimpleNamespace:
+            return SimpleNamespace(
+                allowed=True,
+                path=repo_relative_path,
+                content="line1\nline2\nline3",
+                reason="Read allowed through filesystem MCP.",
+                truncated=False,
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.FilesystemMcpReadClient", StubMcpClient)
+
+    exit_code = run_cli(
+        [
+            "请读取 README 并分析项目状态",
+            "--dry-run",
+            "--mcp-read-file",
+            "README.md",
+            "--write-memory",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert exit_code == 0
+    capsys.readouterr()
+    store = SQLiteMemoryStore(db_path)
+    results = store.search_memory("task_result/orchestrator")
+    assert len(results) == 1
+    input_files = results[0].value["input_files"]
+    assert input_files[0]["path"] == "README.md"
+    assert input_files[0]["source"] == "filesystem_mcp"
     assert input_files[0]["content_length"] == len("line1\nline2\nline3")
     assert "content" not in input_files[0]
 

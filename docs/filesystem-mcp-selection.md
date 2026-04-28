@@ -64,7 +64,7 @@
 - 第一阶段不接 `filesystem_write`
 - 即使未来引入成熟 filesystem MCP，也必须先验证写能力是否能显式关闭
 - 当前 `configs/tools.yaml` 中：
-  - `filesystem_mcp_read` 只能是 `planned`
+  - `filesystem_mcp_read` 当前已接入为显式单文件只读入口
   - `filesystem_write` 必须保持 `disabled`
 
 ## 与 FilesystemReadPolicy 的协同方式

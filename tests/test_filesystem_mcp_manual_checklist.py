@@ -73,6 +73,7 @@ def test_mcp_tool_boundaries_remain_locked() -> None:
     config = yaml.safe_load(Path("configs/tools.yaml").read_text(encoding="utf-8"))
     tools = {item["name"]: item for item in config["tools"]}
 
-    assert tools["filesystem_mcp_read"]["status"] != "enabled"
+    assert tools["filesystem_mcp_read"]["status"] == "enabled"
+    assert tools["filesystem_mcp_read"]["risk_level"] == "read_only"
     assert tools["filesystem_write"]["status"] == "disabled"
     assert tools["shell"]["status"] == "disabled"

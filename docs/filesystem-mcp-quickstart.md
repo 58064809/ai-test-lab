@@ -2,11 +2,18 @@
 
 ## 采用方案
 
-采用官方 / 主流方案：`@modelcontextprotocol/server-filesystem`
+采用官方 / 主流方案：
+
+- filesystem server：`@modelcontextprotocol/server-filesystem`
+- Python client SDK：`mcp`
 
 ## 目标
 
-只允许读取 `ai-test-lab` 仓库目录，用于后续最小 MCP 接入验证。
+把 filesystem MCP 只读能力接入当前 runtime，并且只开放显式单文件读取入口：
+
+```powershell
+python scripts/run_assistant.py "请读取 README 并分析项目状态" --dry-run --mcp-read-file README.md
+```
 
 ## 不做
 
@@ -14,12 +21,12 @@
 - 不开放 `shell`
 - 不扩展 `LocalFilesystemReadAdapter`
 - 不做多文件读取、目录读取、`glob` 或自动上下文收集
+- 不自动根据自然语言猜文件
 - 不写死用户本地路径
-- 不改当前 runtime CLI
 
 ## Windows 前置条件
 
-详细前置条件见：[local-environment-prerequisites.md](/D:/TestHome/ai-test-lab/docs/local-environment-prerequisites.md)
+详细前置条件见：[local-environment-prerequisites.md](local-environment-prerequisites.md)
 
 本阶段至少需要本机可直接使用：
 
@@ -40,18 +47,34 @@
 
 ## 最小配置示例
 
-示例文件见：[filesystem-server.example.json](/D:/TestHome/ai-test-lab/configs/mcp/filesystem-server.example.json)
+示例文件见：[filesystem-server.example.json](../configs/mcp/filesystem-server.example.json)
 
 核心思路：
 
 - 使用 `@modelcontextprotocol/server-filesystem`
 - 只传一个仓库根目录参数
+- Python runtime 通过官方 `mcp` SDK 走 stdio client
 - 示例配置保留 `<ABSOLUTE_PATH_TO_AI_TEST_LAB>` 占位符
 - 不写死用户本机真实路径
 
+## runtime 入口
+
+当前 runtime 已支持两个显式单文件读取入口：
+
+- `--read-file`：走本地 fallback `LocalFilesystemReadAdapter`
+- `--mcp-read-file`：走 `filesystem_mcp_read`，通过 filesystem MCP server 读取
+
+要求：
+
+- 两者都只支持单个显式仓库相对路径文件
+- 读取前都必须经过 `FilesystemReadPolicy`
+- 默认只展示预览
+- 只有显式传 `--show-file-content` 才展示完整允许内容
+- 写入 memory 时只保存文件元信息，不保存 `content`
+
 ## 本地验证命令
 
-如果直接在仓库根目录执行，最小启动命令如下：
+先验证官方 server 本身可启动：
 
 ```powershell
 npx -y @modelcontextprotocol/server-filesystem .
@@ -61,6 +84,14 @@ npx -y @modelcontextprotocol/server-filesystem .
 
 - 命令：`npx -y @modelcontextprotocol/server-filesystem .`
 - 输出：`Secure MCP Filesystem Server running on stdio`
+
+runtime 手动验证命令：
+
+```powershell
+python scripts/run_assistant.py "请读取 README 并分析项目状态" --dry-run --mcp-read-file README.md
+python scripts/run_assistant.py "请读取环境配置" --dry-run --mcp-read-file .env
+python scripts/run_assistant.py "请读取 README 并分析项目状态" --dry-run --mcp-read-file README.md --show-file-content
+```
 
 如果用于 MCP 客户端配置，继续使用绝对路径占位符：
 
@@ -72,26 +103,26 @@ npx -y @modelcontextprotocol/server-filesystem <ABSOLUTE_PATH_TO_AI_TEST_LAB>
 
 - `.` 只适合当前目录已经是仓库根目录的场景。
 - `<ABSOLUTE_PATH_TO_AI_TEST_LAB>` 需要替换为用户本机仓库绝对路径。
-- 本阶段只验证官方 server 是否存在、是否可启动。
-- 本仓库当前不会在测试或 runtime 中自动运行该命令。
+- 本仓库文档和示例配置不写死任何用户本地盘符绝对路径。
 
 ## 安全边界
 
-- 当前 Python runtime 还没有 MCP client，因此 `filesystem_mcp_read` 仍保持 `planned`
-- 当前可用的真实读文件能力仍然是本地 `filesystem_read` fallback
+- `filesystem_mcp_read` 当前已启用，但只开放 `read_only`
 - `filesystem_write` 继续保持 `disabled`
 - `shell` 继续保持 `disabled`
-- 第一阶段只考虑 `filesystem_read`
+- 第一阶段只考虑显式单文件 `filesystem_read`
+- 读取前先走 `FilesystemReadPolicy`
+- policy 拒绝 `.env`、`.git/`、`.assistant/`、token、secret、password 类路径时，不启动 MCP server
 
 关于根目录限制：
 
-- 示例配置只向 server 传入一个仓库根目录参数
+- MCP server 启动时只传入一个根目录参数：`repo_root`
 - 不访问仓库外目录
 
 关于只读边界：
 
-- 本阶段不开放任何写能力
-- 不继续扩展 `LocalFilesystemReadAdapter`
+- 只调用单文件读取相关工具
+- 不调用写文件、删文件、建目录类工具
 - 不实现多文件读取、目录读取、`glob` 或自动上下文收集
 
 ## 失败处理
@@ -99,17 +130,18 @@ npx -y @modelcontextprotocol/server-filesystem <ABSOLUTE_PATH_TO_AI_TEST_LAB>
 如果本地验证失败，先检查：
 
 1. `Node.js`、`npm`、`npx` 是否已安装。
-2. `npx` 是否能拉起 `@modelcontextprotocol/server-filesystem`。
-3. 当前目录是否就是仓库根目录，或者绝对路径是否正确。
-4. 是否被 npm 源、代理或网络访问问题阻断。
+2. Python 环境是否已安装项目依赖，包含官方 MCP SDK `mcp`。
+3. `npx` 是否能拉起 `@modelcontextprotocol/server-filesystem`。
+4. 当前目录是否就是仓库根目录，或者绝对路径是否正确。
+5. 是否被 npm 源、代理或网络访问问题阻断。
 
-如果仍失败，记录错误信息，并回到“本地前置条件待补齐”状态，不继续复杂选型，也不回退为扩展本地 adapter。
+如果 `--mcp-read-file .env`、`--mcp-read-file .git/config` 这类路径被拒绝，属于预期安全行为，不应绕过 policy。
 
 ## 下一步
 
-下一步只保持最小边界：
+下一步继续保持最小边界：
 
-- 继续保持 `filesystem_mcp_read=planned`，直到真实 MCP client 接入代码存在。
-- 不扩展 `LocalFilesystemReadAdapter`。
-- 不开放 `filesystem_write`。
-- 不修改 runtime CLI。
+- 保留 `LocalFilesystemReadAdapter` 作为 fallback
+- 不开放 `filesystem_write`
+- 不开放 `shell`
+- 不改成多文件、目录读取或自动上下文收集

@@ -33,6 +33,9 @@ def test_filesystem_mcp_quickstart_doc_contains_required_markers() -> None:
         "安全边界",
         "不开放 `filesystem_write`",
         "不开放 `shell`",
+        "--mcp-read-file",
+        "[local-environment-prerequisites.md](local-environment-prerequisites.md)",
+        "[filesystem-server.example.json](../configs/mcp/filesystem-server.example.json)",
     ):
         assert marker in content
 
@@ -61,6 +64,14 @@ def test_filesystem_mcp_example_does_not_include_real_paths_or_secrets() -> None
 def test_filesystem_mcp_tool_boundaries_remain_locked() -> None:
     tools = _load_tools()
 
-    assert tools["filesystem_mcp_read"]["status"] != "enabled"
+    assert tools["filesystem_mcp_read"]["status"] == "enabled"
+    assert tools["filesystem_mcp_read"]["risk_level"] == "read_only"
     assert tools["filesystem_write"]["status"] == "disabled"
     assert tools["shell"]["status"] == "disabled"
+
+
+def test_filesystem_mcp_quickstart_doc_does_not_contain_local_absolute_paths() -> None:
+    content = Path("docs/filesystem-mcp-quickstart.md").read_text(encoding="utf-8")
+
+    assert "D:/" not in content
+    assert "D:\\" not in content

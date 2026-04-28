@@ -17,10 +17,10 @@
 本阶段**未实现**：
 
 - MCP 协议
-- MCP Server 接入
+- 除 `filesystem_mcp_read` 外的其他 MCP Server 接入
 - 本地命令执行器
 - 外部网络访问器
-- 真实工具执行
+- 写文件、shell、浏览器、数据库等真实工具执行
 
 ## 已实现
 
@@ -52,6 +52,8 @@
   - `src/ai_test_assistant/filesystem/policy.py`
 - 已新增 filesystem_read 本地只读 adapter：
   - `src/ai_test_assistant/filesystem/adapter.py`
+- 已新增 filesystem MCP 只读 client：
+  - `src/ai_test_assistant/filesystem/mcp_client.py`
 - 已新增成熟 filesystem MCP 选型与最小接入验证方案：
   - `docs/filesystem-mcp-selection.md`
   - `docs/filesystem-mcp-minimal-integration-plan.md`
@@ -65,20 +67,23 @@
   - `github_write`
   - `playwright_browser`
 - `filesystem_read` 当前已作为本地只读 adapter 启用，但它不是 MCP Server 接入
-- `filesystem_mcp_read` 的官方 / 主流目标方案已经明确为 `@modelcontextprotocol/server-filesystem`，但当前仍未接入 Python runtime
+- `filesystem_mcp_read` 当前已启用为 `enabled + read_only`
+- `filesystem_mcp_read` 的正式 runtime 入口是显式 `--mcp-read-file`
+- `filesystem_mcp_read` 固定采用官方 `mcp` Python SDK + `@modelcontextprotocol/server-filesystem`
+- `filesystem_write` 仍然保持 `disabled`
+- `shell` 仍然保持 `disabled`
 
 ## 当前限制
 
 - 当前只是注册与权限底座，不是完整工具执行框架。
 - 当前与 orchestrator 的联动只做风险评估和授权建议，不执行工具。
 - 当前不自研 MCP 协议。
-- 当前不真实接入 MCP Server。
+- 当前除 `filesystem_mcp_read` 外，不真实接入其他 MCP Server。
 - 当前不执行本地命令。
 - 当前不访问外部网络。
 - 当前不处理复杂工具参数 schema。
-- 当前 filesystem_read 虽然已启用本地只读 adapter，但仍然只支持显式单文件读取，不代表 filesystem MCP 已接入。
-- 当前 `filesystem_mcp_read` 仍然只是 `planned`，023 只完成文档与验证方案。
-- 当前 `filesystem_mcp_read` 在 026 之后仍然不是 `enabled`；本阶段只补配置模板和 Windows quickstart。
+- 当前 filesystem_read 虽然已同时支持本地只读 adapter 与 MCP 只读入口，但仍然只支持显式单文件读取。
+- 当前不开放目录读取、glob、多文件读取、自动上下文收集、filesystem_write 或 shell。
 
 ## 待接入
 
@@ -93,4 +98,4 @@
 - 不把 `memory_write` 包装成默认可执行
 - 不让 `restricted_action` 默认开放
 - 不把注册表误写成自研 MCP 协议
-- 不把任何 MCP / 网络 / 命令 / 写文件类工具改成默认 `enabled`
+- 不把 `filesystem_write`、`shell`、`github_write` 这类高风险工具改成默认 `enabled`

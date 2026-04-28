@@ -1,5 +1,23 @@
 # Current Status
 
+## 028 filesystem MCP runtime 只读接入
+
+- 已接入官方 Python MCP SDK 依赖：`mcp`
+- 已新增 `src/ai_test_assistant/filesystem/mcp_client.py`
+- runtime CLI 已新增显式 `--mcp-read-file` 入口
+- `--mcp-read-file` 只支持显式单文件只读读取
+- MCP 读取前仍必须先经过 `FilesystemReadPolicy`
+- policy 拒绝 `.env`、`.git/`、`.assistant/`、token、secret、password 类路径时，不启动 MCP server
+- 当前 filesystem MCP server 固定采用 `@modelcontextprotocol/server-filesystem`
+- MCP server 根目录限制为 `repo_root`
+- `filesystem_mcp_read` 已改为 `enabled + read_only`
+- `filesystem_write` 仍保持 `disabled`
+- `shell` 仍保持 `disabled`
+- 默认只展示文件预览；只有显式传 `--show-file-content` 才展示完整允许内容
+- `task_result/orchestrator` memory 仍只记录文件元信息，不保存完整文件内容
+- `LocalFilesystemReadAdapter` 继续保留为 fallback
+- 当前不实现目录读取、`glob`、多文件读取或自动上下文收集
+
 ## 026 filesystem MCP 最小配置
 
 - 已确定后续官方 / 主流 filesystem MCP server 采用 `@modelcontextprotocol/server-filesystem`
@@ -9,7 +27,7 @@
 - 当前只落地最小配置模板、Windows 前置条件和本地验证命令
 - 已记录本地环境验证结果：`node -v`=`v24.15.0`、`npm -v`=`11.12.1`、`npx -v`=`11.12.1`
 - 用户本地已验证 `npx -y @modelcontextprotocol/server-filesystem .` 可启动，并返回 `Secure MCP Filesystem Server running on stdio`
-- 当前尚未接入 Python runtime 的 MCP client，因此 `filesystem_mcp_read` 仍保持 `planned`
+- 026 阶段原先尚未接入 Python runtime 的 MCP client；该限制已在 028 中解除，但仍只开放显式单文件只读读取
 - 当前 `filesystem_read` 仍然是 `local_python` fallback
 - 当前 `filesystem_write` 仍然保持 `disabled`
 - 当前 `shell` 仍然保持 `disabled`
@@ -98,15 +116,14 @@
 - 后续多模块并发访问时的锁竞争行为。
 - 更真实任务文本下的 orchestrator 计划质量与澄清触发阈值。
 - tool-intent 映射在更多真实项目中的稳定性。
-- MCP 工具在 Windows 本地环境下的真实可运行性。
+- MCP 工具在更多 Windows 本地环境下的真实可运行性。
 - filesystem_read 策略模型与未来 MCP adapter 的真实对接方式。
 - filesystem_read 本地 adapter 与未来 MCP filesystem adapter 的替换细节。
-- 成熟 filesystem MCP / 等价成熟工具在 Windows 下的只读模式与仓库根目录限制能力。
-- 成熟 filesystem MCP 的最小接入验证命令与真实运行依赖。
+- `mcp` Python SDK 与官方 filesystem server 在用户本地环境中的依赖安装稳定性。
 
 ## 待接入
 
-- MCP 的真实接入。
+- 除 `filesystem_mcp_read` 之外的其他 MCP 真实接入。
 - 真实工具执行层。
 - orchestrator 的正式执行分支。
 - 与 tool registry 联动的更细粒度执行授权。
@@ -120,15 +137,14 @@
 - 当前 orchestrator 只实现最小 LangGraph 骨架，不包含 checkpointer、HITL、工具执行和复杂状态流。
 - 当前 orchestrator 的 tool registry 联动只做 dry-run 级风险评估，不会触发真实工具。
 - 当前 `memory_write` 只用于授权评估和风险提示，不会触发真实长期记忆写入。
-- 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络，也不接入真实 MCP Server。
-- 当前 MCP 相关文档只是选型与安全边界设计，不代表任何 MCP Server 已接入。
-- 当前 filesystem_read 虽然能读取白名单文本文件，但只限显式单文件本地读取，不代表 MCP 已接入。
+- 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络；真实 MCP 接入目前只开放 `filesystem_mcp_read`。
+- 除 `filesystem_mcp_read` 外，其他 MCP 相关文档仍只是选型与安全边界设计，不代表已接入。
+- 当前 filesystem_read 虽然已同时支持本地 adapter 与 MCP 只读入口，但都只限显式单文件读取。
 - 当前 `LocalFilesystemReadAdapter` 只是 bootstrap / fallback，不是长期正式 filesystem 能力。
 - 当前不继续扩展本地 adapter 为多文件读取、目录读取、自动上下文收集或文件检索系统。
-- 当前 023 只完成选型与验证方案，不包含任何 filesystem MCP 接入代码。
 - 当前 filesystem_write 仍未开放。
 - 当前文件内容默认只展示预览，完整内容需要显式参数。
-- 当前 runtime CLI 只允许调用 intent-only 和 orchestrator dry-run 能力，不开放真实工具执行。
+- 当前 runtime CLI 只允许调用 intent-only、orchestrator dry-run 和显式只读文件读取能力，不开放写文件或 shell 执行。
 - 当前默认不写入 `task_result/orchestrator`，需要显式 `--write-memory`。
 
 ## 明确不做

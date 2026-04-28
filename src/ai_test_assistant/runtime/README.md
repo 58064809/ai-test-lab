@@ -20,6 +20,7 @@
   - `--intent-only`
   - `--write-memory`
   - `--read-file`
+  - `--mcp-read-file`
   - `--show-file-content`
   - `--config`
 - `--intent-only` 只做意图识别
@@ -30,7 +31,11 @@
 - 只有传 `--write-memory` 才允许写入 `task_result/orchestrator`
 - `--intent-only` 始终不写入 `task_result` 记忆
 - 只有显式传 `--read-file` 才允许单文件读取
+- 只有显式传 `--mcp-read-file` 才允许通过 filesystem MCP 读取单文件
 - `--read-file` 只支持仓库相对路径、白名单文本文件，且必须经过 `FilesystemReadPolicy`
+- `--mcp-read-file` 只支持仓库相对路径、白名单文本文件，且必须经过 `FilesystemReadPolicy`
+- `--read-file` 使用本地 fallback `LocalFilesystemReadAdapter`
+- `--mcp-read-file` 使用 `FilesystemMcpReadClient` + `@modelcontextprotocol/server-filesystem`
 - 默认只展示文件预览，不完整打印
 - 只有显式传 `--show-file-content` 才展示完整允许内容
 - dry-run 输出包含工具授权风险提示：
@@ -44,14 +49,15 @@
 ## 当前限制
 
 - 当前不实现 runtime CLI 之外的执行器
-- 当前不接入 MCP Server
-- 当前不执行真实工具
+- 当前只接入 `filesystem_mcp_read` 这一个显式只读 MCP 入口
+- 当前不执行写文件或 shell 类真实工具
 - 当前不访问外部网络
 - 当前不执行本地命令
 - 当前 `--write-memory` 只控制 `task_result/orchestrator` 写入，不影响其他 memory 类型
 - 当前 tool 风险提示来自 dry-run 授权评估，不代表已经接入真实执行器
-- 当前 `--read-file` 只支持显式单文件读取，不自动根据自然语言猜测多个文件
+- 当前 `--read-file` 与 `--mcp-read-file` 都只支持显式单文件读取，不自动根据自然语言猜测多个文件
 - 当前文件读取结果会进入 orchestrator dry-run 上下文，但 task_result memory 不保存完整文件内容
+- 当前不支持目录读取、glob、多文件读取或自动上下文收集
 
 ## 待接入
 
