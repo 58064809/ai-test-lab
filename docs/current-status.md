@@ -4,6 +4,7 @@
 
 - `memory` 最小可运行底座已落地。
 - `intent router` 最小可运行底座已落地。
+- orchestrator 工业级选型说明已完成，正式目标方案选择为 LangGraph。
 - Agent 资产已统一迁移到 `agent-assets/`。
 - 工具说明文档已统一迁移到 `docs/tools/`。
 - Python 工程代码统一放在 `src/ai_test_assistant/`。
@@ -35,5 +36,6 @@
 - 当前搜索不是语义检索，只是 namespace 内文本匹配和简单过滤。
 - 当前 intent 不是复杂 NLP，只是规则匹配。
 - 当前 intent 不调用外部 LLM。
+- 当前 orchestrator 只完成工业级选型，尚未接入 LangGraph 代码。
 - 当前没有工具执行能力。
 - 当前没有任务编排能力。
