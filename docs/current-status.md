@@ -1,5 +1,27 @@
 # Current Status
 
+## 026 filesystem MCP 最小配置
+
+- 已确定后续官方 / 主流 filesystem MCP server 采用 `@modelcontextprotocol/server-filesystem`
+- 已新增 `docs/filesystem-mcp-quickstart.md`
+- 已新增 `docs/local-environment-prerequisites.md`
+- 已新增 `configs/mcp/filesystem-server.example.json`
+- 当前只落地最小配置模板、Windows 前置条件和本地验证命令
+- 已记录本地环境验证结果：`node -v`=`v24.15.0`、`npm -v`=`11.12.1`、`npx -v`=`11.12.1`
+- 用户本地已验证 `npx -y @modelcontextprotocol/server-filesystem .` 可启动，并返回 `Secure MCP Filesystem Server running on stdio`
+- 当前尚未接入 Python runtime 的 MCP client，因此 `filesystem_mcp_read` 仍保持 `planned`
+- 当前 `filesystem_read` 仍然是 `local_python` fallback
+- 当前 `filesystem_write` 仍然保持 `disabled`
+- 当前 `shell` 仍然保持 `disabled`
+- 当前不继续复杂选型，不扩展 `LocalFilesystemReadAdapter`，不实现多文件读取
+
+## 025 filesystem MCP 官方 / 主流确认
+
+- 用户已明确选择：优先确认官方或主流生态中的 filesystem MCP server。
+- 已新增 `docs/filesystem-mcp-official-mainstream-confirmation.md`，只做候选收敛与事实确认，不做任何 MCP 接入代码。
+- 当前已确认官方 `modelcontextprotocol` 组织、官方包 `@modelcontextprotocol/server-filesystem`、Anthropic Agent SDK 示例和 VS Code 配置入口存在。
+- 当前仍未确认通用的 server-side 禁写开关，因此结论仍是“暂缓”，尚不进入最小接入实现。
+
 ## 已实现
 
 - `memory` 最小可运行底座已落地。
@@ -14,6 +36,7 @@
 - 已落地 filesystem_read 本地白名单只读 adapter。
 - `codex-tasks/021-explicit-multi-file-read-context.md` 已暂停，不执行。
 - 已完成成熟 filesystem MCP / 等价成熟工具的选型文档与最小接入验证方案。
+- 已新增 `docs/filesystem-mcp-manual-checklist.md`，用于人工确认候选方案，但尚未完成真实人工核验。
 - `python scripts/run_assistant.py ...` 已可从仓库根目录直接运行，不依赖测试注入 `src` 路径。
 - Agent 资产已统一迁移到 `agent-assets/`。
 - 工具说明文档已统一迁移到 `docs/tools/`。
@@ -51,6 +74,7 @@
 - `docs/filesystem-read-design.md` 已定义 filesystem_read 的白名单、黑名单、路径穿越拦截和 dry-run 边界。
 - `docs/filesystem-mcp-selection.md` 已完成成熟 filesystem MCP / 等价成熟工具选型说明。
 - `docs/filesystem-mcp-minimal-integration-plan.md` 已完成最小接入验证方案。
+- `docs/filesystem-mcp-manual-checklist.md` 已整理候选方案人工确认清单、禁止接入条件和证据记录模板。
 - `src/ai_test_assistant/filesystem/policy.py` 已提供路径安全策略模型，但不真实读取文件。
 - `src/ai_test_assistant/filesystem/adapter.py` 已提供本地只读单文件 adapter，所有读取都经过 `FilesystemReadPolicy`。
 - `configs/tools.yaml` 中 `filesystem_read` 已启用为 `enabled + read_only` 的本地 adapter，不代表 MCP 已接入。
@@ -63,6 +87,7 @@
 - `runtime CLI` 支持 `task_text`、`--dry-run`、`--intent-only`、`--write-memory`、`--config`。
 - `tests/test_runtime_cli.py` 覆盖启动、intent-only、dry-run、澄清提示、配置异常、memory 写入开关语义和工具风险提示输出。
 - `tests/test_filesystem_mcp_selection_docs.py` 覆盖 filesystem MCP 文档存在性和配置边界一致性。
+- `tests/test_filesystem_mcp_manual_checklist.py` 覆盖人工确认清单存在性、未验证表述约束和工具配置边界。
 - `validation/real-task-samples.yaml` 覆盖 15 类通用测试工程样本。
 - `tests/test_validation_samples.py` 覆盖样本加载、12 类主要 intent 验证、模糊输入澄清和 dry-run 工具授权结果。
 

@@ -55,6 +55,9 @@
 - 已新增成熟 filesystem MCP 选型与最小接入验证方案：
   - `docs/filesystem-mcp-selection.md`
   - `docs/filesystem-mcp-minimal-integration-plan.md`
+- 已新增官方 filesystem MCP quickstart 与最小配置模板：
+  - `docs/filesystem-mcp-quickstart.md`
+  - `configs/mcp/filesystem-server.example.json`
 - 已在 `configs/tools.yaml` 中补充后续 planned MCP 工具规划：
   - `filesystem_mcp_read`
   - `filesystem_write`
@@ -62,6 +65,7 @@
   - `github_write`
   - `playwright_browser`
 - `filesystem_read` 当前已作为本地只读 adapter 启用，但它不是 MCP Server 接入
+- `filesystem_mcp_read` 的官方 / 主流目标方案已经明确为 `@modelcontextprotocol/server-filesystem`，但当前仍未接入 Python runtime
 
 ## 当前限制
 
@@ -74,6 +78,7 @@
 - 当前不处理复杂工具参数 schema。
 - 当前 filesystem_read 虽然已启用本地只读 adapter，但仍然只支持显式单文件读取，不代表 filesystem MCP 已接入。
 - 当前 `filesystem_mcp_read` 仍然只是 `planned`，023 只完成文档与验证方案。
+- 当前 `filesystem_mcp_read` 在 026 之后仍然不是 `enabled`；本阶段只补配置模板和 Windows quickstart。
 
 ## 待接入
 
