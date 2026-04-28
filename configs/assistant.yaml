@@ -2,3 +2,6 @@ memory:
   backend: sqlite
   sqlite_path: .assistant/memory.sqlite3
 
+intent:
+  rules_path: configs/intents.yaml
+

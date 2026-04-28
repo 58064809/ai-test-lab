@@ -1,0 +1,115 @@
+defaults:
+  minimum_confidence: 0.45
+  ambiguity_gap: 0.15
+  generic_clarification_questions:
+    - 请说明你希望我做哪类任务，例如需求分析、测试用例生成、日志分析、缺陷报告或代码修改。
+    - 请补充你已有的材料，例如需求原文、日志、接口文档、代码变更或问题现象。
+
+intents:
+  - name: requirement_analysis
+    description: 从测试视角分析需求、PRD、原型或变更说明。
+    triggers: ["需求分析", "分析需求", "PRD", "原型", "需求", "测试范围"]
+    negative_triggers: ["测试用例", "日志", "缺陷报告"]
+    required_context: ["需求原文", "影响范围", "角色与权限"]
+    optional_context: ["接口文档", "原型说明", "上线范围"]
+    recommended_workflow: "agent-assets/prompts/requirement-analysis.md"
+    default_prompt: "agent-assets/prompts/requirement-analysis.md"
+
+  - name: test_case_generation
+    description: 基于需求、变更或缺陷背景生成结构化测试用例。
+    triggers: ["测试用例", "生成用例", "用例", "case", "测试点", "生成测试"]
+    negative_triggers: ["日志", "报错", "缺陷报告"]
+    required_context: ["需求描述", "影响范围", "业务规则"]
+    optional_context: ["前置条件", "用户角色", "状态流转"]
+    recommended_workflow: "agent-assets/prompts/test-case-generation.md"
+    default_prompt: "agent-assets/prompts/test-case-generation.md"
+
+  - name: api_test_design
+    description: 设计接口测试方案、接口场景或契约测试思路。
+    triggers: ["接口测试", "api测试", "API测试", "OpenAPI", "Swagger", "接口场景", "契约测试"]
+    negative_triggers: ["UI", "页面", "日志"]
+    required_context: ["接口文档", "鉴权方式", "请求与响应结构"]
+    optional_context: ["base URL", "高风险接口清单", "测试环境"]
+    recommended_workflow: "agent-assets/workflows/api-test-workflow.md"
+    default_prompt: "待接入：接口测试设计提示词"
+
+  - name: ui_test_design
+    description: 设计 UI 自动化测试方案或高价值 UI 场景。
+    triggers: ["UI测试", "ui测试", "页面测试", "UI自动化", "页面回归", "浏览器操作"]
+    negative_triggers: ["接口", "OpenAPI", "日志"]
+    required_context: ["页面入口", "用户角色", "核心流程"]
+    optional_context: ["测试账号", "原型", "历史回归问题"]
+    recommended_workflow: "agent-assets/workflows/ui-test-workflow.md"
+    default_prompt: "待接入：UI 测试设计提示词"
+
+  - name: pytest_execution
+    description: 执行、分析或优化 Pytest 测试。
+    triggers: ["pytest", "运行测试", "执行测试", "allure", "回归测试", "fixture"]
+    negative_triggers: ["需求", "日志分析"]
+    required_context: ["测试目标", "测试目录", "运行命令"]
+    optional_context: ["失败日志", "Allure 结果", "依赖配置"]
+    recommended_workflow: "docs/tools/pytest-allure.md"
+    default_prompt: "待接入：Pytest 执行提示词"
+
+  - name: log_analysis
+    description: 根据日志、异常栈和报错信息进行问题定位。
+    triggers: ["日志", "报错", "异常栈", "traceId", "requestId", "错误日志", "定位问题"]
+    negative_triggers: ["测试用例", "PRD"]
+    required_context: ["错误日志原文", "异常时间", "相关环境"]
+    optional_context: ["请求参数与响应", "复现步骤", "接口路径"]
+    recommended_workflow: "agent-assets/prompts/log-analysis.md"
+    default_prompt: "agent-assets/prompts/log-analysis.md"
+
+  - name: bug_report
+    description: 整理缺陷报告、复现步骤和证据链。
+    triggers: ["缺陷报告", "bug报告", "提bug", "整理缺陷", "复现步骤", "实际结果", "预期结果"]
+    negative_triggers: ["日志分析", "需求分析"]
+    required_context: ["问题现象", "复现步骤", "实际结果", "预期结果"]
+    optional_context: ["影响范围", "截图", "日志证据"]
+    recommended_workflow: "agent-assets/prompts/bug-report.md"
+    default_prompt: "agent-assets/prompts/bug-report.md"
+
+  - name: code_review
+    description: 进行代码审查、风险识别和回归影响分析。
+    triggers: ["代码审查", "code review", "review", "审查代码", "看一下改动", "评审"]
+    negative_triggers: ["生成测试用例", "日志分析"]
+    required_context: ["变更文件", "改动目标"]
+    optional_context: ["测试结果", "关联需求", "风险点"]
+    recommended_workflow: "待接入：代码评审工作流"
+    default_prompt: "待接入：代码评审提示词"
+
+  - name: repo_file_change
+    description: 修改仓库文件、重构目录或调整配置。
+    triggers: ["修改文件", "改代码", "重构", "调整目录", "修复路径", "新增文件", "更新配置"]
+    negative_triggers: ["日志分析", "缺陷报告"]
+    required_context: ["目标文件", "预期变更"]
+    optional_context: ["验证方式", "影响范围"]
+    recommended_workflow: "待接入：仓库改动工作流"
+    default_prompt: "待接入：文件修改提示词"
+
+  - name: tool_research
+    description: 调研工具能力、适用边界或接入方式。
+    triggers: ["调研工具", "接入", "MCP", "Schemathesis", "Keploy", "Playwright MCP", "工具说明"]
+    negative_triggers: ["运行测试", "生成测试用例"]
+    required_context: ["目标工具", "关注问题"]
+    optional_context: ["运行环境", "权限边界"]
+    recommended_workflow: "docs/tools/sources.md"
+    default_prompt: "待接入：工具调研提示词"
+
+  - name: memory_update
+    description: 更新、记录或整理长期记忆信息。
+    triggers: ["记住", "更新记忆", "保存偏好", "写入memory", "记录规则", "更新规则"]
+    negative_triggers: ["日志分析", "代码审查"]
+    required_context: ["要记录的内容", "来源"]
+    optional_context: ["namespace", "key", "memory_type"]
+    recommended_workflow: "src/ai_test_assistant/memory/README.md"
+    default_prompt: "待接入：记忆更新提示词"
+
+  - name: workflow_update
+    description: 更新工作流、模板、提示词或示例资产。
+    triggers: ["更新工作流", "修改模板", "补充提示词", "新增示例", "优化流程", "沉淀资产"]
+    negative_triggers: ["运行pytest", "日志分析"]
+    required_context: ["目标资产", "修改目标"]
+    optional_context: ["参考文档", "影响范围"]
+    recommended_workflow: "agent-assets/workflows/defect-analysis-workflow.md"
+    default_prompt: "待接入：工作流更新提示词"
