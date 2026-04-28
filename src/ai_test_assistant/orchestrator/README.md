@@ -23,6 +23,13 @@
   - `write_memory`
 - 已支持 dry-run 任务计划生成
 - 已支持 `write_memory` 状态控制 `task_result/orchestrator` 是否真正写入
+- 已支持与 `ToolRegistry` 的 dry-run 授权联动
+- 已支持输出推荐工具与授权结果：
+  - 工具状态
+  - 风险等级
+  - 是否允许执行
+  - 是否需要确认
+  - 拒绝原因
 - 已明确当前 `intent router` 只是 bootstrap / fallback，不是最终工业级 intent 系统
 
 ## 待接入
@@ -30,8 +37,7 @@
 - checkpointer / persistence 集成
 - review 节点后的人工确认机制
 - 非 dry-run 执行层
-- tool registry 集成
-- runtime CLI 集成
+- MCP / 真实执行器集成
 - 更细粒度的状态 schema 和风险策略
 
 ## 当前限制
@@ -40,9 +46,8 @@
 - 当前 dry-run 只生成计划，不执行外部工具
 - 当前非 dry-run 仍然只生成计划，不开放真实执行
 - 当前默认不写入 `task_result/orchestrator`，只有显式允许时才写入
-- 当前不实现 tool registry
+- 当前与 tool registry 的联动只做授权评估，不做真实调用
 - 当前不实现 MCP
-- 当前不实现 runtime CLI
 - 当前不实现复杂多 Agent 聊天系统
 
 ## 选型结论

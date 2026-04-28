@@ -5,3 +5,5 @@ memory:
 intent:
   rules_path: configs/intents.yaml
 
+tool_registry:
+  config_path: configs/tools.yaml

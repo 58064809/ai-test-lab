@@ -10,6 +10,7 @@
 - 工具状态建模
 - 风险等级建模
 - 权限判定策略
+- dry-run 阶段与 orchestrator 的最小授权联动
 
 本阶段**未实现**：
 
@@ -17,7 +18,7 @@
 - MCP Server 接入
 - 本地命令执行器
 - 外部网络访问器
-- runtime CLI
+- 真实工具执行
 
 ## 已实现
 
@@ -35,10 +36,12 @@
 - 未启用工具不可执行
 - `restricted_action` 默认禁止
 - `write_project_files`、`execute_local_command`、`external_network` 需要显式审批上下文
+- orchestrator 可读取注册表并在 dry-run 结果里展示工具授权判断
 
 ## 当前限制
 
 - 当前只是注册与权限底座，不是完整工具执行框架。
+- 当前与 orchestrator 的联动只做风险评估和授权建议，不执行工具。
 - 当前不自研 MCP 协议。
 - 当前不真实接入 MCP Server。
 - 当前不执行本地命令。
@@ -49,12 +52,11 @@
 
 - 正式 MCP 工具生态评估与接入
 - 真实执行器层
-- 与 orchestrator 的调用集成
-- runtime CLI
+- 与 orchestrator 的正式执行联动
+- 更复杂的工具参数 schema
 
 ## 明确不做
 
 - 不把 `planned` 工具包装成已可执行
 - 不让 `restricted_action` 默认开放
 - 不把注册表误写成自研 MCP 协议
-

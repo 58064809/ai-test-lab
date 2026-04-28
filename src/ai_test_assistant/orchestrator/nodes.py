@@ -6,14 +6,35 @@ from ai_test_assistant.intent.router import IntentRouter
 from ai_test_assistant.memory.service import MemoryService
 from ai_test_assistant.orchestrator.policies import determine_risk_level, requires_confirmation
 from ai_test_assistant.orchestrator.state import OrchestratorState
+from ai_test_assistant.tool_registry import ToolRegistry
+from ai_test_assistant.tool_registry.permissions import ToolPermissionContext
+
+
+INTENT_TOOL_MAP: dict[str, list[str]] = {
+    "test_case_generation": ["memory_store"],
+    "api_test_design": ["schemathesis"],
+    "ui_test_design": ["playwright_mcp"],
+    "pytest_execution": ["pytest_runner"],
+    "repo_file_change": ["filesystem"],
+    "code_review": ["filesystem"],
+    "tool_research": ["github"],
+    "memory_update": ["memory_store"],
+    "workflow_update": ["filesystem"],
+}
 
 
 class OrchestratorNodes:
     """Thin LangGraph node set for the minimal dry-run orchestrator."""
 
-    def __init__(self, memory_service: MemoryService, intent_router: IntentRouter) -> None:
+    def __init__(
+        self,
+        memory_service: MemoryService,
+        intent_router: IntentRouter,
+        tool_registry: ToolRegistry | None = None,
+    ) -> None:
         self.memory_service = memory_service
         self.intent_router = intent_router
+        self.tool_registry = tool_registry
 
     def receive_task(self, state: OrchestratorState) -> OrchestratorState:
         task_text = state.get("task_text", "").strip()
@@ -49,16 +70,30 @@ class OrchestratorNodes:
         return {"selected_workflow": selected_workflow}
 
     def prepare_context(self, state: OrchestratorState) -> OrchestratorState:
+        intent_name = state["intent_result"].intent
+        recommended_tools = list(INTENT_TOOL_MAP.get(intent_name, []))
+        tool_authorization_evaluated, tool_decisions = self._evaluate_tools(
+            recommended_tools,
+            dry_run=state["dry_run"],
+        )
         prepared_context = {
-            "intent": state["intent_result"].intent,
+            "intent": intent_name,
             "required_context": list(state["intent_result"].required_context),
             "selected_workflow": state.get("selected_workflow"),
+            "recommended_tools": recommended_tools,
+            "tool_authorization_evaluated": tool_authorization_evaluated,
+            "tool_decisions": tool_decisions,
             "memory_counts": {
                 key: len(records)
                 for key, records in state.get("loaded_memory", {}).items()
             },
         }
-        return {"prepared_context": prepared_context}
+        return {
+            "prepared_context": prepared_context,
+            "recommended_tools": recommended_tools,
+            "tool_authorization_evaluated": tool_authorization_evaluated,
+            "tool_decisions": tool_decisions,
+        }
 
     def plan(self, state: OrchestratorState) -> OrchestratorState:
         dry_run = state["dry_run"]
@@ -73,6 +108,15 @@ class OrchestratorNodes:
             plan.append(f"选择推荐 workflow：{state['selected_workflow']}")
         else:
             plan.append("当前未匹配到明确 workflow，需要人工澄清。")
+
+        recommended_tools = list(state.get("recommended_tools", []))
+        if recommended_tools:
+            plan.append(f"推荐工具：{', '.join(recommended_tools)}")
+        else:
+            plan.append("当前任务不依赖推荐工具。")
+
+        if not state.get("tool_authorization_evaluated", False):
+            plan.append("工具授权未评估：当前未加载 tool registry。")
 
         if dry_run:
             plan.extend(
@@ -91,6 +135,13 @@ class OrchestratorNodes:
         dry_run = state["dry_run"]
         risk_level = determine_risk_level(intent_result, dry_run=dry_run)
         needs_confirmation = requires_confirmation(intent_result, dry_run=dry_run)
+        tool_decisions = list(state.get("tool_decisions", []))
+
+        if any(decision.get("requires_confirmation", False) for decision in tool_decisions):
+            needs_confirmation = True
+        if any(not decision.get("allowed", False) for decision in tool_decisions):
+            if risk_level == "low":
+                risk_level = "medium"
 
         return {
             "risk_level": risk_level,
@@ -105,6 +156,9 @@ class OrchestratorNodes:
             "dry_run": state["dry_run"],
             "write_memory": state.get("write_memory", False),
             "requires_confirmation": state.get("requires_confirmation", False),
+            "recommended_tools": list(state.get("recommended_tools", [])),
+            "tool_authorization_evaluated": state.get("tool_authorization_evaluated", False),
+            "tool_decisions": list(state.get("tool_decisions", [])),
             "execution_plan": list(state.get("execution_plan", [])),
         }
         if state.get("write_memory", False):
@@ -119,3 +173,37 @@ class OrchestratorNodes:
         else:
             summary["memory_write_status"] = "skipped"
         return {"result": summary}
+
+    def _evaluate_tools(self, recommended_tools: list[str], dry_run: bool) -> tuple[bool, list[dict[str, object]]]:
+        if not recommended_tools:
+            return True, []
+
+        if self.tool_registry is None:
+            return False, [
+                {
+                    "tool_name": tool_name,
+                    "status": None,
+                    "risk_level": None,
+                    "allowed": False,
+                    "requires_confirmation": True,
+                    "reasons": ["Tool registry 未加载，当前工具授权未评估。"],
+                }
+                for tool_name in recommended_tools
+            ]
+
+        decisions: list[dict[str, object]] = []
+        context = ToolPermissionContext(dry_run=dry_run)
+        for tool_name in recommended_tools:
+            tool = self.tool_registry.get_tool(tool_name)
+            decision = self.tool_registry.evaluate_execution(tool_name, context=context)
+            decisions.append(
+                {
+                    "tool_name": tool.name,
+                    "status": tool.status.value,
+                    "risk_level": tool.risk_level.value,
+                    "allowed": decision.allowed,
+                    "requires_confirmation": decision.requires_confirmation,
+                    "reasons": list(decision.reasons),
+                }
+            )
+        return True, decisions

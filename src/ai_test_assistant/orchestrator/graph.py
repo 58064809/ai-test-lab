@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
 from langgraph.graph import END, START, StateGraph
 
 from ai_test_assistant.intent.router import IntentRouter
 from ai_test_assistant.memory.service import MemoryService
 from ai_test_assistant.orchestrator.nodes import OrchestratorNodes
 from ai_test_assistant.orchestrator.state import OrchestratorState
+from ai_test_assistant.tool_registry import ToolRegistry
 
 
 class TaskOrchestrator:
@@ -19,17 +21,32 @@ class TaskOrchestrator:
     - dry-run only produces a plan and writes internal task memory
     """
 
-    def __init__(self, memory_service: MemoryService, intent_router: IntentRouter) -> None:
+    def __init__(
+        self,
+        memory_service: MemoryService,
+        intent_router: IntentRouter,
+        tool_registry: ToolRegistry | None = None,
+    ) -> None:
         self.memory_service = memory_service
         self.intent_router = intent_router
-        self.nodes = OrchestratorNodes(memory_service=memory_service, intent_router=intent_router)
+        self.tool_registry = tool_registry
+        self.nodes = OrchestratorNodes(
+            memory_service=memory_service,
+            intent_router=intent_router,
+            tool_registry=tool_registry,
+        )
         self.graph = self._build_graph()
 
     @classmethod
     def from_config(cls, assistant_config_path: str | Path = "configs/assistant.yaml") -> "TaskOrchestrator":
         memory_service = MemoryService.from_config(assistant_config_path)
         intent_router = IntentRouter.from_assistant_config(assistant_config_path)
-        return cls(memory_service=memory_service, intent_router=intent_router)
+        tool_registry = cls._load_tool_registry(assistant_config_path)
+        return cls(
+            memory_service=memory_service,
+            intent_router=intent_router,
+            tool_registry=tool_registry,
+        )
 
     def run(self, task_text: str, dry_run: bool = True, write_memory: bool = False) -> OrchestratorState:
         initial_state: OrchestratorState = {
@@ -39,6 +56,21 @@ class TaskOrchestrator:
             "errors": [],
         }
         return self.graph.invoke(initial_state)
+
+    @staticmethod
+    def _load_tool_registry(assistant_config_path: str | Path) -> ToolRegistry | None:
+        config_file = Path(assistant_config_path)
+        config_data = yaml.safe_load(config_file.read_text(encoding="utf-8")) or {}
+        tool_registry_config = config_data.get("tool_registry", {})
+        config_path = tool_registry_config.get("config_path")
+        if not config_path:
+            return None
+
+        tool_config_path = Path(str(config_path))
+        if not tool_config_path.exists():
+            return None
+
+        return ToolRegistry.from_yaml(tool_config_path)
 
     def _build_graph(self):
         builder = StateGraph(OrchestratorState)

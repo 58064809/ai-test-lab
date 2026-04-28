@@ -1,0 +1,190 @@
+samples:
+  - id: sample_001
+    category: requirement_analysis
+    task_text: "请做这个登录 PRD 的需求分析，并梳理测试范围和风险"
+    expected_intent: requirement_analysis
+    expected_clarification_required: false
+    expected_workflow: agent-assets/prompts/requirement-analysis.md
+    expected_risk_level: low
+    notes: "通用需求分析样本"
+
+  - id: sample_002
+    category: test_case_generation
+    task_text: "根据这个登录需求生成测试用例"
+    expected_intent: test_case_generation
+    expected_clarification_required: false
+    expected_workflow: agent-assets/prompts/test-case-generation.md
+    expected_risk_level: low
+    expected_recommended_tools: ["memory_store"]
+    expected_tool_statuses:
+      memory_store: enabled
+    expected_tool_allowed:
+      memory_store: true
+    notes: "通用用例生成样本"
+
+  - id: sample_003
+    category: api_test_design
+    task_text: "请基于 OpenAPI 文档设计接口测试场景"
+    expected_intent: api_test_design
+    expected_clarification_required: false
+    expected_workflow: agent-assets/workflows/api-test-workflow.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["schemathesis"]
+    expected_tool_statuses:
+      schemathesis: planned
+    expected_tool_allowed:
+      schemathesis: false
+    notes: "接口测试设计样本"
+
+  - id: sample_004
+    category: ui_test_design
+    task_text: "请设计这个页面的 UI 自动化和页面回归方案"
+    expected_intent: ui_test_design
+    expected_clarification_required: false
+    expected_workflow: agent-assets/workflows/ui-test-workflow.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["playwright_mcp"]
+    expected_tool_statuses:
+      playwright_mcp: planned
+    expected_tool_allowed:
+      playwright_mcp: false
+    notes: "UI 设计样本"
+
+  - id: sample_005
+    category: pytest_execution
+    task_text: "请运行 pytest 并分析 Allure 结果"
+    expected_intent: pytest_execution
+    expected_clarification_required: false
+    expected_workflow: docs/tools/pytest-allure.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["pytest_runner"]
+    expected_tool_statuses:
+      pytest_runner: planned
+    expected_tool_allowed:
+      pytest_runner: false
+    notes: "pytest 执行意图样本"
+
+  - id: sample_006
+    category: log_analysis
+    task_text: "请分析这段错误日志并定位问题"
+    expected_intent: log_analysis
+    expected_clarification_required: false
+    expected_workflow: agent-assets/prompts/log-analysis.md
+    expected_risk_level: low
+    notes: "日志分析样本"
+
+  - id: sample_007
+    category: bug_report
+    task_text: "请整理一个缺陷报告，补全复现步骤和预期结果"
+    expected_intent: bug_report
+    expected_clarification_required: false
+    expected_workflow: agent-assets/prompts/bug-report.md
+    expected_risk_level: low
+    notes: "缺陷报告样本"
+
+  - id: sample_008
+    category: code_review
+    task_text: "请做一次代码审查 review，并指出回归风险"
+    expected_intent: code_review
+    expected_clarification_required: false
+    expected_workflow: 待接入：代码评审工作流
+    expected_risk_level: medium
+    expected_recommended_tools: ["filesystem"]
+    expected_tool_statuses:
+      filesystem: disabled
+    expected_tool_allowed:
+      filesystem: false
+    notes: "代码审查样本"
+
+  - id: sample_009
+    category: repo_file_change
+    task_text: "请修改文件并修复路径引用"
+    expected_intent: repo_file_change
+    expected_clarification_required: false
+    expected_workflow: 待接入：仓库改动工作流
+    expected_risk_level: medium
+    expected_recommended_tools: ["filesystem"]
+    expected_tool_statuses:
+      filesystem: disabled
+    expected_tool_allowed:
+      filesystem: false
+    notes: "仓库改动样本"
+
+  - id: sample_010
+    category: tool_research
+    task_text: "请调研工具接入方式，重点看看 MCP 和 GitHub 集成"
+    expected_intent: tool_research
+    expected_clarification_required: false
+    expected_workflow: docs/tools/sources.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["github"]
+    expected_tool_statuses:
+      github: planned
+    expected_tool_allowed:
+      github: false
+    notes: "工具调研样本"
+
+  - id: sample_011
+    category: memory_update
+    task_text: "请记住这个输出偏好并更新记忆"
+    expected_intent: memory_update
+    expected_clarification_required: false
+    expected_workflow: src/ai_test_assistant/memory/README.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["memory_store"]
+    expected_tool_statuses:
+      memory_store: enabled
+    expected_tool_allowed:
+      memory_store: true
+    notes: "记忆更新样本"
+
+  - id: sample_012
+    category: workflow_update
+    task_text: "请更新工作流并补充提示词资产"
+    expected_intent: workflow_update
+    expected_clarification_required: false
+    expected_workflow: agent-assets/workflows/defect-analysis-workflow.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["filesystem"]
+    expected_tool_statuses:
+      filesystem: disabled
+    expected_tool_allowed:
+      filesystem: false
+    notes: "工作流更新样本"
+
+  - id: sample_013
+    category: ambiguous
+    task_text: "帮我看看这个"
+    expected_intent: unknown
+    expected_clarification_required: true
+    expected_workflow:
+    expected_risk_level: low
+    notes: "模糊输入必须触发澄清"
+
+  - id: sample_014
+    category: conflicting
+    task_text: "请 review 这次改动并直接修改文件"
+    expected_intent: code_review
+    expected_clarification_required: true
+    expected_workflow: 待接入：代码评审工作流
+    expected_risk_level: medium
+    expected_recommended_tools: ["filesystem"]
+    expected_tool_statuses:
+      filesystem: disabled
+    expected_tool_allowed:
+      filesystem: false
+    notes: "冲突输入，必须触发澄清"
+
+  - id: sample_015
+    category: risky
+    task_text: "请修改仓库配置并更新工作流"
+    expected_intent: workflow_update
+    expected_clarification_required: true
+    expected_workflow: agent-assets/workflows/defect-analysis-workflow.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["filesystem"]
+    expected_tool_statuses:
+      filesystem: disabled
+    expected_tool_allowed:
+      filesystem: false
+    notes: "高风险输入，必须给出风险提示或确认信号"

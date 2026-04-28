@@ -15,6 +15,7 @@
 - `orchestrator`：基于 LangGraph 的最小 dry-run 编排骨架。
 - `tool registry`：工具注册表与权限模型。
 - `runtime CLI`：最小命令行入口，支持 `intent-only` 与 `dry-run`。
+- `validation`：真实任务样本集与 dry-run 验证器。
 
 ## 原则
 
@@ -30,19 +31,23 @@
 - `memory` 最小底座已落地，持久化后可通过测试验证重启后读取。
 - `intent router` 已落地，规则存放在 `configs/intents.yaml`。
 - `orchestrator` 已落地最小 LangGraph 流程，只生成任务计划，不执行外部工具。
+- `orchestrator` 已接入 tool registry 的 dry-run 授权联动，可输出工具风险与授权结果。
 - `tool registry` 已落地注册与权限判定，不包含真实执行器。
 - `runtime CLI` 已可运行，支持：
   - `python scripts/run_assistant.py "根据这个需求生成测试用例" --dry-run`
   - `python scripts/run_assistant.py "分析这段日志" --intent-only`
+  - `python scripts/run_assistant.py "请运行 pytest 并分析 Allure 结果" --dry-run`
 - `--write-memory` 已真实控制 `task_result/orchestrator` 写入：
   - 默认不写
   - 显式传入才写
   - `--intent-only` 始终不写
+- `validation/real-task-samples.yaml` 已提供通用测试工程样本，用于验证真实任务下的路由、澄清和工具授权提示。
 
 ### 受限能力
 
 - `intent router` 第一版只是规则路由，不是工业级语义理解，也不调用外部 LLM。
 - `orchestrator` 第一版只是最小 LangGraph dry-run 骨架，不包含 checkpointer、HITL、工具执行和复杂多 Agent 编排。
+- `orchestrator` 当前与 tool registry 的联动只做 dry-run 授权评估，不代表真实工具已接入。
 - `tool registry` 第一版只做注册和权限模型，不执行本地命令，不访问外部网络，不接入真实 MCP Server。
 - `runtime CLI` 当前只开放 `intent-only` 和 `dry-run`，不开放真实执行。
 - `memory` 当前只支持精确 key 读取、简单文本搜索和 `memory_type/source` 过滤，不是语义检索。

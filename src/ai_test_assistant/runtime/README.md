@@ -27,6 +27,13 @@
 - 默认不写入 `task_result/orchestrator` 记忆
 - 只有传 `--write-memory` 才允许写入 `task_result/orchestrator`
 - `--intent-only` 始终不写入 `task_result` 记忆
+- dry-run 输出包含工具授权风险提示：
+  - 推荐工具
+  - 工具状态
+  - 风险等级
+  - 是否允许执行
+  - 是否需要确认
+  - 拒绝原因
 
 ## 当前限制
 
@@ -36,11 +43,12 @@
 - 当前不访问外部网络
 - 当前不执行本地命令
 - 当前 `--write-memory` 只控制 `task_result/orchestrator` 写入，不影响其他 memory 类型
+- 当前 tool 风险提示来自 dry-run 授权评估，不代表已经接入真实执行器
 
 ## 待接入
 
 - 更细粒度的 memory write 控制
-- 与 tool registry 的风险提示联动
+- 与 tool registry 的正式执行联动
 - CLI 更丰富的输出格式
 - 后续如参数复杂度提升，再评估 Typer / Click
 

@@ -15,6 +15,9 @@ class OrchestratorState(TypedDict, total=False):
     loaded_memory: dict[str, list[MemoryRecord]]
     selected_workflow: str | None
     prepared_context: dict[str, Any]
+    recommended_tools: list[str]
+    tool_authorization_evaluated: bool
+    tool_decisions: list[dict[str, Any]]
     execution_plan: list[str]
     risk_level: str
     requires_confirmation: bool
