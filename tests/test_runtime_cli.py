@@ -31,13 +31,23 @@ def _write_assistant_config(tmp_path: Path) -> Path:
 def test_cli_parser_supports_required_arguments() -> None:
     parser = build_parser()
     args = parser.parse_args(
-        ["根据这个需求生成测试用例", "--intent-only", "--write-memory", "--read-file", "README.md", "--config", "configs/assistant.yaml"]
+        [
+            "根据这个需求生成测试用例",
+            "--intent-only",
+            "--write-memory",
+            "--read-file",
+            "README.md",
+            "--show-file-content",
+            "--config",
+            "configs/assistant.yaml",
+        ]
     )
 
     assert args.task_text == "根据这个需求生成测试用例"
     assert args.intent_only is True
     assert args.write_memory is True
     assert args.read_file == "README.md"
+    assert args.show_file_content is True
     assert args.config == "configs/assistant.yaml"
     assert args.dry_run is True
 
@@ -71,9 +81,12 @@ def test_cli_dry_run_outputs_plan(tmp_path: Path, capsys) -> None:
     assert "memory_read | 状态=enabled | 风险=read_only | 允许执行=是 | 需要确认=否" in captured
 
 
-def test_cli_dry_run_reads_single_allowed_file_when_explicitly_requested(tmp_path: Path, capsys, monkeypatch) -> None:
+def test_cli_dry_run_reads_single_allowed_file_with_preview_by_default(tmp_path: Path, capsys, monkeypatch) -> None:
     config_path = _write_assistant_config(tmp_path)
-    monkeypatch.chdir(Path.cwd())
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    (repo_dir / "README.md").write_text("line1\nline2\nline3", encoding="utf-8", newline="\n")
+    monkeypatch.chdir(repo_dir.resolve())
 
     exit_code = run_cli(["请读取 README 并分析项目状态", "--dry-run", "--read-file", "README.md", "--config", str(config_path)])
 
@@ -81,21 +94,55 @@ def test_cli_dry_run_reads_single_allowed_file_when_explicitly_requested(tmp_pat
     assert exit_code == 0
     assert "显式文件读取请求：README.md" in captured
     assert "文件读取结果：" in captured
-    assert "允许读取=是 | 路径=README.md | 已截断=否" in captured
+    assert "允许读取=是 | 路径=README.md | 字符数=17 | 已截断=否" in captured
     assert "结果说明：Read allowed." in captured
+    assert "文件预览：" in captured
+    assert "line1" in captured
+    assert "文件内容：" not in captured
+
+
+def test_cli_dry_run_shows_full_file_content_only_with_explicit_flag(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    (repo_dir / "README.md").write_text("line1\nline2\nline3", encoding="utf-8", newline="\n")
+    monkeypatch.chdir(repo_dir.resolve())
+
+    exit_code = run_cli(
+        [
+            "请读取 README 并分析项目状态",
+            "--dry-run",
+            "--read-file",
+            "README.md",
+            "--show-file-content",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "文件内容：" in captured
+    assert "line1" in captured
+    assert "line3" in captured
+    assert "文件预览：" not in captured
 
 
 def test_cli_dry_run_refuses_sensitive_file_read(tmp_path: Path, capsys, monkeypatch) -> None:
     config_path = _write_assistant_config(tmp_path)
-    monkeypatch.chdir(Path.cwd())
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    monkeypatch.chdir(repo_dir.resolve())
 
     exit_code = run_cli(["请读取环境配置", "--dry-run", "--read-file", ".env", "--config", str(config_path)])
 
     captured = capsys.readouterr().out
     assert exit_code == 0
     assert "显式文件读取请求：.env" in captured
-    assert "允许读取=否 | 路径=.env | 已截断=否" in captured
+    assert "允许读取=否 | 路径=.env | 字符数=0 | 已截断=否" in captured
     assert "结果说明：Sensitive file is blocked." in captured
+    assert "文件预览：" not in captured
+    assert "文件内容：" not in captured
 
 
 def test_cli_ambiguous_task_returns_clarification_prompt(tmp_path: Path, capsys) -> None:
@@ -152,6 +199,37 @@ def test_cli_with_write_memory_writes_task_result_memory(tmp_path: Path, capsys)
     results = store.search_memory("task_result/orchestrator")
     assert len(results) == 1
     assert results[0].value["intent"] == "test_case_generation"
+
+
+def test_cli_write_memory_keeps_only_input_file_metadata(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    db_path = tmp_path / "memory.sqlite3"
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    (repo_dir / "README.md").write_text("line1\nline2\nline3", encoding="utf-8", newline="\n")
+    monkeypatch.chdir(repo_dir.resolve())
+
+    exit_code = run_cli(
+        [
+            "请读取 README 并分析项目状态",
+            "--dry-run",
+            "--read-file",
+            "README.md",
+            "--write-memory",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert exit_code == 0
+    capsys.readouterr()
+    store = SQLiteMemoryStore(db_path)
+    results = store.search_memory("task_result/orchestrator")
+    assert len(results) == 1
+    input_files = results[0].value["input_files"]
+    assert input_files[0]["path"] == "README.md"
+    assert input_files[0]["content_length"] == len("line1\nline2\nline3")
+    assert "content" not in input_files[0]
 
 
 def test_cli_intent_only_never_writes_task_result_memory(tmp_path: Path, capsys) -> None:

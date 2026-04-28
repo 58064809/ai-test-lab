@@ -64,6 +64,45 @@ def test_orchestrator_dry_run_generates_plan_without_writing_memory_by_default(t
     assert saved is None
 
 
+def test_orchestrator_accepts_input_file_context_and_keeps_only_metadata_in_memory(tmp_path: Path) -> None:
+    assistant_config = _write_assistant_config(tmp_path)
+    orchestrator = TaskOrchestrator.from_config(assistant_config)
+    input_files = [
+        {
+            "requested_path": "README.md",
+            "path": "README.md",
+            "allowed": True,
+            "content": "line1\nline2",
+            "reason": "Read allowed.",
+            "truncated": False,
+        }
+    ]
+
+    result = orchestrator.run("请读取 README 并分析项目状态", dry_run=True, write_memory=True, input_files=input_files)
+
+    assert len(result["input_files"]) == 1
+    assert result["prepared_context"]["input_files"][0]["path"] == "README.md"
+    assert result["prepared_context"]["input_files"][0]["content_in_context"] is True
+    assert result["prepared_context"]["input_files"][0]["content_length"] == len("line1\nline2")
+    assert any("显式文件上下文：1 个" in step for step in result["execution_plan"])
+    saved = orchestrator.memory_service.get_memory("task_result/orchestrator", result["task_id"])
+    assert saved is not None
+    assert saved.value["input_files"][0]["path"] == "README.md"
+    assert saved.value["input_files"][0]["content_length"] == len("line1\nline2")
+    assert "content" not in saved.value["input_files"][0]
+
+
+def test_orchestrator_without_read_file_has_no_input_file_context(tmp_path: Path) -> None:
+    assistant_config = _write_assistant_config(tmp_path)
+    orchestrator = TaskOrchestrator.from_config(assistant_config)
+
+    result = orchestrator.run("根据这个需求生成测试用例", dry_run=True, write_memory=False, input_files=None)
+
+    assert result.get("input_files", []) == []
+    assert result["prepared_context"]["input_files"] == []
+    assert any("当前无显式文件上下文。" in step for step in result["execution_plan"])
+
+
 def test_orchestrator_writes_memory_when_explicitly_enabled(tmp_path: Path) -> None:
     assistant_config = _write_assistant_config(tmp_path)
     orchestrator = TaskOrchestrator.from_config(assistant_config)

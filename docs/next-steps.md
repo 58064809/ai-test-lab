@@ -24,5 +24,6 @@
 - 当前 `orchestrator` 仍然只是最小 dry-run 骨架，即使已经接入 tool registry 授权联动，也不应包装成完整执行平台。
 - 当前 MCP 规划文档不代表真实接入，不应把 planned 工具包装成 enabled。
 - 当前 filesystem_read 本地 adapter 不代表已接入 filesystem MCP，也不应扩展成通用文件管理器。
+- 当前文件读取上下文只支持显式单文件输入，不应扩展成自然语言自动多文件读取。
 - 即使继续使用 LangGraph，也不要在 graph 外面再包一层复杂自研状态机。
 - 如果后续只需要结构化查询，不应过早引入向量库。

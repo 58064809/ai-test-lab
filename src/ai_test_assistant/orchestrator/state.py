@@ -11,6 +11,7 @@ class OrchestratorState(TypedDict, total=False):
     task_text: str
     dry_run: bool
     write_memory: bool
+    input_files: list[dict[str, Any]]
     intent_result: IntentRouteResult
     loaded_memory: dict[str, list[MemoryRecord]]
     selected_workflow: str | None

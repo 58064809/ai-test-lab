@@ -19,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--intent-only", action="store_true", help="只做意图识别，不进入 orchestrator")
     parser.add_argument("--write-memory", action="store_true", help="允许写入任务结果记忆")
     parser.add_argument("--read-file", help="显式读取单个仓库相对路径文件，只支持白名单文本文件")
+    parser.add_argument("--show-file-content", action="store_true", help="显式展示允许读取文件的完整内容")
     parser.add_argument("--config", default="configs/assistant.yaml", help="指定配置文件路径")
     return parser
 
@@ -38,20 +39,34 @@ def run_cli(argv: list[str] | None = None) -> int:
         print(render_intent_only(args.task_text, result))
         return 0
 
-    file_read_result = None
+    input_files: list[dict[str, object]] = []
     if args.read_file:
         adapter = LocalFilesystemReadAdapter(repo_root=Path.cwd())
         file_read_result = adapter.read_text(args.read_file)
+        input_files.append(
+            {
+                "requested_path": args.read_file,
+                "path": file_read_result.path,
+                "allowed": file_read_result.allowed,
+                "content": file_read_result.content,
+                "reason": file_read_result.reason,
+                "truncated": file_read_result.truncated,
+            }
+        )
 
     orchestrator = TaskOrchestrator.from_config(config_path)
-    result = orchestrator.run(args.task_text, dry_run=args.dry_run, write_memory=args.write_memory)
+    result = orchestrator.run(
+        args.task_text,
+        dry_run=args.dry_run,
+        write_memory=args.write_memory,
+        input_files=input_files,
+    )
 
     print(
         render_orchestrator_result(
             result,
             write_memory=args.write_memory,
-            requested_read_file=args.read_file,
-            file_read_result=file_read_result,
+            show_file_content=args.show_file_content,
         )
     )
     return 0

@@ -53,6 +53,9 @@
 - `tests/test_filesystem_read_policy.py` 覆盖白名单、黑名单和路径穿越。
 - `tests/test_filesystem_read_adapter.py` 覆盖允许读取、拒绝敏感路径、文件不存在、二进制文件和大文件处理。
 - `runtime CLI` 已支持显式 `--read-file` 单文件读取入口，只用于 dry-run 上下文展示。
+- `runtime CLI` 已支持 `--show-file-content`，默认只展示文件预览。
+- 文件读取结果已接入 orchestrator dry-run 上下文。
+- `task_result/orchestrator` memory 只记录文件元信息，不保存完整文件内容。
 - `runtime CLI` 支持 `task_text`、`--dry-run`、`--intent-only`、`--write-memory`、`--config`。
 - `tests/test_runtime_cli.py` 覆盖启动、intent-only、dry-run、澄清提示、配置异常、memory 写入开关语义和工具风险提示输出。
 - `validation/real-task-samples.yaml` 覆盖 15 类通用测试工程样本。
@@ -89,6 +92,7 @@
 - 当前 MCP 相关文档只是选型与安全边界设计，不代表任何 MCP Server 已接入。
 - 当前 filesystem_read 虽然能读取白名单文本文件，但只限显式单文件本地读取，不代表 MCP 已接入。
 - 当前 filesystem_write 仍未开放。
+- 当前文件内容默认只展示预览，完整内容需要显式参数。
 - 当前 runtime CLI 只允许调用 intent-only 和 orchestrator dry-run 能力，不开放真实工具执行。
 - 当前默认不写入 `task_result/orchestrator`，需要显式 `--write-memory`。
 

@@ -48,11 +48,18 @@ class TaskOrchestrator:
             tool_registry=tool_registry,
         )
 
-    def run(self, task_text: str, dry_run: bool = True, write_memory: bool = False) -> OrchestratorState:
+    def run(
+        self,
+        task_text: str,
+        dry_run: bool = True,
+        write_memory: bool = False,
+        input_files: list[dict[str, object]] | None = None,
+    ) -> OrchestratorState:
         initial_state: OrchestratorState = {
             "task_text": task_text,
             "dry_run": dry_run,
             "write_memory": write_memory,
+            "input_files": list(input_files or []),
             "errors": [],
         }
         return self.graph.invoke(initial_state)

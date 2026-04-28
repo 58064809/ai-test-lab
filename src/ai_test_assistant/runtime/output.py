@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai_test_assistant.filesystem.adapter import FilesystemReadResult
 from ai_test_assistant.intent.models import IntentRouteResult
 from ai_test_assistant.orchestrator.state import OrchestratorState
 
@@ -34,13 +33,16 @@ def render_intent_only(task_text: str, result: IntentRouteResult) -> str:
 def render_orchestrator_result(
     state: OrchestratorState,
     write_memory: bool,
-    requested_read_file: str | None = None,
-    file_read_result: FilesystemReadResult | None = None,
+    show_file_content: bool = False,
 ) -> str:
     intent_result = state["intent_result"]
     loaded_memory = state.get("loaded_memory", {})
+    input_files = list(state.get("input_files", []))
     recommended_tools = list(state.get("recommended_tools", []))
     tool_decisions = list(state.get("tool_decisions", []))
+    requested_read_file = None
+    if input_files:
+        requested_read_file = str(input_files[0].get("requested_path") or input_files[0].get("path") or "")
     lines = [
         "任务摘要",
         f"- 原始任务：{state['task_text']}",
@@ -80,20 +82,28 @@ def render_orchestrator_result(
 
     if requested_read_file:
         lines.append("- 文件读取结果：")
-        if file_read_result is None:
-            lines.append("  - 未执行读取。")
-        else:
+        for item in input_files:
+            content = item.get("content")
+            content_text = content if isinstance(content, str) else ""
+            normalized_path = item.get("path") or "未归一化"
+            preview = _build_preview(content_text)
             lines.append(
                 "  - "
-                f"允许读取={'是' if file_read_result.allowed else '否'} | "
-                f"路径={file_read_result.path or '未归一化'} | "
-                f"已截断={'是' if file_read_result.truncated else '否'}"
+                f"允许读取={'是' if item.get('allowed', False) else '否'} | "
+                f"路径={normalized_path} | "
+                f"字符数={len(content_text)} | "
+                f"已截断={'是' if item.get('truncated', False) else '否'}"
             )
-            lines.append(f"    结果说明：{file_read_result.reason}")
-            if file_read_result.allowed and file_read_result.content is not None:
-                lines.append("    文件内容：")
-                for content_line in file_read_result.content.splitlines():
-                    lines.append(f"      {content_line}")
+            lines.append(f"    结果说明：{item.get('reason', '')}")
+            if item.get("allowed", False) and content_text:
+                if show_file_content:
+                    lines.append("    文件内容：")
+                    for content_line in content_text.splitlines():
+                        lines.append(f"      {content_line}")
+                else:
+                    lines.append("    文件预览：")
+                    for content_line in preview.splitlines():
+                        lines.append(f"      {content_line}")
 
     if intent_result.clarification_required and intent_result.clarification_questions:
         lines.append("- 澄清问题：")
@@ -109,3 +119,18 @@ def render_error(message: str, details: dict[str, Any] | None = None) -> str:
         for key, value in details.items():
             lines.append(f"- {key}：{value}")
     return "\n".join(lines)
+
+
+def _build_preview(content: str, max_lines: int = 20, max_chars: int = 4000) -> str:
+    trimmed = content[:max_chars]
+    lines = trimmed.splitlines()
+    limited_lines = lines[:max_lines]
+    preview = "\n".join(limited_lines)
+    was_char_trimmed = len(trimmed) < len(content)
+    had_extra_lines = len(lines) > max_lines
+    if was_char_trimmed or had_extra_lines:
+        if preview:
+            preview += "\n..."
+        else:
+            preview = "..."
+    return preview

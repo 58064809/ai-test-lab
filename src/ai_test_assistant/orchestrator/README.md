@@ -33,6 +33,8 @@
 - 已按权限语义区分 memory 工具：
   - `test_case_generation` 推荐 `memory_read`
   - `memory_update` 推荐 `memory_write`
+- 已支持显式文件读取元信息进入 dry-run 上下文
+- 已确保 task_result memory 只记录文件元信息，不记录完整文件内容
 - 已明确当前 `intent router` 只是 bootstrap / fallback，不是最终工业级 intent 系统
 
 ## 待接入
@@ -51,6 +53,7 @@
 - 当前默认不写入 `task_result/orchestrator`，只有显式允许时才写入
 - 当前与 tool registry 的联动只做授权评估，不做真实调用
 - 当前 `memory_write` 只会作为风险提示输出，不会触发真实记忆写入
+- 当前文件读取只支持显式单文件上下文，不自动猜测文件
 - 当前不实现 MCP
 - 当前不实现复杂多 Agent 聊天系统
 

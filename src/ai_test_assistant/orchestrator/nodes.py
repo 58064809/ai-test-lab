@@ -51,6 +51,7 @@ class OrchestratorNodes:
             "task_text": task_text,
             "dry_run": bool(state.get("dry_run", True)),
             "write_memory": bool(state.get("write_memory", False)),
+            "input_files": list(state.get("input_files", [])),
             "errors": errors,
         }
 
@@ -72,6 +73,8 @@ class OrchestratorNodes:
     def prepare_context(self, state: OrchestratorState) -> OrchestratorState:
         intent_name = state["intent_result"].intent
         recommended_tools = list(INTENT_TOOL_MAP.get(intent_name, []))
+        input_files = list(state.get("input_files", []))
+        input_file_summaries = [self._summarize_input_file(item) for item in input_files]
         tool_authorization_evaluated, tool_decisions = self._evaluate_tools(
             recommended_tools,
             dry_run=state["dry_run"],
@@ -80,6 +83,7 @@ class OrchestratorNodes:
             "intent": intent_name,
             "required_context": list(state["intent_result"].required_context),
             "selected_workflow": state.get("selected_workflow"),
+            "input_files": input_file_summaries,
             "recommended_tools": recommended_tools,
             "tool_authorization_evaluated": tool_authorization_evaluated,
             "tool_decisions": tool_decisions,
@@ -108,6 +112,20 @@ class OrchestratorNodes:
             plan.append(f"选择推荐 workflow：{state['selected_workflow']}")
         else:
             plan.append("当前未匹配到明确 workflow，需要人工澄清。")
+
+        input_file_summaries = list(state.get("prepared_context", {}).get("input_files", []))
+        if input_file_summaries:
+            plan.append(f"显式文件上下文：{len(input_file_summaries)} 个")
+            for item in input_file_summaries:
+                plan.append(
+                    "文件上下文："
+                    f"{item.get('path') or '未归一化'} | "
+                    f"允许读取={'是' if item.get('allowed', False) else '否'} | "
+                    f"已截断={'是' if item.get('truncated', False) else '否'} | "
+                    f"内容进入上下文={'是' if item.get('content_in_context', False) else '否'}"
+                )
+        else:
+            plan.append("当前无显式文件上下文。")
 
         recommended_tools = list(state.get("recommended_tools", []))
         if recommended_tools:
@@ -156,6 +174,10 @@ class OrchestratorNodes:
             "dry_run": state["dry_run"],
             "write_memory": state.get("write_memory", False),
             "requires_confirmation": state.get("requires_confirmation", False),
+            "input_files": [
+                self._memory_safe_input_file(item)
+                for item in state.get("input_files", [])
+            ],
             "recommended_tools": list(state.get("recommended_tools", [])),
             "tool_authorization_evaluated": state.get("tool_authorization_evaluated", False),
             "tool_decisions": list(state.get("tool_decisions", [])),
@@ -173,6 +195,31 @@ class OrchestratorNodes:
         else:
             summary["memory_write_status"] = "skipped"
         return {"result": summary}
+
+    def _summarize_input_file(self, item: dict[str, object]) -> dict[str, object]:
+        content = item.get("content")
+        content_text = content if isinstance(content, str) else ""
+        return {
+            "requested_path": item.get("requested_path"),
+            "path": item.get("path"),
+            "allowed": bool(item.get("allowed", False)),
+            "truncated": bool(item.get("truncated", False)),
+            "reason": str(item.get("reason", "")),
+            "content_length": len(content_text),
+            "content_in_context": bool(item.get("allowed", False) and bool(content_text)),
+        }
+
+    def _memory_safe_input_file(self, item: dict[str, object]) -> dict[str, object]:
+        content = item.get("content")
+        content_text = content if isinstance(content, str) else ""
+        return {
+            "requested_path": item.get("requested_path"),
+            "path": item.get("path"),
+            "allowed": bool(item.get("allowed", False)),
+            "truncated": bool(item.get("truncated", False)),
+            "reason": str(item.get("reason", "")),
+            "content_length": len(content_text),
+        }
 
     def _evaluate_tools(self, recommended_tools: list[str], dry_run: bool) -> tuple[bool, list[dict[str, object]]]:
         if not recommended_tools:
