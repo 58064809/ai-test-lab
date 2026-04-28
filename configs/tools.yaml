@@ -1,0 +1,86 @@
+tools:
+  - name: memory_store
+    description: Local structured memory service.
+    status: enabled
+    risk_level: read_only
+    category: internal
+    implementation: local_python
+    notes: 写入能力存在于真实服务层，但当前注册表阶段只描述元信息。
+
+  - name: intent_router
+    description: Configuration-driven intent routing.
+    status: enabled
+    risk_level: read_only
+    category: internal
+    implementation: local_python
+
+  - name: pytest_runner
+    description: Execute pytest test suites.
+    status: planned
+    risk_level: execute_local_command
+    category: testing
+    implementation: planned_local_command
+
+  - name: allure_report
+    description: Generate or serve Allure reports.
+    status: planned
+    risk_level: execute_local_command
+    category: reporting
+    implementation: planned_local_command
+
+  - name: playwright_mcp
+    description: Browser automation via Playwright MCP.
+    status: planned
+    risk_level: external_network
+    category: browser
+    implementation: planned_mcp
+
+  - name: schemathesis
+    description: API contract testing via schema-driven generation.
+    status: planned
+    risk_level: execute_local_command
+    category: api_testing
+    implementation: planned_local_command
+
+  - name: keploy
+    description: API test generation and mock tooling.
+    status: planned
+    risk_level: restricted_action
+    category: api_testing
+    implementation: planned_external_tool
+
+  - name: github
+    description: Repository operations through future GitHub integration.
+    status: planned
+    risk_level: external_network
+    category: scm
+    implementation: planned_mcp
+
+  - name: filesystem
+    description: File reading and writing integration.
+    status: disabled
+    risk_level: write_project_files
+    category: storage
+    implementation: planned_mcp
+
+  - name: shell
+    description: Local shell command execution.
+    status: disabled
+    risk_level: execute_local_command
+    category: execution
+    implementation: planned_local_command
+
+  - name: database_readonly
+    description: Read-only database querying.
+    status: unavailable
+    risk_level: read_only
+    category: database
+    implementation: planned_mcp
+
+  - name: redis_readonly
+    description: Read-only Redis inspection.
+    status: unavailable
+    risk_level: read_only
+    category: cache
+    implementation: planned_mcp
+

@@ -6,6 +6,7 @@
 - `intent router` 最小可运行底座已落地。
 - orchestrator 工业级选型说明已完成，正式目标方案选择为 LangGraph。
 - LangGraph 最小 orchestrator 骨架已落地，支持 dry-run 计划生成。
+- tool registry 与权限模型底座已落地。
 - Agent 资产已统一迁移到 `agent-assets/`。
 - 工具说明文档已统一迁移到 `docs/tools/`。
 - Python 工程代码统一放在 `src/ai_test_assistant/`。
@@ -28,6 +29,8 @@
   - `review`
   - `write_memory`
 - `tests/test_orchestrator_smoke.py` 覆盖 dry-run、澄清和非执行边界。
+- `ToolRegistry` 支持工具配置加载、状态查询和权限判定。
+- `tests/test_tool_registry.py` 覆盖注册表加载、状态风险检查和权限边界。
 
 ## 待验证
 
@@ -37,7 +40,6 @@
 
 ## 待接入
 
-- tool registry
 - runtime CLI
 - MCP 的真实接入
 
@@ -47,4 +49,4 @@
 - 当前 intent 不是复杂 NLP，只是规则匹配。
 - 当前 intent 不调用外部 LLM。
 - 当前 orchestrator 只实现最小 LangGraph 骨架，不包含 checkpointer、HITL、工具执行和复杂状态流。
-- 当前没有工具执行能力。
+- 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络，也不接入真实 MCP Server。

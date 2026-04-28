@@ -1,0 +1,170 @@
+from __future__ import annotations
+
+from dataclasses import replace
+
+import pytest
+
+from ai_test_assistant.tool_registry.models import ToolRiskLevel, ToolStatus
+from ai_test_assistant.tool_registry.permissions import ToolPermissionContext
+from ai_test_assistant.tool_registry.registry import ToolRegistry
+
+
+def test_registry_loads_first_batch_tools() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+
+    names = {tool.name for tool in registry.list_tools()}
+    assert names == {
+        "memory_store",
+        "intent_router",
+        "pytest_runner",
+        "allure_report",
+        "playwright_mcp",
+        "schemathesis",
+        "keploy",
+        "github",
+        "filesystem",
+        "shell",
+        "database_readonly",
+        "redis_readonly",
+    }
+
+
+def test_registry_exposes_status_and_risk_level() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+
+    memory_tool = registry.get_tool("memory_store")
+    assert memory_tool.status is ToolStatus.ENABLED
+    assert memory_tool.risk_level is ToolRiskLevel.READ_ONLY
+
+    shell_tool = registry.get_tool("shell")
+    assert shell_tool.status is ToolStatus.DISABLED
+    assert shell_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
+
+
+def test_enabled_read_only_tool_is_allowed_by_default() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+
+    decision = registry.evaluate_execution("intent_router")
+
+    assert decision.allowed is True
+    assert decision.requires_confirmation is False
+    assert decision.reasons == []
+
+
+@pytest.mark.parametrize("tool_name", ["pytest_runner", "playwright_mcp", "keploy", "shell", "database_readonly"])
+def test_non_enabled_tools_are_not_executable(tool_name: str) -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+
+    decision = registry.evaluate_execution(tool_name)
+
+    assert decision.allowed is False
+    assert any("not enabled" in reason for reason in decision.reasons)
+
+
+def test_write_project_files_requires_explicit_approval() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+
+    tool = registry.get_tool("filesystem")
+    enabled_tool = replace(tool, status=ToolStatus.ENABLED)
+    registry = ToolRegistry({"filesystem": enabled_tool})
+
+    denied = registry.evaluate_execution("filesystem")
+    assert denied.allowed is False
+    assert denied.requires_confirmation is True
+
+    allowed = registry.evaluate_execution(
+        "filesystem",
+        ToolPermissionContext(allow_write_project_files=True),
+    )
+    assert allowed.allowed is True
+
+
+def test_execute_local_command_is_denied_in_dry_run_even_if_enabled() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    tool = registry.get_tool("shell")
+    enabled_tool = replace(tool, status=ToolStatus.ENABLED)
+    registry = ToolRegistry({"shell": enabled_tool})
+
+    dry_run_decision = registry.evaluate_execution("shell", ToolPermissionContext(dry_run=True))
+    assert dry_run_decision.allowed is False
+    assert any("dry-run" in reason for reason in dry_run_decision.reasons)
+
+
+def test_execute_local_command_requires_explicit_approval_outside_dry_run() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    tool = registry.get_tool("shell")
+    enabled_tool = replace(tool, status=ToolStatus.ENABLED)
+    registry = ToolRegistry({"shell": enabled_tool})
+
+    denied = registry.evaluate_execution("shell", ToolPermissionContext(dry_run=False))
+    assert denied.allowed is False
+    assert denied.requires_confirmation is True
+
+    allowed = registry.evaluate_execution(
+        "shell",
+        ToolPermissionContext(dry_run=False, allow_execute_local_command=True),
+    )
+    assert allowed.allowed is True
+
+
+def test_external_network_requires_confirmation_even_if_enabled() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    tool = registry.get_tool("github")
+    enabled_tool = replace(tool, status=ToolStatus.ENABLED)
+    registry = ToolRegistry({"github": enabled_tool})
+
+    denied = registry.evaluate_execution("github")
+    assert denied.allowed is False
+    assert denied.requires_confirmation is True
+
+    allowed = registry.evaluate_execution(
+        "github",
+        ToolPermissionContext(allow_external_network=True),
+    )
+    assert allowed.allowed is True
+
+
+def test_restricted_action_is_denied_by_default() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    tool = registry.get_tool("keploy")
+    enabled_tool = replace(tool, status=ToolStatus.ENABLED)
+    registry = ToolRegistry({"keploy": enabled_tool})
+
+    denied = registry.evaluate_execution("keploy")
+    assert denied.allowed is False
+    assert denied.requires_confirmation is False
+    assert any("restricted_action" in reason for reason in denied.reasons)
+
+    elevated = registry.evaluate_execution(
+        "keploy",
+        ToolPermissionContext(allow_restricted_action=True),
+    )
+    assert elevated.allowed is True
+    assert elevated.requires_confirmation is True
+
+
+def test_registry_rejects_duplicate_tool_names(tmp_path) -> None:
+    config_path = tmp_path / "tools.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "tools:",
+                "  - name: duplicate_tool",
+                "    description: first",
+                "    status: enabled",
+                "    risk_level: read_only",
+                "    category: internal",
+                "    implementation: local_python",
+                "  - name: duplicate_tool",
+                "    description: second",
+                "    status: planned",
+                "    risk_level: external_network",
+                "    category: scm",
+                "    implementation: planned_mcp",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="Duplicate tool name found"):
+        ToolRegistry.from_yaml(config_path)
