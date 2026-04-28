@@ -9,6 +9,7 @@
 - `LocalFilesystemReadAdapter` 只是 bootstrap / fallback
 - 它不是长期正式 filesystem 能力
 - `codex-tasks/021-explicit-multi-file-read-context.md` 已暂停，不继续执行
+- `codex-tasks/023-filesystem-mcp-selection-and-minimal-integration-plan.md` 只完成选型与验证方案，不是接入实现
 
 ## 已实现
 
@@ -40,6 +41,9 @@
 - 后续正式 filesystem 能力优先接入成熟 filesystem MCP 或等价成熟工具
 - 当前本地 adapter 只保留为 bootstrap / fallback
 - 如果未来接入成熟工具，仍应复用现有 `FilesystemReadPolicy` 边界
+- 当前最小接入验证路线见：
+  - `docs/filesystem-mcp-selection.md`
+  - `docs/filesystem-mcp-minimal-integration-plan.md`
 
 ## 明确不做
 

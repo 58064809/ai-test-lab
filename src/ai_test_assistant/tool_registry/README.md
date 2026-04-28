@@ -52,7 +52,11 @@
   - `src/ai_test_assistant/filesystem/policy.py`
 - 已新增 filesystem_read 本地只读 adapter：
   - `src/ai_test_assistant/filesystem/adapter.py`
+- 已新增成熟 filesystem MCP 选型与最小接入验证方案：
+  - `docs/filesystem-mcp-selection.md`
+  - `docs/filesystem-mcp-minimal-integration-plan.md`
 - 已在 `configs/tools.yaml` 中补充后续 planned MCP 工具规划：
+  - `filesystem_mcp_read`
   - `filesystem_write`
   - `github_read`
   - `github_write`
@@ -69,6 +73,7 @@
 - 当前不访问外部网络。
 - 当前不处理复杂工具参数 schema。
 - 当前 filesystem_read 虽然已启用本地只读 adapter，但仍然只支持显式单文件读取，不代表 filesystem MCP 已接入。
+- 当前 `filesystem_mcp_read` 仍然只是 `planned`，023 只完成文档与验证方案。
 
 ## 待接入
 

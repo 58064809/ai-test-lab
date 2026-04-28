@@ -28,6 +28,7 @@ def test_registry_loads_first_batch_tools() -> None:
         "github_write",
         "filesystem",
         "filesystem_read",
+        "filesystem_mcp_read",
         "filesystem_write",
         "shell",
         "database_readonly",

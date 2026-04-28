@@ -13,6 +13,7 @@
 - 已完成 filesystem_read 接入前安全策略设计。
 - 已落地 filesystem_read 本地白名单只读 adapter。
 - `codex-tasks/021-explicit-multi-file-read-context.md` 已暂停，不执行。
+- 已完成成熟 filesystem MCP / 等价成熟工具的选型文档与最小接入验证方案。
 - `python scripts/run_assistant.py ...` 已可从仓库根目录直接运行，不依赖测试注入 `src` 路径。
 - Agent 资产已统一迁移到 `agent-assets/`。
 - 工具说明文档已统一迁移到 `docs/tools/`。
@@ -48,6 +49,8 @@
 - `docs/mcp-security-policy.md` 已定义 L0-L6 工具权限分层与默认禁止规则。
 - `tests/test_mcp_selection_docs.py` 覆盖 MCP 文档存在性和关键安全边界一致性。
 - `docs/filesystem-read-design.md` 已定义 filesystem_read 的白名单、黑名单、路径穿越拦截和 dry-run 边界。
+- `docs/filesystem-mcp-selection.md` 已完成成熟 filesystem MCP / 等价成熟工具选型说明。
+- `docs/filesystem-mcp-minimal-integration-plan.md` 已完成最小接入验证方案。
 - `src/ai_test_assistant/filesystem/policy.py` 已提供路径安全策略模型，但不真实读取文件。
 - `src/ai_test_assistant/filesystem/adapter.py` 已提供本地只读单文件 adapter，所有读取都经过 `FilesystemReadPolicy`。
 - `configs/tools.yaml` 中 `filesystem_read` 已启用为 `enabled + read_only` 的本地 adapter，不代表 MCP 已接入。
@@ -59,6 +62,7 @@
 - `task_result/orchestrator` memory 只记录文件元信息，不保存完整文件内容。
 - `runtime CLI` 支持 `task_text`、`--dry-run`、`--intent-only`、`--write-memory`、`--config`。
 - `tests/test_runtime_cli.py` 覆盖启动、intent-only、dry-run、澄清提示、配置异常、memory 写入开关语义和工具风险提示输出。
+- `tests/test_filesystem_mcp_selection_docs.py` 覆盖 filesystem MCP 文档存在性和配置边界一致性。
 - `validation/real-task-samples.yaml` 覆盖 15 类通用测试工程样本。
 - `tests/test_validation_samples.py` 覆盖样本加载、12 类主要 intent 验证、模糊输入澄清和 dry-run 工具授权结果。
 
@@ -73,6 +77,7 @@
 - filesystem_read 策略模型与未来 MCP adapter 的真实对接方式。
 - filesystem_read 本地 adapter 与未来 MCP filesystem adapter 的替换细节。
 - 成熟 filesystem MCP / 等价成熟工具在 Windows 下的只读模式与仓库根目录限制能力。
+- 成熟 filesystem MCP 的最小接入验证命令与真实运行依赖。
 
 ## 待接入
 
@@ -95,6 +100,7 @@
 - 当前 filesystem_read 虽然能读取白名单文本文件，但只限显式单文件本地读取，不代表 MCP 已接入。
 - 当前 `LocalFilesystemReadAdapter` 只是 bootstrap / fallback，不是长期正式 filesystem 能力。
 - 当前不继续扩展本地 adapter 为多文件读取、目录读取、自动上下文收集或文件检索系统。
+- 当前 023 只完成选型与验证方案，不包含任何 filesystem MCP 接入代码。
 - 当前 filesystem_write 仍未开放。
 - 当前文件内容默认只展示预览，完整内容需要显式参数。
 - 当前 runtime CLI 只允许调用 intent-only 和 orchestrator dry-run 能力，不开放真实工具执行。

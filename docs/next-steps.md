@@ -12,9 +12,10 @@
    - 是否可以限制仓库根目录
    - 是否可以与 `FilesystemReadPolicy` 协同
    - 是否能只开放 `filesystem_read`，不开放 `filesystem_write`
-6. 在确认真实需求前，不接入 `shell`、`github_write`、`filesystem_write` 这类高风险 MCP 能力。
-7. 评估 LangGraph checkpointer 是否值得接入；如果没有明确收益，不提前复杂化。
-8. 在确认真实需求前，不引入向量库或复杂多 Agent 机制。
+6. 按 `docs/filesystem-mcp-minimal-integration-plan.md` 先做成熟工具的最小接入验证，不继续扩展本地 adapter。
+7. 在确认真实需求前，不接入 `shell`、`github_write`、`filesystem_write` 这类高风险 MCP 能力。
+8. 评估 LangGraph checkpointer 是否值得接入；如果没有明确收益，不提前复杂化。
+9. 在确认真实需求前，不引入向量库或复杂多 Agent 机制。
 
 ## 待接入项
 
@@ -32,5 +33,6 @@
 - 当前 filesystem_read 本地 adapter 不代表已接入 filesystem MCP，也不应扩展成通用文件管理器。
 - 当前文件读取上下文只支持显式单文件输入，不应扩展成自然语言自动多文件读取。
 - 当前不应继续开发多文件读取、目录读取、glob / 通配符读取、自动上下文收集或文件检索。
+- 当前 023 只完成选型与验证方案，不应误读为“已接入成熟 filesystem MCP”。
 - 即使继续使用 LangGraph，也不要在 graph 外面再包一层复杂自研状态机。
 - 如果后续只需要结构化查询，不应过早引入向量库。
