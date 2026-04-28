@@ -12,6 +12,7 @@
 - 权限判定策略
 - dry-run 阶段与 orchestrator 的最小授权联动
 - MCP 接入前置选型与安全边界文档
+- filesystem_read 接入前安全策略模型
 
 本阶段**未实现**：
 
@@ -46,6 +47,9 @@
 - 已新增 MCP 规划文档：
   - `docs/mcp-selection.md`
   - `docs/mcp-security-policy.md`
+- 已新增 filesystem_read 设计与策略模型：
+  - `docs/filesystem-read-design.md`
+  - `src/ai_test_assistant/filesystem/policy.py`
 - 已在 `configs/tools.yaml` 中补充后续 planned MCP 工具规划：
   - `filesystem_read`
   - `filesystem_write`
@@ -62,6 +66,7 @@
 - 当前不执行本地命令。
 - 当前不访问外部网络。
 - 当前不处理复杂工具参数 schema。
+- 当前 filesystem_read 仍然只是 planned，策略模型也不读取真实文件。
 
 ## 待接入
 
