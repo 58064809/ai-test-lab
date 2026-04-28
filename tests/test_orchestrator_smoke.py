@@ -53,9 +53,9 @@ def test_orchestrator_dry_run_generates_plan_without_writing_memory_by_default(t
     assert any("dry-run" in step for step in result["execution_plan"])
     assert result["loaded_memory"]["project_rule"]
     assert result["loaded_memory"]["user_preference"]
-    assert result["recommended_tools"] == ["memory_store"]
+    assert result["recommended_tools"] == ["memory_read"]
     assert result["tool_authorization_evaluated"] is True
-    assert result["tool_decisions"][0]["tool_name"] == "memory_store"
+    assert result["tool_decisions"][0]["tool_name"] == "memory_read"
     assert result["tool_decisions"][0]["status"] == "enabled"
     assert result["tool_decisions"][0]["allowed"] is True
     assert result["result"]["memory_write_status"] == "skipped"
@@ -129,3 +129,17 @@ def test_orchestrator_uses_planned_tools_for_pytest_and_ui_tasks(tmp_path: Path)
     assert ui_result["tool_decisions"][0]["status"] == "planned"
     assert ui_result["tool_decisions"][0]["risk_level"] == "external_network"
     assert ui_result["tool_decisions"][0]["allowed"] is False
+
+
+def test_orchestrator_memory_update_uses_restricted_memory_write_tool(tmp_path: Path) -> None:
+    assistant_config = _write_assistant_config(tmp_path)
+    orchestrator = TaskOrchestrator.from_config(assistant_config)
+
+    result = orchestrator.run("请记住这个输出偏好并更新记忆", dry_run=True, write_memory=False)
+
+    assert result["intent_result"].intent == "memory_update"
+    assert result["recommended_tools"] == ["memory_write"]
+    assert result["tool_decisions"][0]["status"] == "disabled"
+    assert result["tool_decisions"][0]["risk_level"] == "restricted_action"
+    assert result["tool_decisions"][0]["allowed"] is False
+    assert any("disabled" in reason or "not enabled" in reason for reason in result["tool_decisions"][0]["reasons"])

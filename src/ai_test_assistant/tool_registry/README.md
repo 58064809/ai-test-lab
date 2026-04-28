@@ -22,6 +22,9 @@
 
 ## 已实现
 
+- memory 工具权限已拆分：
+  - `memory_read`
+  - `memory_write`
 - 工具状态区分：
   - `enabled`
   - `disabled`
@@ -37,6 +40,8 @@
 - `restricted_action` 默认禁止
 - `write_project_files`、`execute_local_command`、`external_network` 需要显式审批上下文
 - orchestrator 可读取注册表并在 dry-run 结果里展示工具授权判断
+- `memory_read` 是只读能力，可用于读取 memory 辅助上下文
+- `memory_write` 用于更新长期记忆，当前默认不开放
 
 ## 当前限制
 
@@ -58,5 +63,6 @@
 ## 明确不做
 
 - 不把 `planned` 工具包装成已可执行
+- 不把 `memory_write` 包装成默认可执行
 - 不让 `restricted_action` 默认开放
 - 不把注册表误写成自研 MCP 协议

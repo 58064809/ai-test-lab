@@ -122,3 +122,23 @@ def test_risky_tool_samples_produce_expected_dry_run_authorization_results(tmp_p
     assert ui_result.passed is True
     assert ui_result.actual_tool_statuses["playwright_mcp"] == "planned"
     assert ui_result.actual_tool_allowed["playwright_mcp"] is False
+
+
+def test_risky_sample_is_actually_validated_and_produces_risk_signal(tmp_path: Path) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    samples = {sample.category: sample for sample in RealTaskSampleLoader.load()}
+    router = IntentRouter.from_assistant_config(config_path)
+    orchestrator = TaskOrchestrator.from_config(config_path)
+    runner = RealTaskValidationRunner(router, orchestrator)
+
+    risky_result = runner.run_sample(samples["risky"])
+
+    assert risky_result.passed is True
+    assert risky_result.actual_intent == "workflow_update"
+    assert (
+        risky_result.actual_clarification_required is True
+        or risky_result.actual_risk_level in {"medium", "high"}
+        or any(allowed is False for allowed in risky_result.actual_tool_allowed.values())
+    )
+    assert risky_result.actual_tool_statuses["filesystem"] == "disabled"
+    assert risky_result.actual_tool_allowed["filesystem"] is False

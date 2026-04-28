@@ -30,6 +30,9 @@
   - 是否允许执行
   - 是否需要确认
   - 拒绝原因
+- 已按权限语义区分 memory 工具：
+  - `test_case_generation` 推荐 `memory_read`
+  - `memory_update` 推荐 `memory_write`
 - 已明确当前 `intent router` 只是 bootstrap / fallback，不是最终工业级 intent 系统
 
 ## 待接入
@@ -47,6 +50,7 @@
 - 当前非 dry-run 仍然只生成计划，不开放真实执行
 - 当前默认不写入 `task_result/orchestrator`，只有显式允许时才写入
 - 当前与 tool registry 的联动只做授权评估，不做真实调用
+- 当前 `memory_write` 只会作为风险提示输出，不会触发真实记忆写入
 - 当前不实现 MCP
 - 当前不实现复杂多 Agent 聊天系统
 

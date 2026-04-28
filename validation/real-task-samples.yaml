@@ -15,11 +15,11 @@ samples:
     expected_clarification_required: false
     expected_workflow: agent-assets/prompts/test-case-generation.md
     expected_risk_level: low
-    expected_recommended_tools: ["memory_store"]
+    expected_recommended_tools: ["memory_read"]
     expected_tool_statuses:
-      memory_store: enabled
+      memory_read: enabled
     expected_tool_allowed:
-      memory_store: true
+      memory_read: true
     notes: "通用用例生成样本"
 
   - id: sample_003
@@ -131,11 +131,11 @@ samples:
     expected_clarification_required: false
     expected_workflow: src/ai_test_assistant/memory/README.md
     expected_risk_level: medium
-    expected_recommended_tools: ["memory_store"]
+    expected_recommended_tools: ["memory_write"]
     expected_tool_statuses:
-      memory_store: enabled
+      memory_write: disabled
     expected_tool_allowed:
-      memory_store: true
+      memory_write: false
     notes: "记忆更新样本"
 
   - id: sample_012

@@ -11,14 +11,14 @@ from ai_test_assistant.tool_registry.permissions import ToolPermissionContext
 
 
 INTENT_TOOL_MAP: dict[str, list[str]] = {
-    "test_case_generation": ["memory_store"],
+    "test_case_generation": ["memory_read"],
     "api_test_design": ["schemathesis"],
     "ui_test_design": ["playwright_mcp"],
     "pytest_execution": ["pytest_runner"],
     "repo_file_change": ["filesystem"],
     "code_review": ["filesystem"],
     "tool_research": ["github"],
-    "memory_update": ["memory_store"],
+    "memory_update": ["memory_write"],
     "workflow_update": ["filesystem"],
 }
 

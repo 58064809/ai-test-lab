@@ -14,7 +14,8 @@ def test_registry_loads_first_batch_tools() -> None:
 
     names = {tool.name for tool in registry.list_tools()}
     assert names == {
-        "memory_store",
+        "memory_read",
+        "memory_write",
         "intent_router",
         "pytest_runner",
         "allure_report",
@@ -32,9 +33,13 @@ def test_registry_loads_first_batch_tools() -> None:
 def test_registry_exposes_status_and_risk_level() -> None:
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
 
-    memory_tool = registry.get_tool("memory_store")
-    assert memory_tool.status is ToolStatus.ENABLED
-    assert memory_tool.risk_level is ToolRiskLevel.READ_ONLY
+    memory_read_tool = registry.get_tool("memory_read")
+    assert memory_read_tool.status is ToolStatus.ENABLED
+    assert memory_read_tool.risk_level is ToolRiskLevel.READ_ONLY
+
+    memory_write_tool = registry.get_tool("memory_write")
+    assert memory_write_tool.status is ToolStatus.DISABLED
+    assert memory_write_tool.risk_level is ToolRiskLevel.RESTRICTED_ACTION
 
     shell_tool = registry.get_tool("shell")
     assert shell_tool.status is ToolStatus.DISABLED
@@ -44,7 +49,7 @@ def test_registry_exposes_status_and_risk_level() -> None:
 def test_enabled_read_only_tool_is_allowed_by_default() -> None:
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
 
-    decision = registry.evaluate_execution("intent_router")
+    decision = registry.evaluate_execution("memory_read")
 
     assert decision.allowed is True
     assert decision.requires_confirmation is False
@@ -56,6 +61,15 @@ def test_non_enabled_tools_are_not_executable(tool_name: str) -> None:
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
 
     decision = registry.evaluate_execution(tool_name)
+
+    assert decision.allowed is False
+    assert any("not enabled" in reason for reason in decision.reasons)
+
+
+def test_memory_write_is_denied_by_default_even_before_real_execution_exists() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+
+    decision = registry.evaluate_execution("memory_write")
 
     assert decision.allowed is False
     assert any("not enabled" in reason for reason in decision.reasons)

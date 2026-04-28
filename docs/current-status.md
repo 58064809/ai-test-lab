@@ -34,6 +34,9 @@
 - `TaskOrchestrator.run(..., write_memory=False)` 默认不写入 `task_result/orchestrator`。
 - 只有显式传 `write_memory=True` 或 CLI 传 `--write-memory` 时，才写入 `task_result/orchestrator`。
 - `TaskOrchestrator` 已在 dry-run 阶段接入 tool registry 授权联动，可输出推荐工具、工具状态、风险等级、是否允许执行、是否需要确认和拒绝原因。
+- memory 工具权限已拆分为：
+  - `memory_read`：只读、已启用
+  - `memory_write`：长期记忆写入、默认不开放
 - `tests/test_orchestrator_smoke.py` 覆盖 dry-run、澄清和非执行边界。
 - `ToolRegistry` 支持工具配置加载、状态查询和权限判定。
 - `tests/test_tool_registry.py` 覆盖注册表加载、状态风险检查和权限边界。
@@ -65,6 +68,7 @@
 - 当前 intent 不调用外部 LLM。
 - 当前 orchestrator 只实现最小 LangGraph 骨架，不包含 checkpointer、HITL、工具执行和复杂状态流。
 - 当前 orchestrator 的 tool registry 联动只做 dry-run 级风险评估，不会触发真实工具。
+- 当前 `memory_write` 只用于授权评估和风险提示，不会触发真实长期记忆写入。
 - 当前 tool registry 只做注册与权限判定，不执行本地命令，不访问外部网络，也不接入真实 MCP Server。
 - 当前 runtime CLI 只允许调用 intent-only 和 orchestrator dry-run 能力，不开放真实工具执行。
 - 当前默认不写入 `task_result/orchestrator`，需要显式 `--write-memory`。

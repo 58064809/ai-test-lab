@@ -1,11 +1,19 @@
 tools:
-  - name: memory_store
-    description: Local structured memory service.
+  - name: memory_read
+    description: Read-only access to structured memory records.
     status: enabled
     risk_level: read_only
     category: internal
     implementation: local_python
-    notes: 写入能力存在于真实服务层，但当前注册表阶段只描述元信息。
+    notes: 当前只用于读取 memory，不包含长期记忆写入能力。
+
+  - name: memory_write
+    description: Write or update structured memory records.
+    status: disabled
+    risk_level: restricted_action
+    category: internal
+    implementation: local_python
+    notes: 长期记忆更新默认不开放，后续如接入真实执行仍需显式授权。
 
   - name: intent_router
     description: Configuration-driven intent routing.
@@ -83,4 +91,3 @@ tools:
     risk_level: read_only
     category: cache
     implementation: planned_mcp
-
