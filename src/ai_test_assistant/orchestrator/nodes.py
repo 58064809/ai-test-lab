@@ -17,7 +17,7 @@ INTENT_TOOL_MAP: dict[str, list[str]] = {
     "pytest_execution": ["pytest_runner"],
     "repo_file_change": ["filesystem"],
     "code_review": ["filesystem"],
-    "tool_research": ["github"],
+    "tool_research": ["github_read"],
     "memory_update": ["memory_write"],
     "workflow_update": ["filesystem"],
 }

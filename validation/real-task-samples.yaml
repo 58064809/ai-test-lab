@@ -117,11 +117,11 @@ samples:
     expected_clarification_required: false
     expected_workflow: docs/tools/sources.md
     expected_risk_level: medium
-    expected_recommended_tools: ["github"]
+    expected_recommended_tools: ["github_read"]
     expected_tool_statuses:
-      github: planned
+      github_read: enabled
     expected_tool_allowed:
-      github: false
+      github_read: false
     notes: "工具调研样本"
 
   - id: sample_011

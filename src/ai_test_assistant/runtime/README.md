@@ -78,3 +78,14 @@
 - 不做 Web UI
 - 不绕过 orchestrator 伪装成真实执行入口
 - 不在 dry-run 中执行真实命令
+# GitHub MCP read
+
+runtime 已新增显式 GitHub MCP read 入口：
+
+```powershell
+python scripts/run_assistant.py "读取 GitHub README 并分析" --dry-run --github-repo 58064809/ai-test-lab --github-read-file README.md
+```
+
+要求必须显式传入仓库和文件，不自动猜测。默认只展示预览，`--show-file-content` 才展示完整允许内容。读取结果进入 dry-run context，memory 只保存元信息，不保存 content。
+
+当前不开放 GitHub write，不保存 token，不打印 token。

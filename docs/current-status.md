@@ -173,3 +173,8 @@
 - 不把规则路由、dry-run 计划或文档占位能力包装成工业级能力。
 - 不在当前阶段接入复杂多 Agent 聊天系统。
 - 不写死任何电商业务规则。
+# 031 GitHub MCP read 最小接入
+
+- 已接入 GitHub MCP read 最小能力：采用官方 `github/github-mcp-server`，通过 MCP SDK / 协议调用。
+- runtime 已提供显式 GitHub 单文件读取入口：`--github-repo owner/repo --github-read-file path`，来源标记为 `github_mcp`。
+- 当前不支持 GitHub 写操作，不保存 token，不打印 token；`github_write`、`shell`、`filesystem_write` 保持 disabled。

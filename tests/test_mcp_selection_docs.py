@@ -54,7 +54,7 @@ def test_mcp_related_tools_remain_non_enabled_under_safe_defaults() -> None:
         risk_level = str(tool["risk_level"])
         status = str(tool["status"])
         if risk_level in {"external_network", "execute_local_command", "restricted_action"}:
-            if str(tool["name"]) == "pytest_runner":
+            if str(tool["name"]) in {"pytest_runner", "github_read"}:
                 assert status == "enabled"
                 continue
             assert status != "enabled"

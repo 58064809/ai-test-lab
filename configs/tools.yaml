@@ -1,4 +1,4 @@
-tools:
+﻿tools:
   - name: memory_read
     description: Read-only access to structured memory records.
     status: enabled
@@ -76,12 +76,12 @@ tools:
     notes: 保留为当前 dry-run 风险评估别名；正式 MCP 拆分优先看 github_read / github_write。
 
   - name: github_read
-    description: Read-only GitHub metadata and repository inspection through a future MCP tool.
-    status: planned
+    description: Read-only GitHub metadata and explicit single-file inspection through official GitHub MCP.
+    status: enabled
     risk_level: external_network
     category: scm
-    implementation: planned_mcp
-    notes: 仅用于只读仓库信息、issue/PR 元数据和目录查看；接入前仍需 token 和确认。
+    implementation: official_mcp
+    notes: 仅用于 GitHub MCP 只读能力；当前 runtime 只开放显式 owner/repo + 单文件读取，不开放写操作，不保存或打印 token。
 
   - name: github_write
     description: GitHub write operations through a future MCP tool.

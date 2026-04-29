@@ -59,6 +59,10 @@ def test_registry_exposes_status_and_risk_level() -> None:
     assert filesystem_mcp_read_tool.status is ToolStatus.ENABLED
     assert filesystem_mcp_read_tool.risk_level is ToolRiskLevel.READ_ONLY
 
+    github_read_tool = registry.get_tool("github_read")
+    assert github_read_tool.status is ToolStatus.ENABLED
+    assert github_read_tool.risk_level is ToolRiskLevel.EXTERNAL_NETWORK
+
     shell_tool = registry.get_tool("shell")
     assert shell_tool.status is ToolStatus.DISABLED
     assert shell_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
@@ -154,16 +158,15 @@ def test_execute_local_command_requires_explicit_approval_outside_dry_run() -> N
 
 def test_external_network_requires_confirmation_even_if_enabled() -> None:
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
-    tool = registry.get_tool("github")
-    enabled_tool = replace(tool, status=ToolStatus.ENABLED)
-    registry = ToolRegistry({"github": enabled_tool})
+    tool = registry.get_tool("github_read")
+    registry = ToolRegistry({"github_read": tool})
 
-    denied = registry.evaluate_execution("github")
+    denied = registry.evaluate_execution("github_read")
     assert denied.allowed is False
     assert denied.requires_confirmation is True
 
     allowed = registry.evaluate_execution(
-        "github",
+        "github_read",
         ToolPermissionContext(allow_external_network=True),
     )
     assert allowed.allowed is True

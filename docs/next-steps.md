@@ -52,3 +52,8 @@
 - 当前虽然已接入成熟 filesystem MCP 的只读读取入口，但不代表任何写能力或 shell 能力已开放。
 - 即使继续使用 LangGraph，也不要在 graph 外面再包一层复杂自研状态机。
 - 如果后续只需要结构化查询，不应过早引入向量库。
+# 031 GitHub MCP read 之后
+
+- GitHub MCP read 下一步只做本地真实 token 手工验证和必要的只读元数据白名单扩展。
+- 如需读取 issue / PR 元数据，必须先确认官方 GitHub MCP read-only tool，再单独新增显式参数和测试。
+- 继续禁止 issue / PR / comment / merge / push / 改文件，`github_write` 保持不开放。

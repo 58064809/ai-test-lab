@@ -103,3 +103,8 @@
 - 不让 `restricted_action` 默认开放
 - 不把注册表误写成自研 MCP 协议
 - 不把 `filesystem_write`、`shell`、`github_write` 这类高风险工具改成默认 `enabled`
+# GitHub MCP read 边界
+
+- `github_read`：已接入官方 GitHub MCP read 最小能力，当前只支持显式 `owner/repo` + 单文件读取，属于 `external_network`。
+- `github_write`：保持 `disabled`，不开放 issue / PR / comment / merge / push / 改文件。
+- `shell` 和 `filesystem_write`：保持 `disabled`。

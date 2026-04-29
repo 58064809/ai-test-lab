@@ -1,0 +1,13 @@
+tools:
+  - name: duplicate_tool
+    description: first
+    status: enabled
+    risk_level: read_only
+    category: internal
+    implementation: local_python
+  - name: duplicate_tool
+    description: second
+    status: planned
+    risk_level: external_network
+    category: scm
+    implementation: planned_mcp
