@@ -70,6 +70,8 @@ def run_cli(argv: list[str] | None = None) -> int:
         print(render_error("GitHub read requires explicit --github-repo.", {"github_read_file": args.github_read_file}))
         return 2
 
+    orchestrator = TaskOrchestrator.from_config(config_path)
+
     if args.read_file:
         adapter = LocalFilesystemReadAdapter(repo_root=Path.cwd())
         file_read_result = adapter.read_text(args.read_file)
@@ -79,11 +81,26 @@ def run_cli(argv: list[str] | None = None) -> int:
         file_read_result = asyncio.run(client.read_text(args.mcp_read_file))
         input_files.append(_build_input_file_entry(args.mcp_read_file, file_read_result, source="filesystem_mcp"))
     elif args.github_read_file:
+        if orchestrator.tool_registry is None:
+            print(render_error("github_read is not authorized.", {"tool_registry": "tool registry config is missing."}))
+            return 2
+
+        try:
+            permission = orchestrator.tool_registry.evaluate_execution(
+                "github_read",
+                context=ToolPermissionContext(dry_run=False, allow_external_network=True),
+            )
+        except KeyError as exc:
+            print(render_error("github_read is not authorized.", {"reason": str(exc)}))
+            return 2
+        if not permission.allowed:
+            print(render_error("github_read is not authorized.", {"reason": "; ".join(permission.reasons)}))
+            return 2
+
         client = GitHubMcpReadClient()
         file_read_result = asyncio.run(client.read_file(args.github_repo, args.github_read_file, ref=args.github_ref))
         input_files.append(_build_github_input_file_entry(args.github_read_file, file_read_result))
 
-    orchestrator = TaskOrchestrator.from_config(config_path)
     if args.run_pytest is not None:
         if orchestrator.tool_registry is None:
             print(render_error("pytest_runner 未加载", {"tool_registry": "tool registry 配置不存在"}))

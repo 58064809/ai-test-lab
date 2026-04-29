@@ -7,10 +7,10 @@ from ai_test_assistant.memory.sqlite_store import SQLiteMemoryStore
 from ai_test_assistant.runtime.cli import build_parser, run_cli
 
 
-def _write_assistant_config(tmp_path: Path) -> Path:
+def _write_assistant_config(tmp_path: Path, tools_path: Path | None = None) -> Path:
     memory_db_path = (tmp_path / "memory.sqlite3").resolve()
     intents_path = Path("configs/intents.yaml").resolve()
-    tools_path = Path("configs/tools.yaml").resolve()
+    tools_path = tools_path or Path("configs/tools.yaml").resolve()
     assistant_config = tmp_path / "assistant.yaml"
     assistant_config.write_text(
         "\n".join(
@@ -147,6 +147,54 @@ def test_cli_dry_run_reads_single_allowed_file_via_github_mcp_with_preview_by_de
     assert "README.md" in captured
     assert "line1" in captured
     assert "Read allowed through GitHub MCP." in captured
+    assert "本次通过 github_read 进行了显式只读外部网络访问" in captured
+
+
+def test_cli_github_read_requires_tool_registry_authorization_before_client_start(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    tools_path = tmp_path / "tools.yaml"
+    tools_path.write_text(
+        "\n".join(
+            [
+                "tools:",
+                "  - name: github_read",
+                "    description: GitHub read disabled for this test.",
+                "    status: disabled",
+                "    risk_level: external_network",
+                "    category: scm",
+                "    implementation: official_mcp",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    config_path = _write_assistant_config(tmp_path, tools_path=tools_path.resolve())
+
+    class StubGitHubClient:
+        def __init__(self) -> None:
+            raise AssertionError("GitHub MCP client must not start without github_read authorization.")
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.GitHubMcpReadClient", StubGitHubClient)
+
+    exit_code = run_cli(
+        [
+            "读取 GitHub README 并分析",
+            "--dry-run",
+            "--github-repo",
+            "58064809/ai-test-lab",
+            "--github-read-file",
+            "README.md",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 2
+    assert "github_read is not authorized." in captured
+    assert "not enabled" in captured
 
 
 def test_cli_github_write_memory_keeps_only_input_file_metadata(tmp_path: Path, capsys, monkeypatch) -> None:

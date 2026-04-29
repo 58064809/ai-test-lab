@@ -22,10 +22,13 @@ https://github.com/github/github-mcp-server
 
 落地 GitHub MCP read 的最小准备与 runtime 只读入口。
 
-第一阶段只支持只读能力：
+第一阶段只支持显式单文件只读能力：
+
+- 读取文件内容或文件元数据
+
+后续待接入：
 
 - 读取仓库基本信息
-- 读取文件内容或文件元数据
 - 读取 Issue / PR 元数据，如后续工具暴露且可安全确认
 
 禁止写操作：

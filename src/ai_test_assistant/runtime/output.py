@@ -60,11 +60,7 @@ def render_orchestrator_result(
         f"- 显式文件读取请求：{requested_read_file or '无'}",
         f"- 工具授权评估：{'已完成' if state.get('tool_authorization_evaluated', False) else '未完成'}",
         f"- 推荐工具：{', '.join(recommended_tools) if recommended_tools else '无'}",
-        (
-            "- 工具风险提示：当前 runtime 不执行外部工具、不执行本地命令、不访问外部网络。"
-            if pytest_result is None
-            else "- 工具风险提示：当前 runtime 不执行外部工具、不访问外部网络；本次仅通过受控 pytest_runner 执行显式 pytest。"
-        ),
+        _render_tool_risk_notice(input_files, pytest_result),
         "- 下一步计划：",
     ]
 
@@ -129,6 +125,24 @@ def render_error(message: str, details: dict[str, Any] | None = None) -> str:
         for key, value in details.items():
             lines.append(f"- {key}：{value}")
     return "\n".join(lines)
+
+
+def _render_tool_risk_notice(input_files: list[dict[str, object]], pytest_result: PytestRunResult | None) -> str:
+    has_github_mcp_read = any(item.get("source") == "github_mcp" for item in input_files)
+
+    if has_github_mcp_read and pytest_result is not None:
+        return (
+            "- 工具风险提示：本次通过 github_read 进行了显式只读外部网络访问，"
+            "并通过受控 pytest_runner 执行了显式 pytest。"
+        )
+
+    if has_github_mcp_read:
+        return "- 工具风险提示：本次通过 github_read 进行了显式只读外部网络访问。"
+
+    if pytest_result is not None:
+        return "- 工具风险提示：当前 runtime 不执行外部工具、不访问外部网络；本次仅通过受控 pytest_runner 执行显式 pytest。"
+
+    return "- 工具风险提示：当前 runtime 不执行外部工具、不执行本地命令、不访问外部网络。"
 
 
 def _build_preview(content: str, max_lines: int = 20, max_chars: int = 4000) -> str:
