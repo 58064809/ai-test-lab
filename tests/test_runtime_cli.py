@@ -7,10 +7,10 @@ from ai_test_assistant.memory.sqlite_store import SQLiteMemoryStore
 from ai_test_assistant.runtime.cli import build_parser, run_cli
 
 
-def _write_assistant_config(tmp_path: Path) -> Path:
+def _write_assistant_config(tmp_path: Path, tools_path: Path | None = None) -> Path:
     memory_db_path = (tmp_path / "memory.sqlite3").resolve()
     intents_path = Path("configs/intents.yaml").resolve()
-    tools_path = Path("configs/tools.yaml").resolve()
+    tools_path = tools_path or Path("configs/tools.yaml").resolve()
     assistant_config = tmp_path / "assistant.yaml"
     assistant_config.write_text(
         "\n".join(
@@ -355,6 +355,180 @@ def test_cli_dry_run_refuses_sensitive_mcp_file_read(tmp_path: Path, capsys, mon
     assert "结果说明：Sensitive file is blocked." in captured
     assert "文件预览：" not in captured
     assert "文件内容：" not in captured
+
+
+def test_cli_github_read_requires_explicit_repo_without_starting_client(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    class StubGitHubClient:
+        def __init__(self) -> None:
+            raise AssertionError("GitHub MCP client must not start without explicit --github-repo.")
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.GitHubMcpReadClient", StubGitHubClient)
+
+    exit_code = run_cli(
+        [
+            "读取 GitHub README 并分析",
+            "--dry-run",
+            "--github-read-file",
+            "README.md",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 2
+    assert "GitHub read requires explicit --github-repo." in captured
+
+
+def test_cli_github_read_requires_authorization_before_starting_client(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    tools_path = tmp_path / "tools.yaml"
+    tools_path.write_text(
+        "\n".join(
+            [
+                "tools:",
+                "  - name: github_read",
+                "    description: GitHub read disabled for this test.",
+                "    status: disabled",
+                "    risk_level: external_network",
+                "    category: scm",
+                "    implementation: official_mcp",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    config_path = _write_assistant_config(tmp_path, tools_path=tools_path.resolve())
+
+    class StubGitHubClient:
+        def __init__(self) -> None:
+            raise AssertionError("GitHub MCP client must not start without github_read authorization.")
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.GitHubMcpReadClient", StubGitHubClient)
+
+    exit_code = run_cli(
+        [
+            "读取 GitHub README 并分析",
+            "--dry-run",
+            "--github-repo",
+            "58064809/ai-test-lab",
+            "--github-read-file",
+            "README.md",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 2
+    assert "github_read is not authorized." in captured
+    assert "not enabled" in captured
+
+
+def test_cli_github_read_authorized_invokes_client_and_outputs_source_and_risk(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    monkeypatch.setenv("GITHUB_PERSONAL_ACCESS_TOKEN", "ghp_secret_value")
+    calls: list[dict[str, str | None]] = []
+
+    class StubGitHubClient:
+        async def read_file(self, repository: str, path: str, ref: str | None = None) -> SimpleNamespace:
+            calls.append({"repository": repository, "path": path, "ref": ref})
+            return SimpleNamespace(
+                allowed=True,
+                operation="read_file",
+                repository=repository,
+                target=path,
+                content="successfully downloaded text file (SHA: d158cba4bd47f227961ff37268956ffb46f63eef)",
+                reason="Read allowed through GitHub MCP.",
+                truncated=False,
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.GitHubMcpReadClient", StubGitHubClient)
+
+    exit_code = run_cli(
+        [
+            "读取 GitHub README 并分析",
+            "--dry-run",
+            "--github-repo",
+            "58064809/ai-test-lab",
+            "--github-read-file",
+            "README.md",
+            "--github-ref",
+            "master",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert calls == [{"repository": "58064809/ai-test-lab", "path": "README.md", "ref": "master"}]
+    assert "允许读取=是 | 来源=github_mcp | 路径=README.md" in captured
+    assert "显式只读外部网络访问" in captured
+    assert "d158cba4bd47f227961ff37268956ffb46f63eef" in captured
+    assert "ghp_secret_value" not in captured
+
+
+def test_cli_github_write_memory_keeps_only_input_file_metadata(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    db_path = tmp_path / "memory.sqlite3"
+
+    class StubGitHubClient:
+        async def read_file(self, repository: str, path: str, ref: str | None = None) -> SimpleNamespace:
+            return SimpleNamespace(
+                allowed=True,
+                operation="read_file",
+                repository=repository,
+                target=path,
+                content="successfully downloaded text file (SHA: d158cba4bd47f227961ff37268956ffb46f63eef)",
+                reason="Read allowed through GitHub MCP.",
+                truncated=False,
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.GitHubMcpReadClient", StubGitHubClient)
+
+    exit_code = run_cli(
+        [
+            "读取 GitHub README 并分析",
+            "--dry-run",
+            "--github-repo",
+            "58064809/ai-test-lab",
+            "--github-read-file",
+            "README.md",
+            "--write-memory",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert exit_code == 0
+    capsys.readouterr()
+    store = SQLiteMemoryStore(db_path)
+    results = store.search_memory("task_result/orchestrator")
+    assert len(results) == 1
+    input_files = results[0].value["input_files"]
+    assert input_files[0]["path"] == "README.md"
+    assert input_files[0]["source"] == "github_mcp"
+    assert input_files[0]["content_length"] == len(
+        "successfully downloaded text file (SHA: d158cba4bd47f227961ff37268956ffb46f63eef)"
+    )
+    assert "content" not in input_files[0]
 
 
 def test_cli_ambiguous_task_returns_clarification_prompt(tmp_path: Path, capsys) -> None:

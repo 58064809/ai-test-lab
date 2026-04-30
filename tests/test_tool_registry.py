@@ -72,6 +72,21 @@ def test_registry_exposes_status_and_risk_level() -> None:
     assert filesystem_write_tool.risk_level is ToolRiskLevel.WRITE_PROJECT_FILES
 
 
+def test_github_read_enabled_and_high_risk_write_shell_boundaries_disabled() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+
+    github_read_tool = registry.get_tool("github_read")
+    github_write_tool = registry.get_tool("github_write")
+    shell_tool = registry.get_tool("shell")
+    filesystem_write_tool = registry.get_tool("filesystem_write")
+
+    assert github_read_tool.status is ToolStatus.ENABLED
+    assert github_read_tool.risk_level is ToolRiskLevel.EXTERNAL_NETWORK
+    assert github_write_tool.status is ToolStatus.DISABLED
+    assert shell_tool.status is ToolStatus.DISABLED
+    assert filesystem_write_tool.status is ToolStatus.DISABLED
+
+
 def test_enabled_read_only_tool_is_allowed_by_default() -> None:
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
 

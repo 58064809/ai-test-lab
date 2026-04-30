@@ -1,5 +1,14 @@
 # Current Status
 
+## 032 GitHub MCP live smoke 收口
+
+- GitHub MCP read 已完成最小 read 接入和用户本地 live smoke 验证。
+- 当前只支持显式 `--github-repo owner/repo` + 显式 `--github-read-file path` 的单文件读取，不自动猜仓库或文件。
+- README 读取验证结果：允许读取=是，来源=`github_mcp`，路径=`README.md`，返回 SHA=`d158cba4bd47f227961ff37268956ffb46f63eef`。
+- 敏感路径拒绝已验证：读取 `.env` 被拒绝，原因为 `Sensitive GitHub file path is blocked.`
+- 当前 GitHub MCP read 返回的是下载成功提示和 SHA，不保证直接返回完整文件正文。
+- `github_write`、`shell`、`filesystem_write` 仍保持 disabled。
+
 ## 030 pytest_runner 最小真实执行
 
 - 已新增 `src/ai_test_assistant/testing/pytest_runner.py`

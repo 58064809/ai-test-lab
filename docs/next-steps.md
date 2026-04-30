@@ -1,5 +1,14 @@
 # Next Steps
 
+## 032 GitHub MCP live smoke 之后
+
+- GitHub MCP read 已完成最小 live smoke 验证，下一步只围绕只读能力做稳定性增强。
+- 可选下一步：确认官方 `get_file_contents` 返回结构后增强 README 正文解析，但不自研 GitHub REST API fallback。
+- 可选下一步：按官方 GitHub MCP read-only tool 单独评估 Issue / PR 只读元数据读取，必须继续保持显式参数和白名单。
+- 可选下一步：补 Allure 报告读取与总结，不通过 shell 通用命令绕过受控入口。
+- 继续禁止 issue / PR / comment / merge / push / 改文件，`github_write`、`shell`、`filesystem_write` 保持不开放。
+- 不实现目录批量读取、搜索全仓库或自然语言自动猜仓库 / 文件。
+
 ## 030 pytest_runner 最小真实执行之后
 
 - 下一步继续保持“单一受控工具入口”的节奏，不扩展成 shell 通用执行器。
@@ -54,6 +63,6 @@
 - 如果后续只需要结构化查询，不应过早引入向量库。
 # 031 GitHub MCP read 之后
 
-- GitHub MCP read 下一步只做本地真实 token 手工验证和必要的只读元数据白名单扩展。
+- GitHub MCP read 已完成本地真实 token 手工验证，后续只做必要的只读稳定性增强和只读元数据白名单扩展。
 - 如需读取 issue / PR 元数据，必须先确认官方 GitHub MCP read-only tool，再单独新增显式参数和测试。
 - 继续禁止 issue / PR / comment / merge / push / 改文件，`github_write` 保持不开放。

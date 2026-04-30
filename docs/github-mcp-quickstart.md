@@ -54,6 +54,16 @@ python scripts/run_assistant.py "读取 GitHub README 并分析" --dry-run --git
 
 默认只展示预览，只有显式传入 `--show-file-content` 才展示完整允许内容。内容最大限制为 128KB。
 
+## live smoke 验证结果
+
+- 验证时间：用户本地已验证。
+- 验证命令：`python scripts/run_assistant.py "读取 GitHub README 并分析" --dry-run --github-repo 58064809/ai-test-lab --github-read-file README.md`
+- 验证结果：允许读取=是，来源=github_mcp，路径=README.md。
+- 返回 SHA：`d158cba4bd47f227961ff37268956ffb46f63eef`
+- 敏感文件验证：`.env` 被拒绝，原因为 `Sensitive GitHub file path is blocked.`
+
+当前 GitHub MCP read 返回的是下载成功提示和 SHA，不一定直接返回完整文件正文。后续如需完整正文解析，应另起任务确认官方返回结构；不得为了正文解析自研 GitHub REST API fallback。
+
 ## 安全边界
 
 - `github_read` 可 enabled，但属于 `external_network`。
