@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 from typing import Any
+import os
 import re
 
 
@@ -57,12 +58,19 @@ class GitHubMcpReadClient:
                 target=None,
                 reason="Python MCP SDK package 'mcp' is not installed. Install project dependencies first.",
             )
+        except BaseExceptionGroup as exc:  # pragma: no cover - exercised through read_file
+            return self._refused(
+                operation="read_repository_info",
+                repository=repository,
+                target=None,
+                reason=f"github MCP repository read failed: {self._format_exception_for_diagnostic(exc)}",
+            )
         except Exception as exc:  # pragma: no cover - defensive runtime guard
             return self._refused(
                 operation="read_repository_info",
                 repository=repository,
                 target=None,
-                reason=f"github MCP repository read failed: {exc}",
+                reason=f"github MCP repository read failed: {self._format_exception_for_diagnostic(exc)}",
             )
 
         truncated_content, truncated = self._truncate_text(content)
@@ -98,12 +106,19 @@ class GitHubMcpReadClient:
                 target=normalized_path,
                 reason="Python MCP SDK package 'mcp' is not installed. Install project dependencies first.",
             )
+        except BaseExceptionGroup as exc:
+            return self._refused(
+                operation="read_file",
+                repository=repository,
+                target=normalized_path,
+                reason=f"github MCP file read failed: {self._format_exception_for_diagnostic(exc)}",
+            )
         except Exception as exc:  # pragma: no cover - defensive runtime guard
             return self._refused(
                 operation="read_file",
                 repository=repository,
                 target=normalized_path,
-                reason=f"github MCP file read failed: {exc}",
+                reason=f"github MCP file read failed: {self._format_exception_for_diagnostic(exc)}",
             )
 
         truncated_content, truncated = self._truncate_text(content)
@@ -138,7 +153,6 @@ class GitHubMcpReadClient:
         arguments = {"owner": owner, "repo": repo, "path": path}
         if ref:
             arguments["ref"] = ref
-            arguments["branch"] = ref
 
         server_params = self._build_server_params()
         async with stdio_client(server_params) as (read_stream, write_stream):
@@ -170,7 +184,14 @@ class GitHubMcpReadClient:
                 "GITHUB_TOOLS=get_file_contents",
                 "ghcr.io/github/github-mcp-server",
             ],
+            env=self._build_server_environment(),
         )
+
+    def _build_server_environment(self) -> dict[str, str] | None:
+        token = os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN")
+        if token is None:
+            return None
+        return {"GITHUB_PERSONAL_ACCESS_TOKEN": token}
 
     async def _select_read_file_tool(self, session: Any) -> str:
         return await self._select_exact_read_tool(session, self._READ_FILE_TOOL_NAMES, "file read")
@@ -245,6 +266,30 @@ class GitHubMcpReadClient:
             if isinstance(item, dict) and item.get("type") == "text" and isinstance(item.get("text"), str):
                 text_chunks.append(item["text"])
         return "\n".join(text_chunks)
+
+    def _format_exception_for_diagnostic(self, exc: BaseException) -> str:
+        message = self._format_single_exception(exc)
+        if isinstance(exc, BaseExceptionGroup):
+            children = [
+                self._format_exception_for_diagnostic(child)
+                for child in exc.exceptions
+            ]
+            if children:
+                message = f"{message}; sub-exceptions: {'; '.join(children)}"
+        return self._redact_sensitive_text(message)
+
+    def _format_single_exception(self, exc: BaseException) -> str:
+        message = str(exc).strip()
+        exc_type = type(exc).__name__
+        if message:
+            return f"{exc_type}: {message}"
+        return exc_type
+
+    def _redact_sensitive_text(self, text: str) -> str:
+        token = os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN")
+        if token:
+            return text.replace(token, "<redacted>")
+        return text
 
     def _validate_repository(self, repository: str | None) -> GitHubReadResult | None:
         repository_text = (repository or "").strip()
