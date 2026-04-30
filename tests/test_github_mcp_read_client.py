@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 from types import SimpleNamespace
 from typing import Any
 
 from ai_test_assistant.github import GitHubMcpReadClient
+from ai_test_assistant.tool_registry.models import ToolStatus
+from ai_test_assistant.tool_registry.registry import ToolRegistry
 
 
 def test_github_mcp_client_requires_owner_repo_format() -> None:
@@ -221,6 +224,121 @@ def test_github_mcp_client_uses_official_get_file_contents_arguments() -> None:
             "ref": "master",
         },
     }
+
+
+def test_github_mcp_client_extracts_structured_content_string() -> None:
+    client = GitHubMcpReadClient()
+    tool_result = SimpleNamespace(
+        structuredContent={
+            "content": "# README\nhello",
+            "sha": "abc123",
+        },
+        content=[],
+        isError=False,
+    )
+
+    assert client._extract_text_content(tool_result) == "# README\nhello"
+
+
+def test_github_mcp_client_extracts_structured_content_text_alias() -> None:
+    client = GitHubMcpReadClient()
+    tool_result = SimpleNamespace(
+        structured_content={
+            "text": "# README\nfrom structured_content",
+        },
+        content=[],
+        is_error=False,
+    )
+
+    assert client._extract_text_content(tool_result) == "# README\nfrom structured_content"
+
+
+def test_github_mcp_client_extracts_base64_structured_content() -> None:
+    client = GitHubMcpReadClient()
+    encoded = base64.b64encode("正文\nhello".encode("utf-8")).decode("ascii")
+    tool_result = SimpleNamespace(
+        structuredContent={
+            "encoding": "base64",
+            "content": encoded,
+            "sha": "abc123",
+        },
+        content=[],
+        isError=False,
+    )
+
+    assert client._extract_text_content(tool_result) == "正文\nhello"
+
+
+def test_github_mcp_client_extracts_embedded_resource_text_before_status_message() -> None:
+    client = GitHubMcpReadClient()
+    tool_result = SimpleNamespace(
+        content=[
+            SimpleNamespace(type="text", text="successfully downloaded text file (SHA: abc123)"),
+            SimpleNamespace(
+                type="resource",
+                resource=SimpleNamespace(
+                    uri="repo://owner/repo/README.md",
+                    text="# README\nactual body",
+                    mimeType="text/plain",
+                ),
+            ),
+        ],
+        isError=False,
+    )
+
+    assert client._extract_text_content(tool_result) == "# README\nactual body"
+
+
+def test_github_mcp_client_extracts_embedded_resource_blob_base64() -> None:
+    client = GitHubMcpReadClient()
+    encoded = base64.b64encode("blob text".encode("utf-8")).decode("ascii")
+    tool_result = SimpleNamespace(
+        content=[
+            {
+                "type": "resource",
+                "resource": {
+                    "uri": "repo://owner/repo/file.txt",
+                    "blob": encoded,
+                    "mimeType": "text/plain",
+                },
+            }
+        ],
+        isError=False,
+    )
+
+    assert client._extract_text_content(tool_result) == "blob text"
+
+
+def test_github_mcp_client_keeps_text_chunks_when_no_resource_text_exists() -> None:
+    client = GitHubMcpReadClient()
+    tool_result = SimpleNamespace(
+        content=[
+            SimpleNamespace(type="text", text="line1"),
+            {"type": "text", "text": "line2"},
+        ],
+        isError=False,
+    )
+
+    assert client._extract_text_content(tool_result) == "line1\nline2"
+
+
+def test_github_mcp_client_keeps_download_success_message_without_fabricating_body() -> None:
+    client = GitHubMcpReadClient()
+    message = "successfully downloaded text file (SHA: d158cba4bd47f227961ff37268956ffb46f63eef)"
+    tool_result = SimpleNamespace(
+        content=[SimpleNamespace(type="text", text=message)],
+        isError=False,
+    )
+
+    assert client._extract_text_content(tool_result) == message
+
+
+def test_github_mcp_client_boundaries_keep_write_shell_and_filesystem_write_disabled() -> None:
+    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+
+    assert registry.get_tool("github_write").status is ToolStatus.DISABLED
+    assert registry.get_tool("shell").status is ToolStatus.DISABLED
+    assert registry.get_tool("filesystem_write").status is ToolStatus.DISABLED
 
 
 def test_github_mcp_client_only_selects_explicit_read_tool() -> None:

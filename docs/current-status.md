@@ -1,5 +1,15 @@
 # Current Status
 
+## 033 GitHub MCP read 正文解析增强
+
+- 已基于官方 `github/github-mcp-server` 源码确认 `get_file_contents` 的核心返回路径：文本文件正文通过 MCP embedded resource 的 `text` 字段返回，外层 text chunk 是下载成功提示和 SHA。
+- `_extract_text_content()` 已增强，支持 `structuredContent` / `structured_content`、普通 text chunks、embedded resource text、base64 structured content 和 base64 blob。
+- 是否能在 runtime 中显示完整正文取决于官方 server 与当前 MCP SDK 是否把 embedded resource 透传给 client。
+- 如果官方只返回 `successfully downloaded text file (SHA: xxx)`，runtime 保持原样，不伪造正文。
+- 当前不开放 runtime raw debug 参数；需要 live debug 时另起任务，只允许输出安全结构摘要。
+- 仍不自研 GitHub REST API fallback，不新增 `requests` / `httpx` 调 GitHub API。
+- `github_write`、`shell`、`filesystem_write` 仍保持 disabled。
+
 ## 032 GitHub MCP live smoke 收口
 
 - GitHub MCP read 已完成最小 read 接入和用户本地 live smoke 验证。

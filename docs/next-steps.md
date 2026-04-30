@@ -1,5 +1,13 @@
 # Next Steps
 
+## 033 GitHub MCP 正文解析增强之后
+
+- 下一步可用用户本地 token 重新运行 README 单文件读取，确认当前 MCP SDK 是否透传 embedded resource text。
+- 如果仍只看到下载成功提示和 SHA，保持原样，不伪造 README 正文。
+- 如确需完整正文，有两条合规路线：继续确认官方 MCP 是否支持稳定返回正文；或另起任务评估已有 GitHub connector / 官方 SDK 作为独立 read-only 工具，并单独授权、单独边界。
+- 不自研 GitHub REST API fallback，不新增 `requests` / `httpx` 直连 GitHub API。
+- 继续禁止 GitHub 写操作、issue / PR / comment、merge / push / 改文件，`github_write`、`shell`、`filesystem_write` 保持 disabled。
+
 ## 032 GitHub MCP live smoke 之后
 
 - GitHub MCP read 已完成最小 live smoke 验证，下一步只围绕只读能力做稳定性增强。

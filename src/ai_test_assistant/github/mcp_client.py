@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 from typing import Any
+import base64
+import binascii
+import json
 import os
 import re
 
@@ -235,22 +238,63 @@ class GitHubMcpReadClient:
             message = self._join_text_chunks(getattr(tool_result, "content", None))
             raise RuntimeError(message or "GitHub MCP tool returned an error.")
 
-        structured_content = (
-            getattr(tool_result, "structuredContent", None)
-            or getattr(tool_result, "structured_content", None)
-        )
+        structured_content = self._get_structured_content(tool_result)
         if isinstance(structured_content, dict):
-            for key in ("content", "text", "message"):
-                value = structured_content.get(key)
-                if isinstance(value, str):
-                    return value
-            return str(structured_content)
+            text = self._extract_structured_text(structured_content)
+            if text:
+                return text
 
-        text = self._join_text_chunks(getattr(tool_result, "content", None))
+        text = self._join_content_items(getattr(tool_result, "content", None))
         if text:
             return text
 
         raise RuntimeError("GitHub MCP tool did not return readable text content.")
+
+    def _get_structured_content(self, tool_result: Any) -> Any:
+        structured_content = getattr(tool_result, "structuredContent", None)
+        if structured_content is not None:
+            return structured_content
+        return getattr(tool_result, "structured_content", None)
+
+    def _extract_structured_text(self, structured_content: dict[str, Any]) -> str:
+        if structured_content.get("encoding") == "base64":
+            content = structured_content.get("content")
+            if isinstance(content, str):
+                decoded = self._decode_base64_text(content)
+                if decoded is not None:
+                    return decoded
+
+        for key in ("content", "text", "file_content", "data", "message"):
+            if key not in structured_content:
+                continue
+            value = structured_content[key]
+            text = self._value_to_text(value)
+            if text:
+                return text
+
+        return self._value_to_text(structured_content)
+
+    def _value_to_text(self, value: Any) -> str:
+        if isinstance(value, str):
+            return value
+        if isinstance(value, (dict, list)):
+            return json.dumps(value, ensure_ascii=False, sort_keys=True)
+        if value is None:
+            return ""
+        return str(value)
+
+    def _decode_base64_text(self, value: str) -> str | None:
+        try:
+            decoded_bytes = base64.b64decode(value, validate=True)
+            return decoded_bytes.decode("utf-8")
+        except (binascii.Error, UnicodeDecodeError, ValueError):
+            return None
+
+    def _join_content_items(self, content_items: Any) -> str:
+        resource_text = self._join_resource_text_chunks(content_items)
+        if resource_text:
+            return resource_text
+        return self._join_text_chunks(content_items)
 
     def _join_text_chunks(self, content_items: Any) -> str:
         if not isinstance(content_items, list):
@@ -266,6 +310,42 @@ class GitHubMcpReadClient:
             if isinstance(item, dict) and item.get("type") == "text" and isinstance(item.get("text"), str):
                 text_chunks.append(item["text"])
         return "\n".join(text_chunks)
+
+    def _join_resource_text_chunks(self, content_items: Any) -> str:
+        if not isinstance(content_items, list):
+            return ""
+
+        text_chunks: list[str] = []
+        for item in content_items:
+            resource = getattr(item, "resource", None)
+            if resource is None and isinstance(item, dict):
+                resource = item.get("resource")
+            text = self._extract_resource_text(resource)
+            if text:
+                text_chunks.append(text)
+        return "\n".join(text_chunks)
+
+    def _extract_resource_text(self, resource: Any) -> str:
+        if resource is None:
+            return ""
+
+        text = getattr(resource, "text", None)
+        if isinstance(text, str):
+            return text
+        blob = getattr(resource, "blob", None)
+        if isinstance(blob, str):
+            decoded = self._decode_base64_text(blob)
+            return decoded if decoded is not None else blob
+
+        if isinstance(resource, dict):
+            text = resource.get("text")
+            if isinstance(text, str):
+                return text
+            blob = resource.get("blob")
+            if isinstance(blob, str):
+                decoded = self._decode_base64_text(blob)
+                return decoded if decoded is not None else blob
+        return ""
 
     def _format_exception_for_diagnostic(self, exc: BaseException) -> str:
         message = self._format_single_exception(exc)

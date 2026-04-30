@@ -64,6 +64,26 @@ python scripts/run_assistant.py "读取 GitHub README 并分析" --dry-run --git
 
 当前 GitHub MCP read 返回的是下载成功提示和 SHA，不一定直接返回完整文件正文。后续如需完整正文解析，应另起任务确认官方返回结构；不得为了正文解析自研 GitHub REST API fallback。
 
+## get_file_contents 返回结构确认
+
+已基于官方 `github/github-mcp-server` 源码确认：
+
+- `get_file_contents` 仍是只读工具，`readOnlyHint=true`。
+- 小于 1MB 的文本文件会通过 MCP resource 返回，外层 text chunk 形如 `successfully downloaded text file (SHA: xxx)`，正文在嵌入 resource 的 `text` 字段中。
+- 空文件会返回空文本 resource 和 `successfully downloaded empty file (SHA: xxx)`。
+- 大文件会返回 resource link 和下载提示，不直接返回完整正文。
+- 二进制文件会返回 resource blob。
+- 目录内容会以 JSON text 返回。
+
+当前 `_extract_text_content()` 已增强解析：
+
+- 支持 `structuredContent` / `structured_content` 中的 `content`、`text`、`file_content`、`data`、`message`。
+- 支持 `encoding=base64` 且 `content` 为字符串时解码 UTF-8。
+- 支持 MCP embedded resource 的 `text` 和 base64 `blob`。
+- 支持普通 text chunks 拼接。
+
+如果官方返回中只有 `successfully downloaded text file (SHA: xxx)`，runtime 会保持原样，不伪造 README 正文。当前不开放 runtime raw debug 参数；返回结构通过单元测试 mock 覆盖，后续需要 live debug 时只能输出字段名和类型摘要，不得打印 token、header 或环境变量。
+
 ## 安全边界
 
 - `github_read` 可 enabled，但属于 `external_network`。
@@ -86,6 +106,7 @@ python scripts/run_assistant.py "读取 GitHub README 并分析" --dry-run --git
 
 ## 下一步
 
-- 先用真实 token 在本地手工验证单文件读取。
+- 继续用真实 token 在本地手工验证正文 resource 是否能被当前 MCP SDK 透传。
+- 如需完整文件正文，优先继续确认官方 MCP 是否支持返回正文；也可以另起任务评估已有 GitHub connector / 官方 SDK 作为独立 read-only 工具，但必须单独授权、单独边界。
 - 后续如需读取 issue / PR 元数据，必须先确认官方 read-only tool 名称和参数，再单独加白名单。
 - `github_write` 继续保持不开放。
