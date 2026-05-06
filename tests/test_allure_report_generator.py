@@ -40,6 +40,7 @@ def test_allure_generator_uses_default_dirs_args_list_and_shell_false(tmp_path: 
         return SimpleNamespace(returncode=0, stdout="generated", stderr="")
 
     monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.subprocess.run", fake_run)
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.shutil.which", lambda name: "allure" if name == "allure" else None)
 
     result = AllureReportGenerator(tmp_path).generate()
 
@@ -66,6 +67,7 @@ def test_allure_generator_supports_custom_dirs(tmp_path: Path, monkeypatch) -> N
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.subprocess.run", fake_run)
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.shutil.which", lambda name: "allure" if name == "allure" else None)
 
     result = AllureReportGenerator(tmp_path).generate("custom-results", "custom-report")
 
@@ -128,17 +130,84 @@ def test_allure_generator_missing_results_dir_fails_without_subprocess(tmp_path:
 
 def test_allure_generator_reports_missing_cli(tmp_path: Path, monkeypatch) -> None:
     (tmp_path / "allure-results").mkdir()
+    calls: list[object] = []
 
-    def fake_run(command, **kwargs):
-        raise FileNotFoundError
-
-    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.subprocess.run", fake_run)
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.subprocess.run", lambda *args, **kwargs: calls.append(args))
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.shutil.which", lambda name: None)
+    monkeypatch.delenv("USERPROFILE", raising=False)
 
     result = AllureReportGenerator(tmp_path).generate()
 
     assert result.generated is False
     assert result.exit_code is None
     assert result.reason == "Allure CLI executable not found."
+    assert calls == []
+
+
+def test_allure_generator_uses_shutil_which_allure_hit(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "allure-results").mkdir()
+    calls: list[list[str]] = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.subprocess.run", fake_run)
+    monkeypatch.setattr(
+        "ai_test_assistant.reporting.allure_generator.shutil.which",
+        lambda name: r"C:\tools\allure.cmd" if name == "allure" else None,
+    )
+
+    result = AllureReportGenerator(tmp_path).generate()
+
+    assert result.command[0] == r"C:\tools\allure.cmd"
+    assert calls[0][0] == r"C:\tools\allure.cmd"
+
+
+def test_allure_generator_uses_allure_cmd_when_allure_not_found(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "allure-results").mkdir()
+    calls: list[list[str]] = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    def fake_which(name: str) -> str | None:
+        if name == "allure.cmd":
+            return r"C:\Users\tester\scoop\shims\allure.cmd"
+        return None
+
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.subprocess.run", fake_run)
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.shutil.which", fake_which)
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.os.name", "nt")
+
+    result = AllureReportGenerator(tmp_path).generate()
+
+    assert result.command[0] == r"C:\Users\tester\scoop\shims\allure.cmd"
+    assert calls[0][0] == r"C:\Users\tester\scoop\shims\allure.cmd"
+
+
+def test_allure_generator_uses_scoop_fallback_path(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "allure-results").mkdir()
+    user_profile = tmp_path / "user"
+    scoop_shim = user_profile / "scoop" / "shims" / "allure.cmd"
+    scoop_shim.parent.mkdir(parents=True)
+    scoop_shim.write_text("@echo off", encoding="utf-8")
+    calls: list[list[str]] = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.subprocess.run", fake_run)
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.shutil.which", lambda name: None)
+    monkeypatch.setattr("ai_test_assistant.reporting.allure_generator.os.name", "nt")
+    monkeypatch.setenv("USERPROFILE", str(user_profile))
+
+    result = AllureReportGenerator(tmp_path).generate()
+
+    assert result.command[0] == str(scoop_shim)
+    assert calls[0][0] == str(scoop_shim)
 
 
 def test_cli_parser_supports_generate_allure_defaults_and_custom_dirs() -> None:

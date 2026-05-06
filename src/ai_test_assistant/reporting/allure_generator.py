@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import os
 from pathlib import Path, PurePosixPath
+import shutil
 import subprocess
 import time
 
@@ -50,14 +52,28 @@ class AllureReportGenerator:
                 duration_seconds=time.perf_counter() - start,
             )
 
+        resolved_executable = self._resolve_executable()
         command = [
-            self.executable,
+            resolved_executable or self.executable,
             "generate",
             normalized_results_dir,
             "-o",
             normalized_report_dir,
             "--clean",
         ]
+        if resolved_executable is None:
+            return AllureGenerateResult(
+                command=command,
+                results_dir=normalized_results_dir,
+                report_dir=normalized_report_dir,
+                exit_code=None,
+                duration_seconds=round(time.perf_counter() - start, 3),
+                stdout="",
+                stderr="",
+                generated=False,
+                reason="Allure CLI executable not found.",
+            )
+
         try:
             completed = subprocess.run(
                 command,
@@ -92,6 +108,35 @@ class AllureReportGenerator:
             generated=generated,
             reason="Allure report generated successfully." if generated else "Allure report generation failed.",
         )
+
+    def _resolve_executable(self) -> str | None:
+        resolved = shutil.which(self.executable)
+        if resolved:
+            return resolved
+
+        if self.executable != "allure" or os.name != "nt":
+            return None
+
+        for candidate_name in ("allure.cmd", "allure.bat", "allure.exe"):
+            resolved = shutil.which(candidate_name)
+            if resolved:
+                return resolved
+
+        user_profile = os.environ.get("USERPROFILE")
+        if not user_profile:
+            return None
+
+        scoop_candidates = [
+            Path(user_profile) / "scoop" / "shims" / "allure.cmd",
+            Path(user_profile) / "scoop" / "shims" / "allure.exe",
+            Path(user_profile) / "scoop" / "apps" / "allure" / "current" / "bin" / "allure.bat",
+            Path(user_profile) / "scoop" / "apps" / "allure" / "current" / "bin" / "allure",
+        ]
+        for candidate in scoop_candidates:
+            if candidate.is_file():
+                return str(candidate)
+
+        return None
 
     def _validate_dir(self, value: str, *, default: str, must_exist: bool) -> str:
         raw = value.strip() or default
