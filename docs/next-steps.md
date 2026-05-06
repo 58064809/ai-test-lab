@@ -1,5 +1,13 @@
 # Next Steps
 
+## 035 Allure 只读摘要之后
+
+- 继续保持 `allure_report` 的边界：只读已有 `allure-report` 目录，不生成报告，不执行 Allure CLI。
+- 手动验证可使用：`python scripts/run_assistant.py "分析 Allure 报告" --read-allure-report allure-report`。
+- 如果报告目录不存在或缺少 `widgets/summary.json`，应输出结构化失败原因，不自动生成报告。
+- 如后续需要“运行 pytest 后生成 Allure 报告”，必须单独任务接入官方 Allure CLI，且不能通过 shell 通用命令绕过受控入口。
+- `shell`、`filesystem_write`、`github_write` 继续保持不开放。
+
 ## 034 显式工具执行展示对齐之后
 
 - 继续保持显式入口和 dry-run 推荐工具的边界：`--github-read-file`、`--mcp-read-file`、`--read-file`、`--run-pytest` 才能触发对应真实动作。
@@ -28,7 +36,7 @@
 
 - 下一步继续保持“单一受控工具入口”的节奏，不扩展成 shell 通用执行器。
 - 当前 `pytest_runner` 已可真实执行，后续重点是验证更多仓库内 target 场景，而不是开放额外参数。
-- 当前不接 Allure、不接报告服务、不开放 shell。
+- 当前不生成 Allure 报告、不接报告服务、不开放 shell；Allure 只读摘要已由 `--read-allure-report` 接入。
 - `filesystem_write`、`shell` 继续保持 `disabled`。
 
 ## 028 filesystem MCP runtime 只读接入之后

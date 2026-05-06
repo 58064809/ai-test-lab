@@ -1,5 +1,15 @@
 # Current Status
 
+## 035 Allure 报告只读摘要
+
+- 已新增 `AllureReportReader`，只读取仓库内已有 Allure report 目录。
+- runtime CLI 已新增显式入口：`--read-allure-report [REPORT_DIR]`，不传目录时默认 `allure-report`。
+- 读取顺序以 `allure-report/widgets/summary.json` 为主，可用 `duration.json`、`categories.json`、`suites.json` 补充耗时和失败摘要。
+- `allure_report` 已调整为 `enabled + read_only`，只做摘要读取，不生成 Allure HTML，不执行 Allure CLI。
+- 显式读取后会记录 `explicit_tool_executions`，`--write-memory` 只保存摘要元信息和 `top_failures_count`，不保存完整 JSON。
+- `shell`、`filesystem_write`、`github_write` 继续保持 `disabled`。
+- 后续如确实需要生成 Allure 报告，应单独任务接入官方 Allure CLI，并继续保持受控命令边界。
+
 ## 034 显式工具执行与 dry-run 授权展示对齐
 
 - runtime 已区分“CLI 显式工具执行”和“orchestrator dry-run 推荐工具授权评估”。
@@ -40,7 +50,7 @@
 - 只允许仓库内相对路径 target
 - 已拒绝绝对路径、`..` 路径穿越、glob 和额外参数注入
 - 真实 pytest 执行结果已支持结构化输出
-- 当前不接 Allure
+- `--run-pytest` 仍不生成 Allure 报告；Allure 只通过 `--read-allure-report` 读取已有报告摘要
 - `shell` 仍保持 `disabled`
 - `filesystem_write` 仍保持 `disabled`
 

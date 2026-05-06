@@ -86,7 +86,7 @@
 - 当前不访问外部网络。
 - 当前不处理复杂工具参数 schema。
 - 当前 filesystem_read 虽然已同时支持本地只读 adapter 与 MCP 只读入口，但仍然只支持显式单文件读取。
-- 当前 pytest_runner 虽然已可真实执行，但仍只支持仓库内相对路径 target，不支持 Allure、glob 或额外参数。
+- 当前 pytest_runner 虽然已可真实执行，但仍只支持仓库内相对路径 target，不生成 Allure 报告，不支持 glob 或额外参数。
 - 当前不开放目录读取、glob、多文件读取、自动上下文收集、filesystem_write 或 shell。
 
 ## 待接入
@@ -103,6 +103,14 @@
 - 不让 `restricted_action` 默认开放
 - 不把注册表误写成自研 MCP 协议
 - 不把 `filesystem_write`、`shell`、`github_write` 这类高风险工具改成默认 `enabled`
+## Allure report 边界
+
+- `allure_report` 当前为 `enabled + read_only`。
+- 该工具只允许读取已有 Allure report 目录的摘要 JSON。
+- 不生成报告，不执行 Allure CLI，不访问外部网络。
+- `shell`、`filesystem_write`、`github_write` 继续保持 `disabled`。
+- 如后续需要生成 Allure 报告，应以单独任务接入官方 Allure CLI，并保持受控命令边界。
+
 # GitHub MCP read 边界
 
 - `github_read`：已接入官方 GitHub MCP read 最小能力，当前只支持显式 `owner/repo` + 单文件读取，属于 `external_network`。

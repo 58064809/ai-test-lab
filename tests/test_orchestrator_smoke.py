@@ -157,11 +157,15 @@ def test_orchestrator_uses_planned_tools_for_pytest_and_ui_tasks(tmp_path: Path)
     ui_result = orchestrator.run("请设计这个页面的 UI 自动化回归方案", dry_run=True, write_memory=False)
 
     assert pytest_result["intent_result"].intent == "pytest_execution"
-    assert pytest_result["recommended_tools"] == ["pytest_runner"]
-    assert pytest_result["tool_decisions"][0]["status"] == "enabled"
-    assert pytest_result["tool_decisions"][0]["risk_level"] == "execute_local_command"
-    assert pytest_result["tool_decisions"][0]["allowed"] is False
-    assert any("dry-run" in reason for reason in pytest_result["tool_decisions"][0]["reasons"])
+    assert pytest_result["recommended_tools"] == ["pytest_runner", "allure_report"]
+    pytest_decisions = {decision["tool_name"]: decision for decision in pytest_result["tool_decisions"]}
+    assert pytest_decisions["pytest_runner"]["status"] == "enabled"
+    assert pytest_decisions["pytest_runner"]["risk_level"] == "execute_local_command"
+    assert pytest_decisions["pytest_runner"]["allowed"] is False
+    assert any("dry-run" in reason for reason in pytest_decisions["pytest_runner"]["reasons"])
+    assert pytest_decisions["allure_report"]["status"] == "enabled"
+    assert pytest_decisions["allure_report"]["risk_level"] == "read_only"
+    assert pytest_decisions["allure_report"]["allowed"] is True
 
     assert ui_result["intent_result"].intent == "ui_test_design"
     assert ui_result["recommended_tools"] == ["playwright_mcp"]

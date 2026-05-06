@@ -12,6 +12,7 @@ class OrchestratorState(TypedDict, total=False):
     dry_run: bool
     write_memory: bool
     input_files: list[dict[str, Any]]
+    allure_reports: list[dict[str, Any]]
     explicit_tool_executions: list[dict[str, Any]]
     intent_result: IntentRouteResult
     loaded_memory: dict[str, list[MemoryRecord]]

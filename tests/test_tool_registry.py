@@ -55,6 +55,10 @@ def test_registry_exposes_status_and_risk_level() -> None:
     assert pytest_runner_tool.status is ToolStatus.ENABLED
     assert pytest_runner_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
 
+    allure_report_tool = registry.get_tool("allure_report")
+    assert allure_report_tool.status is ToolStatus.ENABLED
+    assert allure_report_tool.risk_level is ToolRiskLevel.READ_ONLY
+
     filesystem_mcp_read_tool = registry.get_tool("filesystem_mcp_read")
     assert filesystem_mcp_read_tool.status is ToolStatus.ENABLED
     assert filesystem_mcp_read_tool.risk_level is ToolRiskLevel.READ_ONLY

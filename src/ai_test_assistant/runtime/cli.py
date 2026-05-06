@@ -8,6 +8,7 @@ from ai_test_assistant.filesystem import FilesystemMcpReadClient, LocalFilesyste
 from ai_test_assistant.github import GitHubMcpReadClient
 from ai_test_assistant.intent.router import IntentRouter
 from ai_test_assistant.orchestrator.graph import TaskOrchestrator
+from ai_test_assistant.reporting import AllureReportReader
 from ai_test_assistant.runtime.output import (
     render_error,
     render_intent_only,
@@ -44,6 +45,13 @@ def build_parser() -> argparse.ArgumentParser:
         const="tests",
         help="显式执行仓库内 pytest；不传 target 时默认运行 tests",
     )
+    parser.add_argument(
+        "--read-allure-report",
+        nargs="?",
+        const="allure-report",
+        metavar="REPORT_DIR",
+        help="显式只读读取已有 Allure report 目录摘要；不传 REPORT_DIR 时默认 allure-report",
+    )
     parser.add_argument("--show-file-content", action="store_true", help="显式展示允许读取文件的完整内容")
     parser.add_argument("--config", default="configs/assistant.yaml", help="指定配置文件路径")
     return parser
@@ -66,6 +74,7 @@ def run_cli(argv: list[str] | None = None) -> int:
 
     pytest_result = None
     input_files: list[dict[str, object]] = []
+    allure_reports: list[dict[str, object]] = []
     explicit_tool_executions: list[dict[str, object]] = []
     if args.github_read_file and not args.github_repo:
         print(render_error("GitHub read requires explicit --github-repo.", {"github_read_file": args.github_read_file}))
@@ -161,11 +170,42 @@ def run_cli(argv: list[str] | None = None) -> int:
             )
         )
 
+    if args.read_allure_report is not None:
+        if orchestrator.tool_registry is None:
+            print(render_error("allure_report is not authorized.", {"tool_registry": "tool registry config is missing."}))
+            return 2
+
+        try:
+            permission = orchestrator.tool_registry.evaluate_execution(
+                "allure_report",
+                context=ToolPermissionContext(dry_run=False),
+            )
+        except KeyError as exc:
+            print(render_error("allure_report is not authorized.", {"reason": str(exc)}))
+            return 2
+        if not permission.allowed:
+            print(render_error("allure_report is not authorized.", {"reason": "; ".join(permission.reasons)}))
+            return 2
+
+        allure_summary = AllureReportReader(repo_root=Path.cwd()).read_summary(args.read_allure_report)
+        allure_reports.append(allure_summary.to_dict())
+        explicit_tool_executions.append(
+            _build_explicit_tool_execution(
+                tool_name="allure_report",
+                source="allure_report",
+                operation="read_summary",
+                allowed=bool(allure_summary.allowed),
+                risk_level="read_only",
+                reason=allure_summary.reason,
+            )
+        )
+
     result = orchestrator.run(
         args.task_text,
         dry_run=args.dry_run,
         write_memory=args.write_memory,
         input_files=input_files,
+        allure_reports=allure_reports,
         explicit_tool_executions=explicit_tool_executions,
     )
 

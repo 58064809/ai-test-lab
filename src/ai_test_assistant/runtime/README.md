@@ -65,7 +65,7 @@
 - 当前 `--write-memory` 只控制 `task_result/orchestrator` 写入，不影响其他 memory 类型
 - 当前 tool 风险提示来自 dry-run 授权评估，不代表已经接入真实执行器
 - 当前 `--read-file` 与 `--mcp-read-file` 都只支持显式单文件读取，不自动根据自然语言猜测多个文件
-- 当前 `--run-pytest` 不支持 Allure、不支持额外 pytest 参数、不支持仓库外路径
+- 当前 `--run-pytest` 不生成 Allure 报告、不支持额外 pytest 参数、不支持仓库外路径
 - 当前文件读取结果会进入 orchestrator dry-run 上下文，但 task_result memory 不保存完整文件内容
 - 当前不支持目录读取、glob、多文件读取或自动上下文收集
 - dry-run 本身仍不代表自动执行推荐工具；GitHub read 和 pytest_runner 都必须由显式参数触发
@@ -82,6 +82,17 @@
 - 不做 Web UI
 - 不绕过 orchestrator 伪装成真实执行入口
 - 不在 dry-run 中执行真实命令
+## Allure 报告只读摘要
+
+- CLI 支持 `--read-allure-report [REPORT_DIR]`。
+- 不传 `REPORT_DIR` 时默认读取 `allure-report`。
+- 该入口只读取已有 Allure report 目录中的 widgets JSON 摘要。
+- 优先读取 `widgets/summary.json`，可补充读取 `duration.json`、`categories.json`、`suites.json`。
+- 输出包含 `report_dir`、统计数量、`duration_ms`、`top_failures` 和失败原因。
+- 显式读取会记录到 `explicit_tool_executions`，工具名为 `allure_report`。
+- `--write-memory` 只保存摘要元信息，不保存完整 JSON。
+- 不生成 Allure HTML，不执行 Allure CLI，不开放 shell。
+
 # GitHub MCP read
 
 runtime 已新增显式 GitHub MCP read 入口：

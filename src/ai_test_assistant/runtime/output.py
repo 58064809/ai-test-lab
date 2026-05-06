@@ -40,6 +40,7 @@ def render_orchestrator_result(
     intent_result = state["intent_result"]
     loaded_memory = state.get("loaded_memory", {})
     input_files = list(state.get("input_files", []))
+    allure_reports = list(state.get("allure_reports", []))
     explicit_tool_executions = list(state.get("explicit_tool_executions", []))
     recommended_tools = list(state.get("recommended_tools", []))
     tool_decisions = list(state.get("tool_decisions", []))
@@ -124,6 +125,30 @@ def render_orchestrator_result(
                     lines.append("    文件预览：")
                     for content_line in preview.splitlines():
                         lines.append(f"      {content_line}")
+
+    if allure_reports:
+        lines.append("- Allure 报告摘要：")
+        for item in allure_reports:
+            lines.append(
+                "  - "
+                f"report_dir={item.get('report_dir')} | "
+                f"allowed={'是' if item.get('allowed', False) else '否'} | "
+                f"total={item.get('total')} | "
+                f"passed={item.get('passed')} | "
+                f"failed={item.get('failed')} | "
+                f"broken={item.get('broken')} | "
+                f"skipped={item.get('skipped')} | "
+                f"unknown={item.get('unknown')} | "
+                f"duration_ms={item.get('duration_ms')}"
+            )
+            top_failures = item.get("top_failures")
+            if isinstance(top_failures, list) and top_failures:
+                lines.append("    top_failures:")
+                for failure in top_failures:
+                    lines.append(f"      - {failure}")
+            else:
+                lines.append("    top_failures: []")
+            lines.append(f"    reason={item.get('reason', '')}")
 
     if intent_result.clarification_required and intent_result.clarification_questions:
         lines.append("- 澄清问题：")

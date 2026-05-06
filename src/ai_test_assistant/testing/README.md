@@ -9,7 +9,7 @@
 - 这是对成熟 `pytest` 的薄封装
 - 不是自研测试框架
 - 不是 shell 通用执行器
-- 当前不接 Allure
+- 当前不生成 Allure 报告；Allure 已在 reporting 模块中以只读摘要方式接入
 
 ## 已实现
 

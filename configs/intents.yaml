@@ -44,7 +44,7 @@ intents:
 
   - name: pytest_execution
     description: 执行、分析或优化 Pytest 测试。
-    triggers: ["pytest", "运行pytest", "执行pytest", "运行测试", "执行测试", "allure", "回归测试", "fixture"]
+    triggers: ["pytest", "运行pytest", "执行pytest", "运行测试", "执行测试", "allure", "Allure报告", "Allure结果", "回归测试", "fixture"]
     negative_triggers: ["需求", "日志分析"]
     required_context: ["测试目标", "测试目录", "运行命令"]
     optional_context: ["失败日志", "Allure 结果", "依赖配置"]

@@ -14,7 +14,7 @@ INTENT_TOOL_MAP: dict[str, list[str]] = {
     "test_case_generation": ["memory_read"],
     "api_test_design": ["schemathesis"],
     "ui_test_design": ["playwright_mcp"],
-    "pytest_execution": ["pytest_runner"],
+    "pytest_execution": ["pytest_runner", "allure_report"],
     "repo_file_change": ["filesystem"],
     "code_review": ["filesystem"],
     "tool_research": ["github_read"],
@@ -52,6 +52,7 @@ class OrchestratorNodes:
             "dry_run": bool(state.get("dry_run", True)),
             "write_memory": bool(state.get("write_memory", False)),
             "input_files": list(state.get("input_files", [])),
+            "allure_reports": list(state.get("allure_reports", [])),
             "explicit_tool_executions": list(state.get("explicit_tool_executions", [])),
             "errors": errors,
         }
@@ -75,6 +76,7 @@ class OrchestratorNodes:
         intent_name = state["intent_result"].intent
         recommended_tools = list(INTENT_TOOL_MAP.get(intent_name, []))
         input_files = list(state.get("input_files", []))
+        allure_reports = list(state.get("allure_reports", []))
         explicit_tool_executions = list(state.get("explicit_tool_executions", []))
         input_file_summaries = [self._summarize_input_file(item) for item in input_files]
         tool_authorization_evaluated, tool_decisions = self._evaluate_tools(
@@ -87,6 +89,10 @@ class OrchestratorNodes:
             "required_context": list(state["intent_result"].required_context),
             "selected_workflow": state.get("selected_workflow"),
             "input_files": input_file_summaries,
+            "allure_reports": [
+                self._summarize_allure_report(item)
+                for item in allure_reports
+            ],
             "explicit_tool_executions": explicit_tool_executions,
             "recommended_tools": recommended_tools,
             "tool_authorization_evaluated": tool_authorization_evaluated,
@@ -182,6 +188,10 @@ class OrchestratorNodes:
                 self._memory_safe_input_file(item)
                 for item in state.get("input_files", [])
             ],
+            "allure_reports": [
+                self._memory_safe_allure_report(item)
+                for item in state.get("allure_reports", [])
+            ],
             "explicit_tool_executions": [
                 self._memory_safe_explicit_tool_execution(item)
                 for item in state.get("explicit_tool_executions", [])
@@ -218,6 +228,21 @@ class OrchestratorNodes:
             "content_in_context": bool(item.get("allowed", False) and bool(content_text)),
         }
 
+    def _summarize_allure_report(self, item: dict[str, object]) -> dict[str, object]:
+        return {
+            "report_dir": item.get("report_dir"),
+            "allowed": bool(item.get("allowed", False)),
+            "total": item.get("total"),
+            "passed": item.get("passed"),
+            "failed": item.get("failed"),
+            "broken": item.get("broken"),
+            "skipped": item.get("skipped"),
+            "unknown": item.get("unknown"),
+            "duration_ms": item.get("duration_ms"),
+            "top_failures_count": len(item.get("top_failures", []) or []),
+            "reason": str(item.get("reason", "")),
+        }
+
     def _memory_safe_input_file(self, item: dict[str, object]) -> dict[str, object]:
         content = item.get("content")
         content_text = content if isinstance(content, str) else ""
@@ -229,6 +254,21 @@ class OrchestratorNodes:
             "truncated": bool(item.get("truncated", False)),
             "reason": str(item.get("reason", "")),
             "content_length": len(content_text),
+        }
+
+    def _memory_safe_allure_report(self, item: dict[str, object]) -> dict[str, object]:
+        return {
+            "report_dir": item.get("report_dir"),
+            "total": item.get("total"),
+            "passed": item.get("passed"),
+            "failed": item.get("failed"),
+            "broken": item.get("broken"),
+            "skipped": item.get("skipped"),
+            "unknown": item.get("unknown"),
+            "duration_ms": item.get("duration_ms"),
+            "top_failures_count": len(item.get("top_failures", []) or []),
+            "allowed": bool(item.get("allowed", False)),
+            "reason": str(item.get("reason", "")),
         }
 
     def _memory_safe_explicit_tool_execution(self, item: dict[str, object]) -> dict[str, object]:
