@@ -1,5 +1,16 @@
 # Current Status
 
+## 036 Allure CLI 受控生成
+
+- 已新增 `allure_generate`，通过官方 Allure CLI 从已有 `allure-results` 生成 `allure-report`。
+- CLI 入口：`--generate-allure-report [RESULTS_DIR]`，默认 `allure-results`。
+- 输出目录参数：`--allure-output-dir REPORT_DIR`，默认 `allure-report`。
+- 固定命令形态：`allure generate <results_dir> -o <report_dir> --clean`。
+- 使用 subprocess args list，`shell=False`。
+- 不支持 `allure serve`，不支持任意 Allure 参数，不自动安装 Allure CLI。
+- `allure_report` 继续只读已有 report 摘要。
+- `shell`、`filesystem_write`、`github_write` 继续保持 `disabled`。
+
 ## 035 Allure 报告只读摘要
 
 - 已新增 `AllureReportReader`，只读取仓库内已有 Allure report 目录。

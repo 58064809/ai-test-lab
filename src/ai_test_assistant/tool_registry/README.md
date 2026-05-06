@@ -103,6 +103,14 @@
 - 不让 `restricted_action` 默认开放
 - 不把注册表误写成自研 MCP 协议
 - 不把 `filesystem_write`、`shell`、`github_write` 这类高风险工具改成默认 `enabled`
+## Allure generate 边界
+
+- `allure_generate` 当前为 `enabled + execute_local_command`。
+- 该工具只允许受控调用官方 Allure CLI 生成报告。
+- 固定命令形态：`allure generate <results_dir> -o <report_dir> --clean`。
+- 不支持 `allure serve`，不支持任意参数，不自动安装 Allure CLI。
+- 仍然不开放 `shell`、`filesystem_write`、`github_write`。
+
 ## Allure report 边界
 
 - `allure_report` 当前为 `enabled + read_only`。

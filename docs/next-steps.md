@@ -1,5 +1,13 @@
 # Next Steps
 
+## 036 Allure CLI 生成之后
+
+- 可先运行：`python scripts/run_assistant.py "生成 Allure 报告" --generate-allure-report`。
+- 再读取摘要：`python scripts/run_assistant.py "分析 Allure 报告" --read-allure-report allure-report`。
+- 前提是本机已安装 Allure CLI，且仓库内已有 `allure-results`。
+- 后续不要扩展到 `allure serve`、浏览器打开或任意 Allure 参数。
+- `shell`、`filesystem_write`、`github_write` 继续保持不开放。
+
 ## 035 Allure 只读摘要之后
 
 - 继续保持 `allure_report` 的边界：只读已有 `allure-report` 目录，不生成报告，不执行 Allure CLI。

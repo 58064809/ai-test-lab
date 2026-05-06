@@ -40,6 +40,7 @@ def render_orchestrator_result(
     intent_result = state["intent_result"]
     loaded_memory = state.get("loaded_memory", {})
     input_files = list(state.get("input_files", []))
+    allure_generates = list(state.get("allure_generates", []))
     allure_reports = list(state.get("allure_reports", []))
     explicit_tool_executions = list(state.get("explicit_tool_executions", []))
     recommended_tools = list(state.get("recommended_tools", []))
@@ -62,7 +63,7 @@ def render_orchestrator_result(
         f"- 显式文件读取请求：{requested_read_file or '无'}",
         f"- 工具授权评估：{'已完成' if state.get('tool_authorization_evaluated', False) else '未完成'}",
         f"- 推荐工具：{', '.join(recommended_tools) if recommended_tools else '无'}",
-        _render_tool_risk_notice(input_files, pytest_result),
+        _render_tool_risk_notice(input_files, pytest_result, allure_generates),
         "- 下一步计划：",
     ]
 
@@ -150,6 +151,34 @@ def render_orchestrator_result(
                 lines.append("    top_failures: []")
             lines.append(f"    reason={item.get('reason', '')}")
 
+    if allure_generates:
+        lines.append("- Allure 生成结果：")
+        for item in allure_generates:
+            stdout_preview = _build_preview(str(item.get("stdout") or ""), max_chars=2000)
+            stderr_preview = _build_preview(str(item.get("stderr") or ""), max_chars=2000)
+            lines.append(
+                "  - "
+                f"command={' '.join(str(part) for part in item.get('command', []) or [])} | "
+                f"results_dir={item.get('results_dir')} | "
+                f"report_dir={item.get('report_dir')} | "
+                f"exit_code={item.get('exit_code')} | "
+                f"generated={'是' if item.get('generated', False) else '否'} | "
+                f"duration_seconds={item.get('duration_seconds')}"
+            )
+            lines.append(f"    reason={item.get('reason', '')}")
+            lines.append("    stdout 预览：")
+            if stdout_preview:
+                for output_line in stdout_preview.splitlines():
+                    lines.append(f"      {output_line}")
+            else:
+                lines.append("      <empty>")
+            lines.append("    stderr 预览：")
+            if stderr_preview:
+                for output_line in stderr_preview.splitlines():
+                    lines.append(f"      {output_line}")
+            else:
+                lines.append("      <empty>")
+
     if intent_result.clarification_required and intent_result.clarification_questions:
         lines.append("- 澄清问题：")
         for question in intent_result.clarification_questions:
@@ -169,8 +198,25 @@ def render_error(message: str, details: dict[str, Any] | None = None) -> str:
     return "\n".join(lines)
 
 
-def _render_tool_risk_notice(input_files: list[dict[str, object]], pytest_result: PytestRunResult | None) -> str:
+def _render_tool_risk_notice(
+    input_files: list[dict[str, object]],
+    pytest_result: PytestRunResult | None,
+    allure_generates: list[dict[str, object]],
+) -> str:
     has_github_mcp_read = any(item.get("source") == "github_mcp" for item in input_files)
+    has_allure_generate = bool(allure_generates)
+
+    if has_github_mcp_read and has_allure_generate:
+        return (
+            "- 工具风险提示：本次通过 github_read 进行了显式只读外部网络访问，"
+            "并通过受控 allure_generate 调用官方 Allure CLI。"
+        )
+
+    if has_allure_generate and pytest_result is not None:
+        return "- 工具风险提示：本次通过受控 pytest_runner 执行显式 pytest，并通过受控 allure_generate 调用官方 Allure CLI。"
+
+    if has_allure_generate:
+        return "- 工具风险提示：本次仅通过受控 allure_generate 调用官方 Allure CLI，不开放 shell 或任意命令。"
 
     if has_github_mcp_read and pytest_result is not None:
         return (

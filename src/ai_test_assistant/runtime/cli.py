@@ -8,7 +8,7 @@ from ai_test_assistant.filesystem import FilesystemMcpReadClient, LocalFilesyste
 from ai_test_assistant.github import GitHubMcpReadClient
 from ai_test_assistant.intent.router import IntentRouter
 from ai_test_assistant.orchestrator.graph import TaskOrchestrator
-from ai_test_assistant.reporting import AllureReportReader
+from ai_test_assistant.reporting import AllureReportGenerator, AllureReportReader
 from ai_test_assistant.runtime.output import (
     render_error,
     render_intent_only,
@@ -52,6 +52,19 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="REPORT_DIR",
         help="显式只读读取已有 Allure report 目录摘要；不传 REPORT_DIR 时默认 allure-report",
     )
+    parser.add_argument(
+        "--generate-allure-report",
+        nargs="?",
+        const="allure-results",
+        metavar="RESULTS_DIR",
+        help="显式受控调用 Allure CLI 生成报告；不传 RESULTS_DIR 时默认 allure-results",
+    )
+    parser.add_argument(
+        "--allure-output-dir",
+        default="allure-report",
+        metavar="REPORT_DIR",
+        help="Allure 生成输出目录，默认 allure-report；仅配合 --generate-allure-report 使用",
+    )
     parser.add_argument("--show-file-content", action="store_true", help="显式展示允许读取文件的完整内容")
     parser.add_argument("--config", default="configs/assistant.yaml", help="指定配置文件路径")
     return parser
@@ -74,6 +87,7 @@ def run_cli(argv: list[str] | None = None) -> int:
 
     pytest_result = None
     input_files: list[dict[str, object]] = []
+    allure_generates: list[dict[str, object]] = []
     allure_reports: list[dict[str, object]] = []
     explicit_tool_executions: list[dict[str, object]] = []
     if args.github_read_file and not args.github_repo:
@@ -170,6 +184,43 @@ def run_cli(argv: list[str] | None = None) -> int:
             )
         )
 
+    if args.generate_allure_report is not None:
+        if orchestrator.tool_registry is None:
+            print(render_error("allure_generate is not authorized.", {"tool_registry": "tool registry config is missing."}))
+            return 2
+
+        try:
+            permission = orchestrator.tool_registry.evaluate_execution(
+                "allure_generate",
+                context=ToolPermissionContext(
+                    dry_run=False,
+                    allow_execute_local_command=True,
+                    allow_write_project_files=True,
+                ),
+            )
+        except KeyError as exc:
+            print(render_error("allure_generate is not authorized.", {"reason": str(exc)}))
+            return 2
+        if not permission.allowed:
+            print(render_error("allure_generate is not authorized.", {"reason": "; ".join(permission.reasons)}))
+            return 2
+
+        generate_result = AllureReportGenerator(repo_root=Path.cwd()).generate(
+            args.generate_allure_report,
+            args.allure_output_dir,
+        )
+        allure_generates.append(generate_result.to_dict())
+        explicit_tool_executions.append(
+            _build_explicit_tool_execution(
+                tool_name="allure_generate",
+                source="allure_cli",
+                operation="generate_report",
+                allowed=bool(generate_result.generated),
+                risk_level="execute_local_command",
+                reason=generate_result.reason,
+            )
+        )
+
     if args.read_allure_report is not None:
         if orchestrator.tool_registry is None:
             print(render_error("allure_report is not authorized.", {"tool_registry": "tool registry config is missing."}))
@@ -205,6 +256,7 @@ def run_cli(argv: list[str] | None = None) -> int:
         dry_run=args.dry_run,
         write_memory=args.write_memory,
         input_files=input_files,
+        allure_generates=allure_generates,
         allure_reports=allure_reports,
         explicit_tool_executions=explicit_tool_executions,
     )

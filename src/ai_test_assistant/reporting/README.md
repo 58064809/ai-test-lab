@@ -1,14 +1,28 @@
-# Allure report read-only summary
+# Allure reporting
 
-This package reads summary metadata from an existing Allure HTML report directory.
+This package handles the small, controlled Allure reporting boundary.
 
-Current boundary:
+## Read-only summary
 
 - Reads only repository-relative report directories.
 - Defaults to `allure-report`.
 - Reads `widgets/summary.json` first.
 - Optionally reads `widgets/duration.json`, `widgets/categories.json`, and `widgets/suites.json`.
-- Does not generate Allure HTML.
-- Does not execute Allure CLI.
-- Does not open shell, filesystem write, or external network access.
 - Does not persist complete widget JSON into memory.
+
+## Controlled generation
+
+- Uses official Allure CLI only.
+- Runs the fixed command shape: `allure generate <results_dir> -o <report_dir> --clean`.
+- Defaults to `allure-results` and `allure-report`.
+- Uses `subprocess.run` with an args list and `shell=False`.
+- Does not support `allure serve`.
+- Does not support arbitrary Allure arguments.
+- Does not auto-install Allure CLI.
+- Windows users must install Allure CLI themselves and ensure `allure --version` works.
+
+## Shared boundary
+
+- Only repository-relative paths are accepted.
+- Absolute paths, `..`, glob patterns, and sensitive path names are blocked.
+- Does not open shell, filesystem write, or external network access.

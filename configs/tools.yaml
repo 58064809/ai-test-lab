@@ -38,6 +38,14 @@
     implementation: local_python
     notes: 只读取已有 Allure report 目录下的 widgets JSON 摘要，不生成报告，不执行 Allure CLI。
 
+  - name: allure_generate
+    description: Generate Allure HTML report from existing allure-results using official Allure CLI.
+    status: enabled
+    risk_level: execute_local_command
+    category: reporting
+    implementation: local_command_adapter
+    notes: 只允许受控执行 `allure generate <results_dir> -o <report_dir> --clean`；不开放 allure serve，不开放任意参数，不开放 shell。
+
   - name: playwright_mcp
     description: Browser automation via Playwright MCP.
     status: planned

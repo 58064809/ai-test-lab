@@ -82,6 +82,16 @@
 - 不做 Web UI
 - 不绕过 orchestrator 伪装成真实执行入口
 - 不在 dry-run 中执行真实命令
+## Allure 受控生成
+
+- CLI 支持 `--generate-allure-report [RESULTS_DIR]`。
+- 不传 `RESULTS_DIR` 时默认 `allure-results`。
+- `--allure-output-dir REPORT_DIR` 默认 `allure-report`。
+- 固定执行 `allure generate <results_dir> -o <report_dir> --clean`。
+- 使用 subprocess args list 和 `shell=False`。
+- 不支持 `allure serve`，不支持任意参数，不自动安装 Allure CLI。
+- 生成结果会记录到 `explicit_tool_executions`，工具名为 `allure_generate`。
+
 ## Allure 报告只读摘要
 
 - CLI 支持 `--read-allure-report [REPORT_DIR]`。

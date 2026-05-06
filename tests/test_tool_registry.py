@@ -18,6 +18,7 @@ def test_registry_loads_first_batch_tools() -> None:
         "memory_write",
         "intent_router",
         "pytest_runner",
+        "allure_generate",
         "allure_report",
         "playwright_mcp",
         "playwright_browser",
@@ -58,6 +59,10 @@ def test_registry_exposes_status_and_risk_level() -> None:
     allure_report_tool = registry.get_tool("allure_report")
     assert allure_report_tool.status is ToolStatus.ENABLED
     assert allure_report_tool.risk_level is ToolRiskLevel.READ_ONLY
+
+    allure_generate_tool = registry.get_tool("allure_generate")
+    assert allure_generate_tool.status is ToolStatus.ENABLED
+    assert allure_generate_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
 
     filesystem_mcp_read_tool = registry.get_tool("filesystem_mcp_read")
     assert filesystem_mcp_read_tool.status is ToolStatus.ENABLED

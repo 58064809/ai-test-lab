@@ -248,12 +248,15 @@ def test_allure_report_tool_is_enabled_read_only_and_write_boundaries_stay_disab
     registry = ToolRegistry.from_yaml("configs/tools.yaml")
 
     allure_report_tool = registry.get_tool("allure_report")
+    allure_generate_tool = registry.get_tool("allure_generate")
     shell_tool = registry.get_tool("shell")
     filesystem_write_tool = registry.get_tool("filesystem_write")
     github_write_tool = registry.get_tool("github_write")
 
     assert allure_report_tool.status is ToolStatus.ENABLED
     assert allure_report_tool.risk_level is ToolRiskLevel.READ_ONLY
+    assert allure_generate_tool.status is ToolStatus.ENABLED
+    assert allure_generate_tool.risk_level is ToolRiskLevel.EXECUTE_LOCAL_COMMAND
     assert shell_tool.status is ToolStatus.DISABLED
     assert filesystem_write_tool.status is ToolStatus.DISABLED
     assert github_write_tool.status is ToolStatus.DISABLED

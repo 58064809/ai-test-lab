@@ -32,7 +32,16 @@ pytest --version
 node -v
 npm -v
 npx -v
+allure --version
 ```
+
+Allure CLI 说明：
+
+- `allure_generate` 需要本机已安装官方 Allure CLI。
+- 本项目不会自动安装 Allure CLI，也不会访问外部网络安装依赖。
+- Windows 上需要用户自行安装 Allure CLI，并确保 `allure --version` 可用。
+- runtime 只会受控执行固定命令：`allure generate <results_dir> -o <report_dir> --clean`。
+- 不支持 `allure serve`，不打开浏览器，不开放 shell。
 
 只要这些命令能正常输出版本号，就说明对应工具已可用。
 

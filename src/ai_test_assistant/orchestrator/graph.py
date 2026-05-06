@@ -54,6 +54,7 @@ class TaskOrchestrator:
         dry_run: bool = True,
         write_memory: bool = False,
         input_files: list[dict[str, object]] | None = None,
+        allure_generates: list[dict[str, object]] | None = None,
         allure_reports: list[dict[str, object]] | None = None,
         explicit_tool_executions: list[dict[str, object]] | None = None,
     ) -> OrchestratorState:
@@ -62,6 +63,7 @@ class TaskOrchestrator:
             "dry_run": dry_run,
             "write_memory": write_memory,
             "input_files": list(input_files or []),
+            "allure_generates": list(allure_generates or []),
             "allure_reports": list(allure_reports or []),
             "explicit_tool_executions": list(explicit_tool_executions or []),
             "errors": [],

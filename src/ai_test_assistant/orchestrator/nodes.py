@@ -14,7 +14,7 @@ INTENT_TOOL_MAP: dict[str, list[str]] = {
     "test_case_generation": ["memory_read"],
     "api_test_design": ["schemathesis"],
     "ui_test_design": ["playwright_mcp"],
-    "pytest_execution": ["pytest_runner", "allure_report"],
+    "pytest_execution": ["pytest_runner", "allure_generate", "allure_report"],
     "repo_file_change": ["filesystem"],
     "code_review": ["filesystem"],
     "tool_research": ["github_read"],
@@ -52,6 +52,7 @@ class OrchestratorNodes:
             "dry_run": bool(state.get("dry_run", True)),
             "write_memory": bool(state.get("write_memory", False)),
             "input_files": list(state.get("input_files", [])),
+            "allure_generates": list(state.get("allure_generates", [])),
             "allure_reports": list(state.get("allure_reports", [])),
             "explicit_tool_executions": list(state.get("explicit_tool_executions", [])),
             "errors": errors,
@@ -74,8 +75,9 @@ class OrchestratorNodes:
 
     def prepare_context(self, state: OrchestratorState) -> OrchestratorState:
         intent_name = state["intent_result"].intent
-        recommended_tools = list(INTENT_TOOL_MAP.get(intent_name, []))
+        recommended_tools = self._select_recommended_tools(intent_name, state["task_text"])
         input_files = list(state.get("input_files", []))
+        allure_generates = list(state.get("allure_generates", []))
         allure_reports = list(state.get("allure_reports", []))
         explicit_tool_executions = list(state.get("explicit_tool_executions", []))
         input_file_summaries = [self._summarize_input_file(item) for item in input_files]
@@ -89,6 +91,10 @@ class OrchestratorNodes:
             "required_context": list(state["intent_result"].required_context),
             "selected_workflow": state.get("selected_workflow"),
             "input_files": input_file_summaries,
+            "allure_generates": [
+                self._summarize_allure_generate(item)
+                for item in allure_generates
+            ],
             "allure_reports": [
                 self._summarize_allure_report(item)
                 for item in allure_reports
@@ -108,6 +114,23 @@ class OrchestratorNodes:
             "tool_authorization_evaluated": tool_authorization_evaluated,
             "tool_decisions": tool_decisions,
         }
+
+    def _select_recommended_tools(self, intent_name: str, task_text: str) -> list[str]:
+        if intent_name != "pytest_execution":
+            return list(INTENT_TOOL_MAP.get(intent_name, []))
+
+        normalized_text = "".join(task_text.lower().split())
+        has_allure = "allure" in normalized_text or "报告" in normalized_text
+        wants_generate = "生成" in normalized_text
+        wants_read = any(keyword in normalized_text for keyword in ("分析", "读取", "查看"))
+        wants_pytest = "pytest" in normalized_text or "运行" in normalized_text or "执行" in normalized_text
+
+        if has_allure and wants_generate and not wants_pytest:
+            return ["allure_generate"]
+        if has_allure and wants_read and not wants_pytest:
+            return ["allure_report"]
+
+        return list(INTENT_TOOL_MAP.get(intent_name, []))
 
     def plan(self, state: OrchestratorState) -> OrchestratorState:
         dry_run = state["dry_run"]
@@ -188,6 +211,10 @@ class OrchestratorNodes:
                 self._memory_safe_input_file(item)
                 for item in state.get("input_files", [])
             ],
+            "allure_generates": [
+                self._memory_safe_allure_generate(item)
+                for item in state.get("allure_generates", [])
+            ],
             "allure_reports": [
                 self._memory_safe_allure_report(item)
                 for item in state.get("allure_reports", [])
@@ -243,6 +270,23 @@ class OrchestratorNodes:
             "reason": str(item.get("reason", "")),
         }
 
+    def _summarize_allure_generate(self, item: dict[str, object]) -> dict[str, object]:
+        stdout = item.get("stdout")
+        stderr = item.get("stderr")
+        stdout_text = stdout if isinstance(stdout, str) else ""
+        stderr_text = stderr if isinstance(stderr, str) else ""
+        return {
+            "command": list(item.get("command", []) or []),
+            "results_dir": item.get("results_dir"),
+            "report_dir": item.get("report_dir"),
+            "exit_code": item.get("exit_code"),
+            "duration_seconds": item.get("duration_seconds"),
+            "generated": bool(item.get("generated", False)),
+            "reason": str(item.get("reason", "")),
+            "stdout_length": len(stdout_text),
+            "stderr_length": len(stderr_text),
+        }
+
     def _memory_safe_input_file(self, item: dict[str, object]) -> dict[str, object]:
         content = item.get("content")
         content_text = content if isinstance(content, str) else ""
@@ -269,6 +313,23 @@ class OrchestratorNodes:
             "top_failures_count": len(item.get("top_failures", []) or []),
             "allowed": bool(item.get("allowed", False)),
             "reason": str(item.get("reason", "")),
+        }
+
+    def _memory_safe_allure_generate(self, item: dict[str, object]) -> dict[str, object]:
+        stdout = item.get("stdout")
+        stderr = item.get("stderr")
+        stdout_text = stdout if isinstance(stdout, str) else ""
+        stderr_text = stderr if isinstance(stderr, str) else ""
+        return {
+            "command": list(item.get("command", []) or []),
+            "results_dir": item.get("results_dir"),
+            "report_dir": item.get("report_dir"),
+            "exit_code": item.get("exit_code"),
+            "duration_seconds": item.get("duration_seconds"),
+            "generated": bool(item.get("generated", False)),
+            "reason": str(item.get("reason", "")),
+            "stdout_length": len(stdout_text),
+            "stderr_length": len(stderr_text),
         }
 
     def _memory_safe_explicit_tool_execution(self, item: dict[str, object]) -> dict[str, object]:
