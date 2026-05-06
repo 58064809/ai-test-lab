@@ -477,8 +477,56 @@ def test_cli_github_read_authorized_invokes_client_and_outputs_source_and_risk(
     assert calls == [{"repository": "58064809/ai-test-lab", "path": "README.md", "ref": "master"}]
     assert "允许读取=是 | 来源=github_mcp | 路径=README.md" in captured
     assert "显式只读外部网络访问" in captured
+    assert "显式工具执行结果：" in captured
+    assert "github_read | 来源=github_mcp | 操作=read_file | 风险=external_network | 已执行=是 | 授权方式=CLI explicit approval" in captured
+    assert "Tool 'github_read' needs external network approval." not in captured
     assert "d158cba4bd47f227961ff37268956ffb46f63eef" in captured
     assert "ghp_secret_value" not in captured
+
+
+def test_cli_github_read_refused_by_client_does_not_show_dry_run_network_approval_conflict(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    class StubGitHubClient:
+        async def read_file(self, repository: str, path: str, ref: str | None = None) -> SimpleNamespace:
+            assert repository == "58064809/ai-test-lab"
+            assert path == ".env"
+            return SimpleNamespace(
+                allowed=False,
+                operation="read_file",
+                repository=repository,
+                target=path,
+                content=None,
+                reason="Sensitive GitHub file path is blocked.",
+                truncated=False,
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.GitHubMcpReadClient", StubGitHubClient)
+
+    exit_code = run_cli(
+        [
+            "读取 GitHub 环境配置",
+            "--dry-run",
+            "--github-repo",
+            "58064809/ai-test-lab",
+            "--github-read-file",
+            ".env",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "允许读取=否 | 来源=github_mcp | 路径=.env" in captured
+    assert "结果说明：Sensitive GitHub file path is blocked." in captured
+    assert "显式工具执行结果：" in captured
+    assert "github_read | 来源=github_mcp | 操作=read_file | 风险=external_network | 已执行=否 | 授权方式=CLI explicit approval" in captured
+    assert "Tool 'github_read' needs external network approval." not in captured
 
 
 def test_cli_github_write_memory_keeps_only_input_file_metadata(
@@ -734,6 +782,9 @@ def test_cli_run_pytest_executes_default_target_and_outputs_structured_result(
     assert exit_code == 0
     assert "识别意图：pytest_execution" in captured
     assert "真实 pytest 执行结果：" in captured
+    assert "显式工具执行结果：" in captured
+    assert "pytest_runner | 来源=pytest_runner | 操作=run_pytest | 风险=execute_local_command | 已执行=是 | 授权方式=CLI explicit approval" in captured
+    assert "Tool 'pytest_runner' cannot run local commands during dry-run." not in captured
     assert "target：tests" in captured
     assert "exit_code：0" in captured
     assert "passed：是" in captured
@@ -789,3 +840,18 @@ def test_cli_run_pytest_rejects_path_traversal_target(tmp_path: Path, capsys) ->
     assert exit_code == 2
     assert "错误：pytest target 不合法" in captured
     assert "reason：" in captured
+
+
+def test_cli_plain_github_tool_research_dry_run_still_requires_external_network_approval(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    exit_code = run_cli(["读取 GitHub README 并分析", "--dry-run", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "显式工具执行结果：" not in captured
+    assert "github_read | 状态=enabled | 风险=external_network | 允许执行=否 | 需要确认=是" in captured
+    assert "Tool 'github_read' needs external network approval." in captured

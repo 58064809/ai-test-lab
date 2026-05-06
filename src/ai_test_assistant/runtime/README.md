@@ -34,6 +34,7 @@
 - 只有显式传 `--read-file` 才允许单文件读取
 - 只有显式传 `--mcp-read-file` 才允许通过 filesystem MCP 读取单文件
 - 只有显式传 `--run-pytest` 才允许执行受控 pytest
+- `--github-read-file`、`--mcp-read-file`、`--read-file`、`--run-pytest` 属于 CLI 显式工具入口
 - `--read-file` 只支持仓库相对路径、白名单文本文件，且必须经过 `FilesystemReadPolicy`
 - `--mcp-read-file` 只支持仓库相对路径、白名单文本文件，且必须经过 `FilesystemReadPolicy`
 - `--run-pytest` 只支持仓库内相对路径 target，默认 target 为 `tests`
@@ -50,6 +51,8 @@
   - 是否允许执行
   - 是否需要确认
   - 拒绝原因
+- runtime 输出会区分“显式工具执行结果”和“orchestrator dry-run 推荐工具授权结果”
+- 当某个工具已经由 CLI 显式参数授权并执行时，不再同时展示同名推荐工具的 dry-run 拒绝，避免误导
 
 ## 当前限制
 
@@ -65,6 +68,7 @@
 - 当前 `--run-pytest` 不支持 Allure、不支持额外 pytest 参数、不支持仓库外路径
 - 当前文件读取结果会进入 orchestrator dry-run 上下文，但 task_result memory 不保存完整文件内容
 - 当前不支持目录读取、glob、多文件读取或自动上下文收集
+- dry-run 本身仍不代表自动执行推荐工具；GitHub read 和 pytest_runner 都必须由显式参数触发
 
 ## 待接入
 
@@ -89,3 +93,12 @@ python scripts/run_assistant.py "读取 GitHub README 并分析" --dry-run --git
 要求必须显式传入仓库和文件，不自动猜测。默认只展示预览，`--show-file-content` 才展示完整允许内容。读取结果进入 dry-run context，memory 只保存元信息，不保存 content。
 
 当前不开放 GitHub write，不保存 token，不打印 token。
+
+## 显式执行与 dry-run 推荐工具
+
+runtime 当前区分两类信息：
+
+- CLI 显式工具执行：由 `--read-file`、`--mcp-read-file`、`--github-read-file`、`--run-pytest` 触发，并在输出中展示“显式工具执行结果”。
+- orchestrator dry-run 推荐工具：由意图识别和工具映射给出，只做授权风险展示，不自动执行。
+
+例如，显式 `--github-read-file` 成功时，会展示 GitHub MCP 文件读取结果和显式工具执行结果；同一轮输出中不再重复展示 `github_read` 的 dry-run external network approval 拒绝。未传显式工具参数的普通 dry-run 仍会展示对应推荐工具的拒绝原因。

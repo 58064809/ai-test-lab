@@ -1,5 +1,12 @@
 # Next Steps
 
+## 034 显式工具执行展示对齐之后
+
+- 继续保持显式入口和 dry-run 推荐工具的边界：`--github-read-file`、`--mcp-read-file`、`--read-file`、`--run-pytest` 才能触发对应真实动作。
+- 普通 dry-run 仍只做计划、推荐工具和授权风险提示，不自动执行推荐工具。
+- 后续如增加新显式入口，也必须同步记录显式工具执行元信息，避免输出中同时出现“已执行”和“dry-run 未授权”的矛盾。
+- 不开放 `github_write`、`shell`、`filesystem_write`。
+
 ## 033 GitHub MCP 正文解析增强之后
 
 - 下一步可用用户本地 token 重新运行 README 单文件读取，确认当前 MCP SDK 是否透传 embedded resource text。

@@ -54,12 +54,14 @@ class TaskOrchestrator:
         dry_run: bool = True,
         write_memory: bool = False,
         input_files: list[dict[str, object]] | None = None,
+        explicit_tool_executions: list[dict[str, object]] | None = None,
     ) -> OrchestratorState:
         initial_state: OrchestratorState = {
             "task_text": task_text,
             "dry_run": dry_run,
             "write_memory": write_memory,
             "input_files": list(input_files or []),
+            "explicit_tool_executions": list(explicit_tool_executions or []),
             "errors": [],
         }
         return self.graph.invoke(initial_state)

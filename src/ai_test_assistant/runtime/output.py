@@ -40,6 +40,7 @@ def render_orchestrator_result(
     intent_result = state["intent_result"]
     loaded_memory = state.get("loaded_memory", {})
     input_files = list(state.get("input_files", []))
+    explicit_tool_executions = list(state.get("explicit_tool_executions", []))
     recommended_tools = list(state.get("recommended_tools", []))
     tool_decisions = list(state.get("tool_decisions", []))
     requested_read_file = None
@@ -66,6 +67,22 @@ def render_orchestrator_result(
 
     for step in state.get("execution_plan", []):
         lines.append(f"  - {step}")
+
+    if explicit_tool_executions:
+        lines.append("- 显式工具执行结果：")
+        for item in explicit_tool_executions:
+            lines.append(
+                "  - "
+                f"{item.get('tool_name')} | "
+                f"来源={item.get('source') or 'unknown'} | "
+                f"操作={item.get('operation') or 'unknown'} | "
+                f"风险={item.get('risk_level') or 'unknown'} | "
+                f"已执行={'是' if item.get('allowed', False) else '否'} | "
+                f"授权方式={item.get('authorization') or 'unknown'}"
+            )
+            reason = item.get("reason")
+            if reason:
+                lines.append(f"    说明：{reason}")
 
     if tool_decisions:
         lines.append("- 工具授权结果：")

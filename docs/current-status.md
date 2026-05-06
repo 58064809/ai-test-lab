@@ -1,5 +1,14 @@
 # Current Status
 
+## 034 显式工具执行与 dry-run 授权展示对齐
+
+- runtime 已区分“CLI 显式工具执行”和“orchestrator dry-run 推荐工具授权评估”。
+- `--github-read-file`、`--mcp-read-file`、`--read-file`、`--run-pytest` 属于显式入口，会在输出中展示“显式工具执行结果”。
+- 当 GitHub read 或 pytest_runner 已由显式 CLI 参数授权并执行时，不再同时展示同名推荐工具的 dry-run 授权拒绝，避免“已执行”和“未授权”并存。
+- 普通 dry-run 未传显式工具参数时，推荐工具仍保留授权风险提示和拒绝原因。
+- orchestrator 仍不会自动执行推荐工具；GitHub read / pytest_runner 仍必须由显式 CLI 参数触发。
+- `github_write`、`shell`、`filesystem_write` 仍保持 disabled。
+
 ## 033 GitHub MCP read 正文解析增强
 
 - 已基于官方 `github/github-mcp-server` 源码确认 `get_file_contents` 的核心返回路径：文本文件正文通过 MCP embedded resource 的 `text` 字段返回，外层 text chunk 是下载成功提示和 SHA。

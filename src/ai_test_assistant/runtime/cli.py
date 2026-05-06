@@ -66,6 +66,7 @@ def run_cli(argv: list[str] | None = None) -> int:
 
     pytest_result = None
     input_files: list[dict[str, object]] = []
+    explicit_tool_executions: list[dict[str, object]] = []
     if args.github_read_file and not args.github_repo:
         print(render_error("GitHub read requires explicit --github-repo.", {"github_read_file": args.github_read_file}))
         return 2
@@ -76,10 +77,30 @@ def run_cli(argv: list[str] | None = None) -> int:
         adapter = LocalFilesystemReadAdapter(repo_root=Path.cwd())
         file_read_result = adapter.read_text(args.read_file)
         input_files.append(_build_input_file_entry(args.read_file, file_read_result, source="local_adapter"))
+        explicit_tool_executions.append(
+            _build_explicit_tool_execution(
+                tool_name="filesystem_read",
+                source="local_adapter",
+                operation="read_file",
+                allowed=bool(file_read_result.allowed),
+                risk_level="read_only",
+                reason="Executed explicitly by CLI argument --read-file.",
+            )
+        )
     elif args.mcp_read_file:
         client = FilesystemMcpReadClient(repo_root=Path.cwd())
         file_read_result = asyncio.run(client.read_text(args.mcp_read_file))
         input_files.append(_build_input_file_entry(args.mcp_read_file, file_read_result, source="filesystem_mcp"))
+        explicit_tool_executions.append(
+            _build_explicit_tool_execution(
+                tool_name="filesystem_mcp_read",
+                source="filesystem_mcp",
+                operation="read_file",
+                allowed=bool(file_read_result.allowed),
+                risk_level="read_only",
+                reason="Executed explicitly by CLI argument --mcp-read-file.",
+            )
+        )
     elif args.github_read_file:
         if orchestrator.tool_registry is None:
             print(render_error("github_read is not authorized.", {"tool_registry": "tool registry config is missing."}))
@@ -100,6 +121,16 @@ def run_cli(argv: list[str] | None = None) -> int:
         client = GitHubMcpReadClient()
         file_read_result = asyncio.run(client.read_file(args.github_repo, args.github_read_file, ref=args.github_ref))
         input_files.append(_build_github_input_file_entry(args.github_read_file, file_read_result))
+        explicit_tool_executions.append(
+            _build_explicit_tool_execution(
+                tool_name="github_read",
+                source="github_mcp",
+                operation="read_file",
+                allowed=bool(file_read_result.allowed),
+                risk_level="external_network",
+                reason="Executed explicitly by CLI argument --github-read-file.",
+            )
+        )
 
     if args.run_pytest is not None:
         if orchestrator.tool_registry is None:
@@ -119,12 +150,23 @@ def run_cli(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(render_error("pytest target 不合法", {"target": str(args.run_pytest), "reason": str(exc)}))
             return 2
+        explicit_tool_executions.append(
+            _build_explicit_tool_execution(
+                tool_name="pytest_runner",
+                source="pytest_runner",
+                operation="run_pytest",
+                allowed=True,
+                risk_level="execute_local_command",
+                reason="Executed explicitly by CLI argument --run-pytest.",
+            )
+        )
 
     result = orchestrator.run(
         args.task_text,
         dry_run=args.dry_run,
         write_memory=args.write_memory,
         input_files=input_files,
+        explicit_tool_executions=explicit_tool_executions,
     )
 
     print(
@@ -166,4 +208,24 @@ def _build_github_input_file_entry(requested_path: str, file_read_result) -> dic
         "reason": file_read_result.reason,
         "truncated": file_read_result.truncated,
         "source": "github_mcp",
+    }
+
+
+def _build_explicit_tool_execution(
+    *,
+    tool_name: str,
+    source: str,
+    operation: str,
+    allowed: bool,
+    risk_level: str,
+    reason: str,
+) -> dict[str, object]:
+    return {
+        "tool_name": tool_name,
+        "source": source,
+        "operation": operation,
+        "allowed": allowed,
+        "risk_level": risk_level,
+        "authorization": "CLI explicit approval",
+        "reason": reason,
     }

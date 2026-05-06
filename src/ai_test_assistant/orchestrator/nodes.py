@@ -52,6 +52,7 @@ class OrchestratorNodes:
             "dry_run": bool(state.get("dry_run", True)),
             "write_memory": bool(state.get("write_memory", False)),
             "input_files": list(state.get("input_files", [])),
+            "explicit_tool_executions": list(state.get("explicit_tool_executions", [])),
             "errors": errors,
         }
 
@@ -74,16 +75,19 @@ class OrchestratorNodes:
         intent_name = state["intent_result"].intent
         recommended_tools = list(INTENT_TOOL_MAP.get(intent_name, []))
         input_files = list(state.get("input_files", []))
+        explicit_tool_executions = list(state.get("explicit_tool_executions", []))
         input_file_summaries = [self._summarize_input_file(item) for item in input_files]
         tool_authorization_evaluated, tool_decisions = self._evaluate_tools(
             recommended_tools,
             dry_run=state["dry_run"],
+            explicit_tool_executions=explicit_tool_executions,
         )
         prepared_context = {
             "intent": intent_name,
             "required_context": list(state["intent_result"].required_context),
             "selected_workflow": state.get("selected_workflow"),
             "input_files": input_file_summaries,
+            "explicit_tool_executions": explicit_tool_executions,
             "recommended_tools": recommended_tools,
             "tool_authorization_evaluated": tool_authorization_evaluated,
             "tool_decisions": tool_decisions,
@@ -178,6 +182,10 @@ class OrchestratorNodes:
                 self._memory_safe_input_file(item)
                 for item in state.get("input_files", [])
             ],
+            "explicit_tool_executions": [
+                self._memory_safe_explicit_tool_execution(item)
+                for item in state.get("explicit_tool_executions", [])
+            ],
             "recommended_tools": list(state.get("recommended_tools", [])),
             "tool_authorization_evaluated": state.get("tool_authorization_evaluated", False),
             "tool_decisions": list(state.get("tool_decisions", [])),
@@ -223,8 +231,36 @@ class OrchestratorNodes:
             "content_length": len(content_text),
         }
 
-    def _evaluate_tools(self, recommended_tools: list[str], dry_run: bool) -> tuple[bool, list[dict[str, object]]]:
+    def _memory_safe_explicit_tool_execution(self, item: dict[str, object]) -> dict[str, object]:
+        return {
+            "tool_name": item.get("tool_name"),
+            "source": item.get("source"),
+            "operation": item.get("operation"),
+            "allowed": bool(item.get("allowed", False)),
+            "risk_level": item.get("risk_level"),
+            "authorization": item.get("authorization"),
+            "reason": str(item.get("reason", "")),
+        }
+
+    def _evaluate_tools(
+        self,
+        recommended_tools: list[str],
+        dry_run: bool,
+        explicit_tool_executions: list[dict[str, object]] | None = None,
+    ) -> tuple[bool, list[dict[str, object]]]:
         if not recommended_tools:
+            return True, []
+
+        explicit_tool_names = {
+            str(item.get("tool_name"))
+            for item in explicit_tool_executions or []
+            if item.get("tool_name")
+        }
+        dry_run_recommended_tools = [
+            tool_name for tool_name in recommended_tools
+            if tool_name not in explicit_tool_names
+        ]
+        if not dry_run_recommended_tools:
             return True, []
 
         if self.tool_registry is None:
@@ -237,12 +273,12 @@ class OrchestratorNodes:
                     "requires_confirmation": True,
                     "reasons": ["Tool registry 未加载，当前工具授权未评估。"],
                 }
-                for tool_name in recommended_tools
+                for tool_name in dry_run_recommended_tools
             ]
 
         decisions: list[dict[str, object]] = []
         context = ToolPermissionContext(dry_run=dry_run)
-        for tool_name in recommended_tools:
+        for tool_name in dry_run_recommended_tools:
             tool = self.tool_registry.get_tool(tool_name)
             decision = self.tool_registry.evaluate_execution(tool_name, context=context)
             decisions.append(
