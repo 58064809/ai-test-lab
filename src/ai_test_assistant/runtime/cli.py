@@ -8,7 +8,12 @@ from ai_test_assistant.filesystem import FilesystemMcpReadClient, LocalFilesyste
 from ai_test_assistant.github import GitHubMcpReadClient
 from ai_test_assistant.intent.router import IntentRouter
 from ai_test_assistant.orchestrator.graph import TaskOrchestrator
-from ai_test_assistant.reporting import AllureReportGenerator, AllureReportReader
+from ai_test_assistant.reporting import (
+    AllureGenerateResult,
+    AllureReportGenerator,
+    AllureReportReader,
+    AllureReportSummary,
+)
 from ai_test_assistant.runtime.output import (
     render_error,
     render_intent_only,
@@ -44,6 +49,13 @@ def build_parser() -> argparse.ArgumentParser:
         nargs="?",
         const="tests",
         help="显式执行仓库内 pytest；不传 target 时默认运行 tests",
+    )
+    parser.add_argument(
+        "--run-test-report",
+        nargs="?",
+        const="tests",
+        metavar="TARGET",
+        help="显式执行固定测试报告链路：pytest --alluredir=allure-results -> allure generate -> allure summary；不传 TARGET 时默认 tests",
     )
     parser.add_argument(
         "--read-allure-report",
@@ -92,6 +104,22 @@ def run_cli(argv: list[str] | None = None) -> int:
     explicit_tool_executions: list[dict[str, object]] = []
     if args.github_read_file and not args.github_repo:
         print(render_error("GitHub read requires explicit --github-repo.", {"github_read_file": args.github_read_file}))
+        return 2
+    if args.run_test_report is not None and (
+        args.run_pytest is not None
+        or args.generate_allure_report is not None
+        or args.read_allure_report is not None
+    ):
+        print(
+            render_error(
+                "--run-test-report must not be combined with standalone pytest or Allure actions.",
+                {
+                    "run_pytest": args.run_pytest,
+                    "generate_allure_report": args.generate_allure_report,
+                    "read_allure_report": args.read_allure_report,
+                },
+            )
+        )
         return 2
 
     orchestrator = TaskOrchestrator.from_config(config_path)
@@ -154,6 +182,128 @@ def run_cli(argv: list[str] | None = None) -> int:
                 reason="Executed explicitly by CLI argument --github-read-file.",
             )
         )
+
+    if args.run_test_report is not None:
+        if orchestrator.tool_registry is None:
+            print(render_error("test report chain is not authorized.", {"tool_registry": "tool registry config is missing."}))
+            return 2
+
+        permission_checks = [
+            (
+                "pytest_runner",
+                ToolPermissionContext(dry_run=False, allow_execute_local_command=True),
+            ),
+            (
+                "allure_generate",
+                ToolPermissionContext(
+                    dry_run=False,
+                    allow_execute_local_command=True,
+                    allow_write_project_files=True,
+                ),
+            ),
+            (
+                "allure_report",
+                ToolPermissionContext(dry_run=False),
+            ),
+        ]
+        for tool_name, context in permission_checks:
+            try:
+                permission = orchestrator.tool_registry.evaluate_execution(tool_name, context=context)
+            except KeyError as exc:
+                print(render_error(f"{tool_name} is not authorized.", {"reason": str(exc)}))
+                return 2
+            if not permission.allowed:
+                print(render_error(f"{tool_name} is not authorized.", {"reason": "; ".join(permission.reasons)}))
+                return 2
+
+        try:
+            pytest_result = PytestRunner(repo_root=Path.cwd()).run(
+                args.run_test_report,
+                allure_results_dir="allure-results",
+            )
+        except ValueError as exc:
+            print(render_error("pytest target 不合法", {"target": str(args.run_test_report), "reason": str(exc)}))
+            return 2
+
+        explicit_tool_executions.append(
+            _build_explicit_tool_execution(
+                tool_name="pytest_runner",
+                source="pytest_runner",
+                operation="run_pytest",
+                allowed=bool(pytest_result.passed),
+                risk_level="execute_local_command",
+                reason=pytest_result.reason,
+            )
+        )
+
+        if not pytest_result.passed:
+            skipped_generate = _build_skipped_allure_generate("Skipped because pytest failed.")
+            skipped_summary = _build_skipped_allure_summary("Skipped because pytest failed.")
+            allure_generates.append(skipped_generate)
+            allure_reports.append(skipped_summary)
+            explicit_tool_executions.append(
+                _build_explicit_tool_execution(
+                    tool_name="allure_generate",
+                    source="allure_cli",
+                    operation="generate_report",
+                    allowed=False,
+                    risk_level="execute_local_command",
+                    reason=str(skipped_generate["reason"]),
+                )
+            )
+            explicit_tool_executions.append(
+                _build_explicit_tool_execution(
+                    tool_name="allure_report",
+                    source="allure_report",
+                    operation="read_summary",
+                    allowed=False,
+                    risk_level="read_only",
+                    reason=str(skipped_summary["reason"]),
+                )
+            )
+        else:
+            generate_result = AllureReportGenerator(repo_root=Path.cwd()).generate(
+                "allure-results",
+                "allure-report",
+            )
+            allure_generates.append(generate_result.to_dict())
+            explicit_tool_executions.append(
+                _build_explicit_tool_execution(
+                    tool_name="allure_generate",
+                    source="allure_cli",
+                    operation="generate_report",
+                    allowed=bool(generate_result.generated),
+                    risk_level="execute_local_command",
+                    reason=generate_result.reason,
+                )
+            )
+
+            if not generate_result.generated:
+                skipped_summary = _build_skipped_allure_summary("Skipped because Allure report generation failed.")
+                allure_reports.append(skipped_summary)
+                explicit_tool_executions.append(
+                    _build_explicit_tool_execution(
+                        tool_name="allure_report",
+                        source="allure_report",
+                        operation="read_summary",
+                        allowed=False,
+                        risk_level="read_only",
+                        reason=str(skipped_summary["reason"]),
+                    )
+                )
+            else:
+                allure_summary = AllureReportReader(repo_root=Path.cwd()).read_summary("allure-report")
+                allure_reports.append(allure_summary.to_dict())
+                explicit_tool_executions.append(
+                    _build_explicit_tool_execution(
+                        tool_name="allure_report",
+                        source="allure_report",
+                        operation="read_summary",
+                        allowed=bool(allure_summary.allowed),
+                        risk_level="read_only",
+                        reason=allure_summary.reason,
+                    )
+                )
 
     if args.run_pytest is not None:
         if orchestrator.tool_registry is None:
@@ -321,3 +471,33 @@ def _build_explicit_tool_execution(
         "authorization": "CLI explicit approval",
         "reason": reason,
     }
+
+
+def _build_skipped_allure_generate(reason: str) -> dict[str, object]:
+    return AllureGenerateResult(
+        command=[],
+        results_dir="allure-results",
+        report_dir="allure-report",
+        exit_code=None,
+        duration_seconds=0.0,
+        stdout="",
+        stderr="",
+        generated=False,
+        reason=reason,
+    ).to_dict()
+
+
+def _build_skipped_allure_summary(reason: str) -> dict[str, object]:
+    return AllureReportSummary(
+        allowed=False,
+        report_dir="allure-report",
+        total=None,
+        passed=None,
+        failed=None,
+        broken=None,
+        skipped=None,
+        unknown=None,
+        duration_ms=None,
+        top_failures=[],
+        reason=reason,
+    ).to_dict()

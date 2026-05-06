@@ -82,6 +82,20 @@ def test_main_intent_samples_pass_validation(tmp_path: Path) -> None:
     assert all(result.passed for result in results), results
 
 
+def test_real_testing_task_samples_pass_validation(tmp_path: Path) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    samples = RealTaskSampleLoader.load()
+    router = IntentRouter.from_assistant_config(config_path)
+    orchestrator = TaskOrchestrator.from_config(config_path)
+    runner = RealTaskValidationRunner(router, orchestrator)
+    real_samples = [sample for sample in samples if sample.category.startswith("real_")]
+
+    results = runner.run_all(real_samples)
+
+    assert len(results) >= 8
+    assert all(result.passed for result in results), results
+
+
 def test_ambiguous_and_conflicting_samples_trigger_clarification(tmp_path: Path) -> None:
     config_path = _write_assistant_config(tmp_path)
     samples = {sample.category: sample for sample in RealTaskSampleLoader.load()}

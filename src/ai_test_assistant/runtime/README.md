@@ -22,6 +22,7 @@
   - `--read-file`
   - `--mcp-read-file`
   - `--run-pytest`
+  - `--run-test-report`
   - `--show-file-content`
   - `--config`
 - `--intent-only` 只做意图识别
@@ -34,13 +35,15 @@
 - 只有显式传 `--read-file` 才允许单文件读取
 - 只有显式传 `--mcp-read-file` 才允许通过 filesystem MCP 读取单文件
 - 只有显式传 `--run-pytest` 才允许执行受控 pytest
-- `--github-read-file`、`--mcp-read-file`、`--read-file`、`--run-pytest` 属于 CLI 显式工具入口
+- `--github-read-file`、`--mcp-read-file`、`--read-file`、`--run-pytest`、`--run-test-report` 属于 CLI 显式工具入口
 - `--read-file` 只支持仓库相对路径、白名单文本文件，且必须经过 `FilesystemReadPolicy`
 - `--mcp-read-file` 只支持仓库相对路径、白名单文本文件，且必须经过 `FilesystemReadPolicy`
 - `--run-pytest` 只支持仓库内相对路径 target，默认 target 为 `tests`
+- `--run-test-report` 只支持仓库内相对路径 target，默认 target 为 `tests`
 - `--read-file` 使用本地 fallback `LocalFilesystemReadAdapter`
 - `--mcp-read-file` 使用 `FilesystemMcpReadClient` + `@modelcontextprotocol/server-filesystem`
 - `--run-pytest` 使用 `PytestRunner` 执行 `sys.executable -m pytest <target>`
+- `--run-test-report` 复用 `PytestRunner`、`AllureReportGenerator`、`AllureReportReader`
 - 默认只展示文件预览，不完整打印
 - 只有显式传 `--show-file-content` 才展示完整允许内容
 - pytest 输出为结构化结果，不开放任意命令执行
@@ -82,6 +85,16 @@
 - 不做 Web UI
 - 不绕过 orchestrator 伪装成真实执行入口
 - 不在 dry-run 中执行真实命令
+
+## 一键测试报告链路
+
+- CLI 支持 `--run-test-report [TARGET]`。
+- 不传 `TARGET` 时默认 `tests`，可传 `tests/test_xxx.py` 这类仓库内 target。
+- 固定顺序为 `pytest -> allure generate -> Allure report summary`。
+- pytest 只允许固定追加 `--alluredir=allure-results`。
+- Allure 生成固定复用 `allure generate allure-results -o allure-report --clean`。
+- 该入口会记录 `pytest_runner`、`allure_generate`、`allure_report` 的 `explicit_tool_executions`。
+- 不支持任意 pytest 参数，不支持任意 Allure 参数，不支持 `allure serve`，不开放 shell。
 ## Allure 受控生成
 
 - CLI 支持 `--generate-allure-report [RESULTS_DIR]`。

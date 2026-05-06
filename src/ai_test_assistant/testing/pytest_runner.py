@@ -27,9 +27,12 @@ class PytestRunner:
     def __init__(self, repo_root: Path) -> None:
         self.repo_root = repo_root.resolve()
 
-    def run(self, target: str = DEFAULT_TARGET) -> PytestRunResult:
+    def run(self, target: str = DEFAULT_TARGET, *, allure_results_dir: str | None = None) -> PytestRunResult:
         normalized_target = self._validate_target(target)
         command = [sys.executable, "-m", "pytest", normalized_target]
+        if allure_results_dir is not None:
+            normalized_allure_results_dir = self._validate_allure_results_dir(allure_results_dir)
+            command.append(f"--alluredir={normalized_allure_results_dir}")
 
         start = time.perf_counter()
         completed = subprocess.run(
@@ -93,6 +96,12 @@ class PytestRunner:
             raise ValueError("Pytest target does not exist within the repository.")
 
         return normalized_target
+
+    def _validate_allure_results_dir(self, value: str) -> str:
+        normalized_value = value.strip().replace("\\", "/")
+        if normalized_value != "allure-results":
+            raise ValueError("Pytest Allure output is fixed to --alluredir=allure-results.")
+        return normalized_value
 
     def _truncate_output(self, value: str) -> str:
         if len(value) <= self.MAX_OUTPUT_CHARS:

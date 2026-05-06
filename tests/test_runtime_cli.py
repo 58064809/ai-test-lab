@@ -842,6 +842,344 @@ def test_cli_run_pytest_rejects_path_traversal_target(tmp_path: Path, capsys) ->
     assert "reason：" in captured
 
 
+def test_cli_run_test_report_executes_pytest_generate_and_read_in_order(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    config_path = _write_assistant_config(tmp_path)
+    calls: list[str] = []
+
+    class StubPytestRunner:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def run(self, target: str = "tests", *, allure_results_dir: str | None = None) -> SimpleNamespace:
+            calls.append("pytest")
+            assert target == "tests"
+            assert allure_results_dir == "allure-results"
+            return SimpleNamespace(
+                command=["python", "-m", "pytest", "tests", "--alluredir=allure-results"],
+                target="tests",
+                exit_code=0,
+                duration_seconds=1.0,
+                stdout="pytest ok",
+                stderr="",
+                passed=True,
+                reason="Pytest run completed successfully.",
+            )
+
+    class StubAllureGenerator:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def generate(self, results_dir: str = "allure-results", report_dir: str = "allure-report") -> SimpleNamespace:
+            calls.append("generate")
+            return SimpleNamespace(
+                command=["allure", "generate", results_dir, "-o", report_dir, "--clean"],
+                results_dir=results_dir,
+                report_dir=report_dir,
+                exit_code=0,
+                duration_seconds=0.5,
+                stdout="generated",
+                stderr="",
+                generated=True,
+                reason="Allure report generated successfully.",
+                to_dict=lambda: {
+                    "command": ["allure", "generate", results_dir, "-o", report_dir, "--clean"],
+                    "results_dir": results_dir,
+                    "report_dir": report_dir,
+                    "exit_code": 0,
+                    "duration_seconds": 0.5,
+                    "stdout": "generated",
+                    "stderr": "",
+                    "generated": True,
+                    "reason": "Allure report generated successfully.",
+                },
+            )
+
+    class StubAllureReader:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def read_summary(self, report_dir: str = "allure-report") -> SimpleNamespace:
+            calls.append("read")
+            return SimpleNamespace(
+                allowed=True,
+                report_dir=report_dir,
+                total=3,
+                passed=3,
+                failed=0,
+                broken=0,
+                skipped=0,
+                unknown=0,
+                duration_ms=123,
+                top_failures=[],
+                reason="Read Allure report summary from existing report widgets.",
+                to_dict=lambda: {
+                    "allowed": True,
+                    "report_dir": report_dir,
+                    "total": 3,
+                    "passed": 3,
+                    "failed": 0,
+                    "broken": 0,
+                    "skipped": 0,
+                    "unknown": 0,
+                    "duration_ms": 123,
+                    "top_failures": [],
+                    "reason": "Read Allure report summary from existing report widgets.",
+                },
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.PytestRunner", StubPytestRunner)
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.AllureReportGenerator", StubAllureGenerator)
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.AllureReportReader", StubAllureReader)
+
+    exit_code = run_cli(["运行测试并生成报告", "--run-test-report", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert calls == ["pytest", "generate", "read"]
+    assert "--alluredir=allure-results" in captured
+    assert "Allure 生成结果" in captured
+    assert "Allure 报告摘要" in captured
+    assert "total=3" in captured
+    assert "pytest_runner" in captured
+    assert "allure_generate" in captured
+    assert "allure_report" in captured
+
+
+def test_cli_run_test_report_supports_explicit_target(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    class StubPytestRunner:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def run(self, target: str = "tests", *, allure_results_dir: str | None = None) -> SimpleNamespace:
+            assert target == "tests/test_runtime_cli.py"
+            assert allure_results_dir == "allure-results"
+            return SimpleNamespace(
+                command=["python", "-m", "pytest", target, "--alluredir=allure-results"],
+                target=target,
+                exit_code=0,
+                duration_seconds=1.0,
+                stdout="ok",
+                stderr="",
+                passed=True,
+                reason="Pytest run completed successfully.",
+            )
+
+    class StubAllureGenerator:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def generate(self, results_dir: str = "allure-results", report_dir: str = "allure-report") -> SimpleNamespace:
+            return SimpleNamespace(
+                command=["allure", "generate", results_dir, "-o", report_dir, "--clean"],
+                results_dir=results_dir,
+                report_dir=report_dir,
+                exit_code=0,
+                duration_seconds=0.1,
+                stdout="",
+                stderr="",
+                generated=True,
+                reason="Allure report generated successfully.",
+                to_dict=lambda: {
+                    "command": ["allure", "generate", results_dir, "-o", report_dir, "--clean"],
+                    "results_dir": results_dir,
+                    "report_dir": report_dir,
+                    "exit_code": 0,
+                    "duration_seconds": 0.1,
+                    "stdout": "",
+                    "stderr": "",
+                    "generated": True,
+                    "reason": "Allure report generated successfully.",
+                },
+            )
+
+    class StubAllureReader:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def read_summary(self, report_dir: str = "allure-report") -> SimpleNamespace:
+            return SimpleNamespace(
+                allowed=True,
+                report_dir=report_dir,
+                total=1,
+                passed=1,
+                failed=0,
+                broken=0,
+                skipped=0,
+                unknown=0,
+                duration_ms=10,
+                top_failures=[],
+                reason="Read Allure report summary from existing report widgets.",
+                to_dict=lambda: {
+                    "allowed": True,
+                    "report_dir": report_dir,
+                    "total": 1,
+                    "passed": 1,
+                    "failed": 0,
+                    "broken": 0,
+                    "skipped": 0,
+                    "unknown": 0,
+                    "duration_ms": 10,
+                    "top_failures": [],
+                    "reason": "Read Allure report summary from existing report widgets.",
+                },
+            )
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.PytestRunner", StubPytestRunner)
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.AllureReportGenerator", StubAllureGenerator)
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.AllureReportReader", StubAllureReader)
+
+    exit_code = run_cli(
+        [
+            "运行测试并生成报告",
+            "--run-test-report",
+            "tests/test_runtime_cli.py",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "target：tests/test_runtime_cli.py" in captured
+
+
+def test_cli_run_test_report_skips_allure_when_pytest_fails(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    class StubPytestRunner:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def run(self, target: str = "tests", *, allure_results_dir: str | None = None) -> SimpleNamespace:
+            return SimpleNamespace(
+                command=["python", "-m", "pytest", "tests", "--alluredir=allure-results"],
+                target="tests",
+                exit_code=1,
+                duration_seconds=1.0,
+                stdout="failed",
+                stderr="",
+                passed=False,
+                reason="Pytest run completed with failures.",
+            )
+
+    class StubAllureGenerator:
+        def __init__(self, repo_root: Path) -> None:
+            raise AssertionError("Allure generate must not run after pytest failure.")
+
+    class StubAllureReader:
+        def __init__(self, repo_root: Path) -> None:
+            raise AssertionError("Allure read must not run after pytest failure.")
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.PytestRunner", StubPytestRunner)
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.AllureReportGenerator", StubAllureGenerator)
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.AllureReportReader", StubAllureReader)
+
+    exit_code = run_cli(["运行测试并生成报告", "--run-test-report", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "exit_code：1" in captured
+    assert "Skipped because pytest failed." in captured
+    assert "generated=否" in captured
+
+
+def test_cli_run_test_report_skips_summary_when_allure_generate_fails(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    class StubPytestRunner:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def run(self, target: str = "tests", *, allure_results_dir: str | None = None) -> SimpleNamespace:
+            return SimpleNamespace(
+                command=["python", "-m", "pytest", "tests", "--alluredir=allure-results"],
+                target="tests",
+                exit_code=0,
+                duration_seconds=1.0,
+                stdout="ok",
+                stderr="",
+                passed=True,
+                reason="Pytest run completed successfully.",
+            )
+
+    class StubAllureGenerator:
+        def __init__(self, repo_root: Path) -> None:
+            self.repo_root = repo_root
+
+        def generate(self, results_dir: str = "allure-results", report_dir: str = "allure-report") -> SimpleNamespace:
+            return SimpleNamespace(
+                command=["allure", "generate", results_dir, "-o", report_dir, "--clean"],
+                results_dir=results_dir,
+                report_dir=report_dir,
+                exit_code=1,
+                duration_seconds=0.1,
+                stdout="",
+                stderr="bad",
+                generated=False,
+                reason="Allure report generation failed.",
+                to_dict=lambda: {
+                    "command": ["allure", "generate", results_dir, "-o", report_dir, "--clean"],
+                    "results_dir": results_dir,
+                    "report_dir": report_dir,
+                    "exit_code": 1,
+                    "duration_seconds": 0.1,
+                    "stdout": "",
+                    "stderr": "bad",
+                    "generated": False,
+                    "reason": "Allure report generation failed.",
+                },
+            )
+
+    class StubAllureReader:
+        def __init__(self, repo_root: Path) -> None:
+            raise AssertionError("Allure read must not run after generation failure.")
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.PytestRunner", StubPytestRunner)
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.AllureReportGenerator", StubAllureGenerator)
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.AllureReportReader", StubAllureReader)
+
+    exit_code = run_cli(["运行测试并生成报告", "--run-test-report", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "Allure report generation failed." in captured
+    assert "Skipped because Allure report generation failed." in captured
+
+
+def test_cli_plain_dry_run_does_not_execute_test_report_chain(tmp_path: Path, capsys, monkeypatch) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    class StubPytestRunner:
+        def __init__(self, repo_root: Path) -> None:
+            raise AssertionError("Pytest must not run without --run-test-report.")
+
+    monkeypatch.setattr("ai_test_assistant.runtime.cli.PytestRunner", StubPytestRunner)
+
+    exit_code = run_cli(["运行测试并生成报告", "--dry-run", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 0
+    assert "真实 pytest 执行结果" not in captured
+    assert "Allure 生成结果" not in captured
+
+
+def test_cli_run_test_report_rejects_extra_pytest_arguments(tmp_path: Path, capsys) -> None:
+    config_path = _write_assistant_config(tmp_path)
+
+    exit_code = run_cli(["运行测试并生成报告", "--run-test-report", "tests --maxfail=1", "--config", str(config_path)])
+
+    captured = capsys.readouterr().out
+    assert exit_code == 2
+    assert "pytest target 不合法" in captured
+    assert "extra arguments" in captured
+
+
 def test_cli_plain_github_tool_research_dry_run_still_requires_external_network_approval(
     tmp_path: Path,
     capsys,

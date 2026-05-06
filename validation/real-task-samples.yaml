@@ -192,3 +192,136 @@ samples:
     expected_tool_allowed:
       filesystem: false
     notes: "高风险输入，必须给出风险提示或确认信号"
+  - id: sample_016
+    category: real_test_report_chain
+    task_text: "请运行 pytest 并生成 Allure 报告"
+    expected_intent: pytest_execution
+    expected_clarification_required: false
+    expected_workflow: docs/tools/pytest-allure.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["pytest_runner", "allure_generate", "allure_report"]
+    expected_tool_statuses:
+      pytest_runner: enabled
+      allure_generate: enabled
+      allure_report: enabled
+    expected_tool_allowed:
+      pytest_runner: false
+      allure_generate: false
+      allure_report: true
+    notes: "真实任务样本：运行 pytest 并生成 Allure 报告"
+
+  - id: sample_017
+    category: real_allure_summary
+    task_text: "请分析 Allure 报告并输出测试总结"
+    expected_intent: pytest_execution
+    expected_clarification_required: false
+    expected_workflow: docs/tools/pytest-allure.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["allure_report"]
+    expected_tool_statuses:
+      allure_report: enabled
+    expected_tool_allowed:
+      allure_report: true
+    notes: "真实任务样本：只读分析 Allure 报告"
+
+  - id: sample_018
+    category: real_readme_status
+    task_text: "请读取 README 分析项目状态"
+    expected_intent: tool_research
+    expected_clarification_required: false
+    expected_workflow: docs/tools/sources.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["github_read"]
+    expected_tool_statuses:
+      github_read: enabled
+    expected_tool_allowed:
+      github_read: false
+    notes: "真实任务样本：读取 README 分析项目状态"
+
+  - id: sample_019
+    category: real_github_readme_status
+    task_text: "请读取 GitHub README 分析项目状态"
+    expected_intent: tool_research
+    expected_clarification_required: false
+    expected_workflow: docs/tools/sources.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["github_read"]
+    expected_tool_statuses:
+      github_read: enabled
+    expected_tool_allowed:
+      github_read: false
+    notes: "真实任务样本：读取 GitHub README 分析项目状态"
+
+  - id: sample_020
+    category: real_log_file_analysis
+    task_text: "请读取错误日志文件并定位异常栈问题"
+    expected_intent: log_analysis
+    expected_clarification_required: false
+    expected_workflow: agent-assets/prompts/log-analysis.md
+    expected_risk_level: low
+    notes: "真实任务样本：读取日志文件定位异常"
+
+  - id: sample_021
+    category: real_requirement_cases
+    task_text: "请根据需求生成测试用例"
+    expected_intent: test_case_generation
+    expected_clarification_required: false
+    expected_workflow: agent-assets/prompts/test-case-generation.md
+    expected_risk_level: low
+    expected_recommended_tools: ["memory_read"]
+    expected_tool_statuses:
+      memory_read: enabled
+    expected_tool_allowed:
+      memory_read: true
+    notes: "真实任务样本：根据需求生成测试用例"
+
+  - id: sample_022
+    category: real_api_test_points
+    task_text: "请根据 OpenAPI 接口文档设计接口测试场景"
+    expected_intent: api_test_design
+    expected_clarification_required: false
+    expected_workflow: agent-assets/workflows/api-test-workflow.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["schemathesis"]
+    expected_tool_statuses:
+      schemathesis: planned
+    expected_tool_allowed:
+      schemathesis: false
+    notes: "真实任务样本：根据接口文档设计接口测试点"
+
+  - id: sample_023
+    category: real_failed_test_bug_report
+    task_text: "请根据失败测试结果整理缺陷报告"
+    expected_intent: bug_report
+    expected_clarification_required: false
+    expected_workflow: agent-assets/prompts/bug-report.md
+    expected_risk_level: low
+    notes: "真实任务样本：根据失败测试结果生成缺陷报告"
+
+  - id: sample_024
+    category: real_codex_review
+    task_text: "请做 Codex 修改结果的代码审查 review，并指出回归风险"
+    expected_intent: code_review
+    expected_clarification_required: false
+    expected_workflow: 待接入：代码评审工作流
+    expected_risk_level: medium
+    expected_recommended_tools: ["filesystem"]
+    expected_tool_statuses:
+      filesystem: disabled
+    expected_tool_allowed:
+      filesystem: false
+    notes: "真实任务样本：审查 Codex 修改结果"
+
+  - id: sample_025
+    category: real_tool_adoption
+    task_text: "请评估是否需要接入 Schemathesis 这个成熟工具"
+    expected_intent: tool_research
+    expected_clarification_required: false
+    expected_workflow: docs/tools/sources.md
+    expected_risk_level: medium
+    expected_recommended_tools: ["github_read"]
+    expected_tool_statuses:
+      github_read: enabled
+    expected_tool_allowed:
+      github_read: false
+    notes: "真实任务样本：评估成熟工具接入"

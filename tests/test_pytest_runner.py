@@ -60,6 +60,38 @@ def test_pytest_runner_uses_sys_executable_and_repo_relative_target(
     assert captured["args"] == [sys.executable, "-m", "pytest", "tests/test_runtime_cli.py"]
 
 
+def test_pytest_runner_allows_only_fixed_allure_results_dir(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    runner = PytestRunner(tmp_path)
+    captured: dict[str, object] = {}
+
+    def fake_run(args, cwd, capture_output, text, shell, check):
+        captured["args"] = args
+        captured["shell"] = shell
+        return SimpleNamespace(returncode=0, stdout="ok", stderr="")
+
+    monkeypatch.setattr("ai_test_assistant.testing.pytest_runner.subprocess.run", fake_run)
+
+    result = runner.run("tests", allure_results_dir="allure-results")
+
+    assert result.command == [sys.executable, "-m", "pytest", "tests", "--alluredir=allure-results"]
+    assert captured["args"] == [sys.executable, "-m", "pytest", "tests", "--alluredir=allure-results"]
+    assert captured["shell"] is False
+
+
+def test_pytest_runner_rejects_custom_allure_results_dir(tmp_path: Path) -> None:
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    runner = PytestRunner(tmp_path)
+
+    with pytest.raises(ValueError, match="allure-results"):
+        runner.run("tests", allure_results_dir="custom-results")
+
+
 @pytest.mark.parametrize(
     "target",
     [

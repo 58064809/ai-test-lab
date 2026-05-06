@@ -2,6 +2,15 @@
 
 This package handles the small, controlled Allure reporting boundary.
 
+## Test report chain
+
+- Runtime supports explicit `--run-test-report [TARGET]`.
+- The chain is fixed: `pytest` -> `allure generate` -> Allure summary read.
+- It only combines existing controlled adapters: `PytestRunner`, `AllureReportGenerator`, and `AllureReportReader`.
+- Pytest may only append the fixed `--alluredir=allure-results` argument.
+- Arbitrary pytest arguments and arbitrary Allure arguments remain blocked.
+- This is the Allure workflow closure point; avoid continuing to split smaller Allure tasks unless the boundary changes.
+
 ## Read-only summary
 
 - Reads only repository-relative report directories.

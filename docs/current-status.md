@@ -1,5 +1,16 @@
 # Current Status
 
+## 037 一键测试报告链路收口
+
+- 已新增 CLI 入口：`--run-test-report [TARGET]`，不传 target 时默认 `tests`。
+- 固定执行链路为 `pytest -> allure generate -> Allure report summary`。
+- 链路复用既有 `PytestRunner`、`AllureReportGenerator`、`AllureReportReader`，不新增通用 shell 执行器。
+- pytest 只允许固定追加 `--alluredir=allure-results`，仍不支持任意 pytest 参数。
+- Allure 生成仍固定为 `allure generate allure-results -o allure-report --clean`，仍不支持任意 Allure 参数或 `allure serve`。
+- `validation/real-task-samples.yaml` 已补充 10 条真实测试工程任务样本，用于覆盖报告链路、日志分析、接口测试设计、缺陷报告和工具评估等场景。
+- `shell`、`filesystem_write`、`github_write` 继续保持 `disabled`。
+- Allure 链路已收口；后续除非边界变化，不再继续拆更小的 Allure 接入任务。
+
 ## 036 Allure CLI 受控生成
 
 - 已新增 `allure_generate`，通过官方 Allure CLI 从已有 `allure-results` 生成 `allure-report`。

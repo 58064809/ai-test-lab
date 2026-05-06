@@ -1,5 +1,13 @@
 # Next Steps
 
+## 037 Allure 链路收口之后
+
+- 一键链路优先使用：`python scripts/run_assistant.py "运行测试并总结报告" --run-test-report`。
+- 如需指定单个测试文件，使用：`python scripts/run_assistant.py "运行测试并总结报告" --run-test-report tests/test_xxx.py`。
+- 该入口固定执行 `pytest -> allure generate -> Allure report summary`，不要扩展任意 pytest 参数、任意 Allure 参数或 `allure serve`。
+- 后续 Allure 相关工作只做缺陷修复和真实样本验证；除非能力边界改变，不再拆新的 Allure 小任务。
+- `shell`、`filesystem_write`、`github_write` 继续保持不开放。
+
 ## 036 Allure CLI 生成之后
 
 - 可先运行：`python scripts/run_assistant.py "生成 Allure 报告" --generate-allure-report`。
