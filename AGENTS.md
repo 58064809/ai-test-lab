@@ -32,7 +32,7 @@
 
 ### 2.1 不造轮子
 
-除非用户明确要求，否则不要自行设计一套新的记忆系统、任务编排系统、知识库系统、自动化平台或 UI 平台。
+除非用户明确要求，否则不要自行设计一套新的复杂记忆系统、RAG 知识库、workflow engine、自动化平台、UI 平台或多 Agent 聊天系统。
 
 优先采用工业级通用工具、成熟生态、开源项目、标准协议和已有工程实践。
 
@@ -46,6 +46,13 @@
 - 做接口测试生成，优先考虑 Schemathesis
 - 做 API 测试与 Mock 生成，优先考虑 Keploy
 - 做自动化测试执行，优先使用 Pytest + Allure
+
+当前仓库已经落地两类最小底座，但不等于自研复杂平台：
+
+- 已落地 SQLite 最小 memory 底座，用于结构化任务记录，不是复杂 RAG 或知识库系统。
+- 已落地 LangGraph 最小 dry-run orchestrator，用于计划生成、风险提示和工具授权评估，不是复杂多 Agent 平台。
+
+后续仍不自研复杂 memory、RAG、workflow engine、UI 平台或多 Agent 聊天系统。
 
 ### 2.2 当前先做通用架构
 
@@ -69,7 +76,7 @@
 - 基础目录、规则、模板、工作流、工具说明可以一次建齐
 - 能直接复用成熟工具的能力，应直接按官方方案接入
 - 暂时缺少密钥、环境、权限或业务样例的能力，应先落文档和验证步骤
-- 不要为了完整感自研 memory、知识库、任务编排、UI 平台或多 Agent 聊天系统
+- 不要为了完整感自研复杂 memory、RAG、workflow engine、UI 平台或多 Agent 聊天系统
 - 后续每个能力都必须能被真实任务验证，而不是只停留在架构图上
 
 目标是尽快形成一个“能被 Codex / OpenHands 读取并执行”的个人 AI 测试助手仓库，而不是慢慢堆概念。
@@ -86,9 +93,42 @@
 4. 优先给出可执行修复步骤
 5. 修复后再继续原任务
 
-## 3. 工作入口与职责边界
+## 3. 当前 runtime 能力与执行边界
 
-### 3.1 入口层
+### 3.1 已落地 runtime 能力
+
+- SQLite memory：最小结构化持久化底座。
+- Intent router：基于配置规则的意图识别。
+- LangGraph dry-run orchestrator：最小任务计划与授权评估流程。
+- Tool registry：工具注册表、状态和权限模型。
+- Runtime CLI：命令行入口。
+- Filesystem MCP read：显式单文件只读。
+- GitHub MCP read：显式仓库单文件只读。
+- `pytest_runner`：受控 pytest 执行。
+- Allure report summary：已有报告只读摘要。
+- Allure generate：受控 Allure HTML 报告生成。
+- `run-test-report`：pytest、Allure generate、Allure summary 一键链路。
+- `validation/real-task-samples.yaml`：真实任务样本已扩展。
+
+### 3.2 工具执行边界
+
+当前 runtime 只开放受控工具：
+
+- `shell` 禁用。
+- `filesystem_write` 禁用。
+- `github_write` 禁用。
+- 文件系统只支持显式单文件读取。
+- 不开放目录读取、glob、多文件自动扫描。
+- GitHub 当前只支持显式 `owner/repo + 单文件路径` 读取。
+- pytest 只允许通过 `pytest_runner` adapter 执行仓库相对 target。
+- Allure generate 只允许受控执行固定生成链路。
+- Allure report summary 只读取已有报告目录下的摘要 JSON。
+
+任何新增执行能力都必须先进入 tool registry，明确状态、风险等级、授权条件和验证方式。
+
+## 4. 工作入口与职责边界
+
+### 4.1 入口层
 
 允许通过以下入口使用本项目：
 
@@ -100,7 +140,7 @@
 - 命令行
 - 其他支持仓库级上下文规则的 Agent 工具
 
-### 3.2 Agent 任务理解层
+### 4.2 Agent 任务理解层
 
 Agent 接到自然语言任务后，应先判断任务类型：
 
@@ -118,22 +158,22 @@ Agent 接到自然语言任务后，应先判断任务类型：
 
 不同任务类型应使用对应的工作方式，不要所有任务都直接写代码。
 
-### 3.3 工具调用层
+### 4.3 工具调用层
 
-优先复用成熟工具：
+优先复用成熟工具，并遵守当前执行边界：
 
-- 文件系统：本地文件读写 / 文件系统 MCP
-- GitHub：GitHub MCP / Git CLI
-- 浏览器：Playwright / Playwright MCP
-- 数据库：数据库 MCP / Python DB Client
-- 命令执行：命令行 / Shell / PowerShell
-- 自动化测试：Pytest / Playwright / Allure
-- 接口测试生成：Schemathesis
-- API 测试与 Mock：Keploy
+- 文件系统：当前仅开放 filesystem MCP 显式单文件只读。
+- GitHub：当前仅开放 GitHub MCP 显式单文件只读。
+- 浏览器：Playwright / Playwright MCP 可规划接入，当前不开放真实浏览器写操作。
+- 数据库：数据库只读 MCP 可规划接入。
+- Redis：Redis 只读 MCP 可规划接入。
+- 自动化测试：Pytest / Allure 已通过受控 adapter 接入。
+- 接口测试生成：Schemathesis 可评估接入。
+- API 测试与 Mock：Keploy 可规划接入。
 
-## 4. 当前推荐落地结构
+## 5. 当前推荐落地结构
 
-建议仓库先保持轻量结构：
+建议仓库保持轻量结构：
 
 ```text
 .
@@ -144,8 +184,10 @@ Agent 接到自然语言任务后，应先判断任务类型：
 │   ├── workflows/
 │   ├── templates/
 │   └── examples/
+├── configs/
 ├── docs/
 │   └── tools/
+├── scripts/
 ├── src/
 │   └── ai_test_assistant/
 │       ├── memory/
@@ -153,41 +195,48 @@ Agent 接到自然语言任务后，应先判断任务类型：
 │       ├── orchestrator/
 │       ├── tool_registry/
 │       ├── runtime/
+│       ├── filesystem/
+│       ├── github/
+│       ├── reporting/
+│       ├── testing/
 │       └── schemas/
-└── tests/
+├── tests/
+└── validation/
 ```
 
 说明：
 
-- `AGENTS.md`：AI Agent 的主入口规则
-- `README.md`：给人看的项目说明
-- `agent-assets/prompts/`：沉淀高频提示词
-- `agent-assets/workflows/`：沉淀可复用任务流程
-- `agent-assets/templates/`：沉淀输出模板
-- `agent-assets/examples/`：沉淀优秀样例
-- `docs/tools/`：记录成熟工具的使用方式
-- `src/ai_test_assistant/`：沉淀 Python 工程代码
+- `AGENTS.md`：AI Agent 的主入口规则。
+- `README.md`：给人看的项目说明。
+- `agent-assets/`：沉淀高频提示词、流程、模板和样例。
+- `configs/`：runtime 配置、intent 规则、tool registry 配置。
+- `docs/`：工具说明、CLI 示例、后续任务说明。
+- `scripts/`：命令行入口脚本。
+- `src/ai_test_assistant/`：Python runtime 工程代码。
+- `tests/`：自动化测试。
+- `validation/`：真实任务样本与验证资产。
 
-## 5. 当前不自研的事情
+## 6. 当前不自研的事情
 
 当前阶段不要自研以下系统，除非用户明确要求：
 
-- 不自研 memory 系统，优先使用 `AGENTS.md`、工具原生上下文机制，以及后续成熟记忆方案
-- 不自研知识库，后续如需要再选择 LangChain / LlamaIndex 等成熟生态
-- 不自研任务编排系统，后续如需要再选择 LangGraph / CrewAI / LangChain
-- 不做团队管理平台
-- 不做复杂 UI 页面
-- 不做 domains/ecommerce 这种强业务目录
-- 不把当前公司的电商业务规则写入通用架构
-- 不创建 `.cursor/rules`，除非用户重新启用 Cursor
-- 不创建 `CLAUDE.md`，除非用户开始使用 Claude Code
-- 不把 `README.md` 当作 AI 核心记忆入口
+- 不自研复杂 memory 系统；已落地的 SQLite memory 仅作为最小结构化持久化底座。
+- 不自研 RAG 或知识库；后续如需要再选择 LangChain / LlamaIndex 等成熟生态。
+- 不自研复杂 workflow engine；已落地的 LangGraph orchestrator 仅作为最小 dry-run 骨架。
+- 不做复杂多 Agent 平台。
+- 不做团队管理平台。
+- 不做复杂 UI 页面。
+- 不做 domains/ecommerce 这种强业务目录。
+- 不把当前公司的电商业务规则写入通用架构。
+- 不创建 `.cursor/rules`，除非用户重新启用 Cursor。
+- 不创建 `CLAUDE.md`，除非用户开始使用 Claude Code。
+- 不把 `README.md` 当作 AI 核心记忆入口。
 
 注意：不自研不代表不落地。成熟工具、官方规范、通用目录、模板、工作流、工具接入说明，可以直接一次性落到仓库中。
 
-## 6. 输出规范
+## 7. 输出规范
 
-### 6.1 默认语言
+### 7.1 默认语言
 
 默认使用中文输出。只有在以下情况才使用英文：
 
@@ -196,13 +245,13 @@ Agent 接到自然语言任务后，应先判断任务类型：
 - 用户明确要求英文
 - 技术语境中英文表达更准确
 
-### 6.2 Markdown 规范
+### 7.2 Markdown 规范
 
 默认输出 Markdown。
 
 Markdown 应结构清晰、标题层级明确、可直接复制到飞书、GitHub、文档或 IDE 中使用。
 
-### 6.3 测试用例默认格式
+### 7.3 测试用例默认格式
 
 如用户要求生成测试用例，默认使用以下表格格式：
 
@@ -216,7 +265,7 @@ Markdown 应结构清晰、标题层级明确、可直接复制到飞书、GitHu
 - 不强制一个步骤对应一个预期，允许多对多
 - 表格应完整、整齐、可直接复制到飞书或 Excel
 
-### 6.4 代码输出规范
+### 7.4 代码输出规范
 
 修改代码前应先理解现有结构，不要盲目重构。
 
@@ -235,9 +284,9 @@ Markdown 应结构清晰、标题层级明确、可直接复制到飞书、GitHu
 3. 影响范围
 4. 如何验证
 
-## 7. 测试工程规范
+## 8. 测试工程规范
 
-### 7.1 自动化测试优先级
+### 8.1 自动化测试优先级
 
 优先考虑以下测试能力：
 
@@ -250,7 +299,7 @@ Markdown 应结构清晰、标题层级明确、可直接复制到飞书、GitHu
 
 不要为了“平台化”而牺牲可执行性。
 
-### 7.2 Pytest 规范
+### 8.2 Pytest 规范
 
 如果涉及 Pytest：
 
@@ -261,7 +310,7 @@ Markdown 应结构清晰、标题层级明确、可直接复制到飞书、GitHu
 - 日志要能支持失败定位
 - 报告优先对接 Allure
 
-### 7.3 接口测试规范
+### 8.3 接口测试规范
 
 如果涉及接口测试：
 
@@ -270,7 +319,7 @@ Markdown 应结构清晰、标题层级明确、可直接复制到飞书、GitHu
 - 如存在 OpenAPI 文档，优先考虑 Schemathesis
 - 如可基于真实流量生成测试或 Mock，优先考虑 Keploy
 
-### 7.4 UI 自动化规范
+### 8.4 UI 自动化规范
 
 如果涉及 UI 自动化：
 
@@ -279,7 +328,7 @@ Markdown 应结构清晰、标题层级明确、可直接复制到飞书、GitHu
 - 选择器应稳定，避免依赖脆弱 XPath
 - 如需要 AI 操作浏览器，优先考虑 Playwright MCP
 
-### 7.5 日志分析规范
+### 8.5 日志分析规范
 
 如果涉及日志分析：
 
@@ -287,9 +336,9 @@ Markdown 应结构清晰、标题层级明确、可直接复制到飞书、GitHu
 - 区分业务异常、参数异常、数据异常、依赖异常、环境异常、代码异常
 - 输出应包含：问题现象、关键日志、初步原因、验证方式、建议修复方向
 
-## 8. Agent 执行要求
+## 9. Agent 执行要求
 
-### 8.1 做任务前
+### 9.1 做任务前
 
 Agent 执行任务前应先判断：
 
@@ -297,12 +346,12 @@ Agent 执行任务前应先判断：
 - 当前是否需要读文件
 - 当前是否需要查官方资料
 - 当前是否需要运行命令
-- 当前是否会修改代码
+- 当前是否需要修改代码或文档
 - 当前是否存在风险
 
 不要为了显得完整而过度设计。
 
-### 8.2 做任务中
+### 9.2 做任务中
 
 执行过程中应遵守：
 
@@ -312,8 +361,9 @@ Agent 执行任务前应先判断：
 - 不引入不必要依赖
 - 不擅自改变技术路线
 - 遇到阻碍先解决阻碍
+- 不开放当前 tool registry 禁用的能力
 
-### 8.3 做任务后
+### 9.3 做任务后
 
 任务完成后应输出：
 
@@ -323,7 +373,7 @@ Agent 执行任务前应先判断：
 4. 是否还有遗留问题
 5. 下一步建议
 
-## 9. 工具选型优先级
+## 10. 工具选型优先级
 
 当前认可的工具 / 生态优先级如下：
 
@@ -332,16 +382,17 @@ Agent 执行任务前应先判断：
 | Agent 项目级规则 | AGENTS.md | 已落地 |
 | Codex 项目执行 | OpenAI Codex | 优先推荐 |
 | 执行型工程 Agent | OpenHands | 可规划接入 |
-| 任务编排 | LangGraph / LangGraph Supervisor / CrewAI / LangChain | 可规划接入 |
-| 工具调用 | MCP 生态 | 可规划接入 |
-| UI / 浏览器操作 | Playwright / Playwright MCP | 可规划接入 |
-| 接口测试生成 | Schemathesis | 可规划接入 |
-| API 测试与 Mock | Keploy | 可规划接入 |
-| 自动化测试执行 | Pytest + Allure | 持续使用 |
+| 最小任务编排 | LangGraph | 已落地 dry-run |
+| 复杂任务编排 | LangGraph Supervisor / CrewAI / LangChain | 后续按需评估 |
+| 工具调用 | MCP 生态 | 已接入 filesystem_read / github_read 的只读入口 |
+| UI / 浏览器操作 | Playwright / Playwright MCP | P1 只读页面分析 |
+| 接口测试生成 | Schemathesis | P1 评估 |
+| API 测试与 Mock | Keploy | 后续按需 |
+| 自动化测试执行 | Pytest + Allure | 已接入受控链路 |
 | GitHub Copilot 规则 | `.github/copilot-instructions.md` | 后置，按需 |
 | Skills 能力扩展 | Codex Agent Skills / Open Agent Skills | 后置，按需 |
 
-## 10. 重要提醒
+## 11. 重要提醒
 
 本项目的价值不在于目录多、概念多、平台复杂，而在于：
 
