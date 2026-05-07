@@ -79,6 +79,32 @@
 | 16～21 | 需优化 | 需要调整任务描述或输出约束 |
 | 0～15 | 不可用 | 暂不沉淀，先分析失败原因 |
 
+## 推荐跑测顺序
+
+| 顺序 | 文件 | 目的 |
+| --- | --- | --- |
+| 1 | `004_pytest_allure_summary.md` | 先验证最简单、边界最明确的报告总结能力 |
+| 2 | `007_failed_test_to_bug_report.md` | 验证结构化缺陷报告能力 |
+| 3 | `003_log_analysis.md` | 验证日志定位、字段提取和风险判断能力 |
+| 4 | `001_requirement_analysis.md` | 验证需求规则拆解、范围识别和优先级判断能力 |
+| 5 | `002_test_case_generation.md` | 验证固定表格格式下的大批量测试用例生成能力 |
+| 6 | `006_api_test_design.md` | 验证接口测试设计、数据库校验和一致性思维 |
+| 7 | `005_codex_change_review.md` | 验证工程修改审查、风险识别和合并判断能力 |
+| 8 | `008_tool_integration_evaluation.md` | 验证成熟工具选型、接入边界和后续任务拆解能力 |
+
+## 任务重点观察项
+
+| 任务 | 重点观察项 |
+| --- | --- |
+| `001_requirement_analysis.md` | 是否拆出核心规则、异常场景、测试范围、风险点和优先级建议 |
+| `002_test_case_generation.md` | 是否严格使用固定五列表格，覆盖正常、异常、边界、安全、兼容性场景 |
+| `003_log_analysis.md` | 是否定位失败环节，提取关键字段，判断回滚完整性和数据一致性风险 |
+| `004_pytest_allure_summary.md` | 是否客观计算通过率和耗时，是否说明 summary 信息局限，不夸大结论 |
+| `005_codex_change_review.md` | 是否关注 shell、filesystem_write、github_write、路径写死、异常处理和最小验证链路 |
+| `006_api_test_design.md` | 是否覆盖参数校验、并发、数据库校验、幂等性、一致性和成熟工具建议 |
+| `007_failed_test_to_bug_report.md` | 是否输出缺陷标题、严重级别、优先级、复现步骤、初步定位和补充排查信息 |
+| `008_tool_integration_evaluation.md` | 是否说明 Schemathesis 的适配位置、最小接入方式、与 Pytest + Allure 的关系和不适用范围 |
+
 ## 后续动作判断
 
 | 现象 | 建议动作 |
@@ -88,6 +114,19 @@
 | 涉及多步骤执行、读取文件、运行测试、总结报告 | 沉淀为 Workflow |
 | 明显依赖外部能力，例如接口扫描、浏览器操作、Mock、报告生成 | 评估接入成熟工具 |
 | 输出经常偏题或泛泛而谈 | 优先优化任务描述，不急着接工具 |
+
+## 项目边界
+
+必须遵守：
+
+1. 不写业务代码；
+2. 不新增 runtime 能力；
+3. 不接入新工具；
+4. 不继续拆 Allure；
+5. 不做平台化能力；
+6. 不写死当前公司业务；
+7. 不开放 `shell` / `filesystem_write` / `github_write`；
+8. 只整理真实任务跑测流程和评分记录。
 
 ## 跑测记录模板
 
