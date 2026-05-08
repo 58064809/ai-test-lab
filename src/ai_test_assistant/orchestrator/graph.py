@@ -38,7 +38,7 @@ class TaskOrchestrator:
         self.graph = self._build_graph()
 
     @classmethod
-    def from_config(cls, assistant_config_path: str | Path = "configs/assistant.yaml") -> "TaskOrchestrator":
+    def from_config(cls, assistant_config_path: str | Path = "configs/runtime/assistant.yaml") -> "TaskOrchestrator":
         memory_service = MemoryService.from_config(assistant_config_path)
         intent_router = IntentRouter.from_assistant_config(assistant_config_path)
         tool_registry = cls._load_tool_registry(assistant_config_path)

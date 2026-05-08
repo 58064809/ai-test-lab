@@ -11,8 +11,8 @@ from ai_test_assistant.tool_registry.registry import ToolRegistry
 
 def _write_assistant_config(tmp_path: Path) -> Path:
     memory_db_path = (tmp_path / "memory.sqlite3").resolve()
-    intents_path = Path("configs/intents.yaml").resolve()
-    tools_path = Path("configs/tools.yaml").resolve()
+    intents_path = Path("configs/routing/intents.yaml").resolve()
+    tools_path = Path("configs/registry/tools.yaml").resolve()
     assistant_config = tmp_path / "assistant.yaml"
     assistant_config.write_text(
         "\n".join(
@@ -310,7 +310,7 @@ def test_cli_plain_dry_run_does_not_generate_allure_report(tmp_path: Path, capsy
 
 
 def test_allure_generate_tool_boundaries() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     allure_generate_tool = registry.get_tool("allure_generate")
     allure_report_tool = registry.get_tool("allure_report")

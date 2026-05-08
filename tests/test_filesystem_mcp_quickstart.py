@@ -7,17 +7,17 @@ import yaml
 
 
 def _load_tools() -> dict[str, dict[str, object]]:
-    config = yaml.safe_load(Path("configs/tools.yaml").read_text(encoding="utf-8")) or {}
+    config = yaml.safe_load(Path("configs/registry/tools.yaml").read_text(encoding="utf-8")) or {}
     return {str(item["name"]): item for item in config.get("tools", [])}
 
 
 def test_filesystem_mcp_quickstart_docs_and_example_exist() -> None:
-    assert Path("docs/filesystem-mcp-quickstart.md").exists()
+    assert Path("docs/integrations/filesystem-mcp-quickstart.md").exists()
     assert Path("configs/mcp/filesystem-server.example.json").exists()
 
 
 def test_filesystem_mcp_quickstart_doc_contains_required_markers() -> None:
-    content = Path("docs/filesystem-mcp-quickstart.md").read_text(encoding="utf-8")
+    content = Path("docs/integrations/filesystem-mcp-quickstart.md").read_text(encoding="utf-8")
 
     for marker in (
         "@modelcontextprotocol/server-filesystem",
@@ -71,7 +71,7 @@ def test_filesystem_mcp_tool_boundaries_remain_locked() -> None:
 
 
 def test_filesystem_mcp_quickstart_doc_does_not_contain_local_absolute_paths() -> None:
-    content = Path("docs/filesystem-mcp-quickstart.md").read_text(encoding="utf-8")
+    content = Path("docs/integrations/filesystem-mcp-quickstart.md").read_text(encoding="utf-8")
 
     assert "D:/" not in content
     assert "D:\\" not in content

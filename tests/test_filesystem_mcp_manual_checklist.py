@@ -4,11 +4,11 @@ import yaml
 
 
 def test_manual_checklist_doc_exists() -> None:
-    assert Path("docs/filesystem-mcp-manual-checklist.md").exists()
+    assert Path("docs/integrations/filesystem-mcp-manual-checklist.md").exists()
 
 
 def test_manual_checklist_contains_required_sections() -> None:
-    content = Path("docs/filesystem-mcp-manual-checklist.md").read_text(encoding="utf-8")
+    content = Path("docs/integrations/filesystem-mcp-manual-checklist.md").read_text(encoding="utf-8")
 
     for marker in (
         "## 确认目标",
@@ -33,7 +33,7 @@ def test_manual_checklist_contains_required_sections() -> None:
 
 
 def test_manual_checklist_lists_explicit_candidate_types() -> None:
-    content = Path("docs/filesystem-mcp-manual-checklist.md").read_text(encoding="utf-8")
+    content = Path("docs/integrations/filesystem-mcp-manual-checklist.md").read_text(encoding="utf-8")
 
     for marker in (
         "官方或主流生态中的 filesystem MCP server",
@@ -48,7 +48,7 @@ def test_manual_checklist_lists_explicit_candidate_types() -> None:
 
 
 def test_manual_checklist_contains_required_checkboxes() -> None:
-    content = Path("docs/filesystem-mcp-manual-checklist.md").read_text(encoding="utf-8")
+    content = Path("docs/integrations/filesystem-mcp-manual-checklist.md").read_text(encoding="utf-8")
 
     for marker in (
         "- [ ] 该工具是否为官方或主流社区维护？",
@@ -63,14 +63,14 @@ def test_manual_checklist_contains_required_checkboxes() -> None:
 
 
 def test_manual_checklist_avoids_unverified_completion_claims() -> None:
-    content = Path("docs/filesystem-mcp-manual-checklist.md").read_text(encoding="utf-8")
+    content = Path("docs/integrations/filesystem-mcp-manual-checklist.md").read_text(encoding="utf-8")
 
     assert "已确认官方 filesystem MCP 可用" not in content
     assert "已接入 MCP" not in content
 
 
 def test_mcp_tool_boundaries_remain_locked() -> None:
-    config = yaml.safe_load(Path("configs/tools.yaml").read_text(encoding="utf-8"))
+    config = yaml.safe_load(Path("configs/registry/tools.yaml").read_text(encoding="utf-8"))
     tools = {item["name"]: item for item in config["tools"]}
 
     assert tools["filesystem_mcp_read"]["status"] == "enabled"

@@ -9,8 +9,8 @@ from ai_test_assistant.validation import RealTaskSampleLoader, RealTaskValidatio
 
 def _write_assistant_config(tmp_path: Path) -> Path:
     memory_db_path = (tmp_path / "memory.sqlite3").resolve()
-    intents_path = Path("configs/intents.yaml").resolve()
-    tools_path = Path("configs/tools.yaml").resolve()
+    intents_path = Path("configs/routing/intents.yaml").resolve()
+    tools_path = Path("configs/registry/tools.yaml").resolve()
     assistant_config = tmp_path / "assistant.yaml"
     assistant_config.write_text(
         "\n".join(

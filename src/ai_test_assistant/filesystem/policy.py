@@ -20,8 +20,13 @@ class FilesystemReadPolicy:
     """
 
     ALLOWED_ROOTS = (
+        "agents/",
         "docs/",
-        "agent-assets/",
+        "examples/",
+        "references/",
+        "skills/",
+        "standards/",
+        "templates/",
         "src/ai_test_assistant/",
         "tests/",
         "validation/",

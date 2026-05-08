@@ -22,7 +22,7 @@ def test_pyproject_is_the_only_primary_dependency_source() -> None:
 
 
 def test_local_environment_doc_recommends_project_venv_and_editable_install() -> None:
-    content = Path("docs/local-environment-prerequisites.md").read_text(encoding="utf-8")
+    content = Path("docs/runtime/local-environment-prerequisites.md").read_text(encoding="utf-8")
 
     for marker in (
         "pyproject.toml",

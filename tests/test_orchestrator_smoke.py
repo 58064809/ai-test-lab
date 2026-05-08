@@ -7,8 +7,8 @@ from ai_test_assistant.orchestrator.graph import TaskOrchestrator
 
 def _write_assistant_config(tmp_path: Path) -> Path:
     memory_db_path = (tmp_path / "memory.sqlite3").resolve()
-    intents_path = Path("configs/intents.yaml").resolve()
-    tools_path = Path("configs/tools.yaml").resolve()
+    intents_path = Path("configs/routing/intents.yaml").resolve()
+    tools_path = Path("configs/registry/tools.yaml").resolve()
     assistant_config = tmp_path / "assistant.yaml"
     assistant_config.write_text(
         "\n".join(
@@ -47,7 +47,7 @@ def test_orchestrator_dry_run_generates_plan_without_writing_memory_by_default(t
     result = orchestrator.run("根据这个需求生成测试用例", dry_run=True, write_memory=False)
 
     assert result["intent_result"].intent == "test_case_generation"
-    assert result["selected_workflow"] == "agent-assets/prompts/test-case-generation.md"
+    assert result["selected_workflow"] == "skills/test-case-generation/SKILL.md"
     assert result["risk_level"] == "low"
     assert result["requires_confirmation"] is False
     assert any("dry-run" in step for step in result["execution_plan"])

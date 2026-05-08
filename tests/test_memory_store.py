@@ -33,13 +33,13 @@ def test_search_memory_in_namespace(tmp_path: Path) -> None:
         namespace="workflow_memory/api",
         key="schema-first",
         value={"note": "先读 OpenAPI 再设计场景"},
-        source="agent-assets/workflows/api-test-workflow.md",
+        source="skills/api-testing/SKILL.md",
     )
     store.put_memory(
         namespace="workflow_memory/api",
         key="risk-boundary",
         value={"note": "高风险写接口不要直接 fuzz"},
-        source="agent-assets/workflows/api-test-workflow.md",
+        source="skills/api-testing/SKILL.md",
     )
 
     results = store.search_memory("workflow_memory/api", query="OpenAPI")
@@ -48,7 +48,7 @@ def test_search_memory_in_namespace(tmp_path: Path) -> None:
 
     filtered = store.search_memory(
         "workflow_memory/api",
-        filters={"memory_type": "workflow_memory", "source": "agent-assets/workflows/api-test-workflow.md"},
+        filters={"memory_type": "workflow_memory", "source": "skills/api-testing/SKILL.md"},
     )
     assert len(filtered) == 2
 
@@ -59,7 +59,7 @@ def test_search_memory_with_unknown_filter_raises_value_error(tmp_path: Path) ->
         namespace="workflow_memory/api",
         key="schema-first",
         value={"note": "先读 OpenAPI 再设计场景"},
-        source="agent-assets/workflows/api-test-workflow.md",
+        source="skills/api-testing/SKILL.md",
     )
 
     with pytest.raises(ValueError, match="Unsupported memory filters"):

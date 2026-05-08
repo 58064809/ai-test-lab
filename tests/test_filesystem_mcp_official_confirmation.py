@@ -4,11 +4,11 @@ import yaml
 
 
 def test_official_mainstream_confirmation_doc_exists() -> None:
-    assert Path("docs/filesystem-mcp-official-mainstream-confirmation.md").exists()
+    assert Path("docs/integrations/filesystem-mcp-official-mainstream-confirmation.md").exists()
 
 
 def test_official_mainstream_confirmation_doc_has_required_sections() -> None:
-    content = Path("docs/filesystem-mcp-official-mainstream-confirmation.md").read_text(
+    content = Path("docs/integrations/filesystem-mcp-official-mainstream-confirmation.md").read_text(
         encoding="utf-8"
     )
 
@@ -30,7 +30,7 @@ def test_official_mainstream_confirmation_doc_has_required_sections() -> None:
 
 
 def test_official_mainstream_confirmation_doc_does_not_claim_integration() -> None:
-    content = Path("docs/filesystem-mcp-official-mainstream-confirmation.md").read_text(
+    content = Path("docs/integrations/filesystem-mcp-official-mainstream-confirmation.md").read_text(
         encoding="utf-8"
     )
 
@@ -39,7 +39,7 @@ def test_official_mainstream_confirmation_doc_does_not_claim_integration() -> No
 
 
 def test_filesystem_mcp_tools_remain_locked() -> None:
-    config = yaml.safe_load(Path("configs/tools.yaml").read_text(encoding="utf-8"))
+    config = yaml.safe_load(Path("configs/registry/tools.yaml").read_text(encoding="utf-8"))
     tools = {item["name"]: item for item in config["tools"]}
 
     assert tools["filesystem_mcp_read"]["status"] == "enabled"

@@ -28,11 +28,11 @@ class IntentRouter:
         return cls(IntentRulesLoader.load(rules_path))
 
     @classmethod
-    def from_assistant_config(cls, assistant_config_path: str | Path = "configs/assistant.yaml") -> "IntentRouter":
+    def from_assistant_config(cls, assistant_config_path: str | Path = "configs/runtime/assistant.yaml") -> "IntentRouter":
         config_file = Path(assistant_config_path)
         assistant_config = yaml.safe_load(config_file.read_text(encoding="utf-8")) or {}
         intent_config = assistant_config.get("intent", {})
-        rules_path = intent_config.get("rules_path", "configs/intents.yaml")
+        rules_path = intent_config.get("rules_path", "configs/routing/intents.yaml")
         return cls.from_rules_file(rules_path)
 
     def route(self, task_text: str) -> IntentRouteResult:

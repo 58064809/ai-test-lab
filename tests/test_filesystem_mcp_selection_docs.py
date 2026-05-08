@@ -6,13 +6,13 @@ import yaml
 
 
 def _load_tools() -> list[dict[str, object]]:
-    config = yaml.safe_load(Path("configs/tools.yaml").read_text(encoding="utf-8")) or {}
+    config = yaml.safe_load(Path("configs/registry/tools.yaml").read_text(encoding="utf-8")) or {}
     return list(config.get("tools", []))
 
 
 def test_filesystem_mcp_docs_exist_and_cover_required_sections() -> None:
-    selection_path = Path("docs/filesystem-mcp-selection.md")
-    plan_path = Path("docs/filesystem-mcp-minimal-integration-plan.md")
+    selection_path = Path("docs/integrations/filesystem-mcp-selection.md")
+    plan_path = Path("docs/integrations/filesystem-mcp-minimal-integration-plan.md")
 
     assert selection_path.exists()
     assert plan_path.exists()
@@ -53,8 +53,8 @@ def test_filesystem_mcp_docs_exist_and_cover_required_sections() -> None:
 
 
 def test_filesystem_mcp_docs_mark_local_adapter_as_fallback_and_not_integrated() -> None:
-    selection = Path("docs/filesystem-mcp-selection.md").read_text(encoding="utf-8")
-    plan = Path("docs/filesystem-mcp-minimal-integration-plan.md").read_text(encoding="utf-8")
+    selection = Path("docs/integrations/filesystem-mcp-selection.md").read_text(encoding="utf-8")
+    plan = Path("docs/integrations/filesystem-mcp-minimal-integration-plan.md").read_text(encoding="utf-8")
 
     assert "bootstrap / fallback" in selection
     assert "待人工确认" in selection

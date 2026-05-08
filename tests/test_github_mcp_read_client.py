@@ -334,7 +334,7 @@ def test_github_mcp_client_keeps_download_success_message_without_fabricating_bo
 
 
 def test_github_mcp_client_boundaries_keep_write_shell_and_filesystem_write_disabled() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     assert registry.get_tool("github_write").status is ToolStatus.DISABLED
     assert registry.get_tool("shell").status is ToolStatus.DISABLED

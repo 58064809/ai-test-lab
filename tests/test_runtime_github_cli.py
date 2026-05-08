@@ -9,8 +9,8 @@ from ai_test_assistant.runtime.cli import build_parser, run_cli
 
 def _write_assistant_config(tmp_path: Path, tools_path: Path | None = None) -> Path:
     memory_db_path = (tmp_path / "memory.sqlite3").resolve()
-    intents_path = Path("configs/intents.yaml").resolve()
-    tools_path = tools_path or Path("configs/tools.yaml").resolve()
+    intents_path = Path("configs/routing/intents.yaml").resolve()
+    tools_path = tools_path or Path("configs/registry/tools.yaml").resolve()
     assistant_config = tmp_path / "assistant.yaml"
     assistant_config.write_text(
         "\n".join(
@@ -41,7 +41,7 @@ def test_cli_parser_supports_github_read_arguments() -> None:
             "--github-ref",
             "master",
             "--config",
-            "configs/assistant.yaml",
+            "configs/runtime/assistant.yaml",
         ]
     )
 

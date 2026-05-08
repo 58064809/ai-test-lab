@@ -12,8 +12,8 @@ from ai_test_assistant.tool_registry.registry import ToolRegistry
 
 def _write_assistant_config(tmp_path: Path, tools_path: Path | None = None) -> Path:
     memory_db_path = (tmp_path / "memory.sqlite3").resolve()
-    intents_path = Path("configs/intents.yaml").resolve()
-    tools_path = tools_path or Path("configs/tools.yaml").resolve()
+    intents_path = Path("configs/routing/intents.yaml").resolve()
+    tools_path = tools_path or Path("configs/registry/tools.yaml").resolve()
     assistant_config = tmp_path / "assistant.yaml"
     assistant_config.write_text(
         "\n".join(
@@ -245,7 +245,7 @@ def test_cli_write_memory_keeps_only_allure_summary_metadata(tmp_path: Path, cap
 
 
 def test_allure_report_tool_is_enabled_read_only_and_write_boundaries_stay_disabled() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     allure_report_tool = registry.get_tool("allure_report")
     allure_generate_tool = registry.get_tool("allure_generate")

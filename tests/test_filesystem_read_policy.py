@@ -11,24 +11,24 @@ def test_filesystem_policy_allows_readme() -> None:
 
 
 def test_filesystem_policy_allows_docs_file() -> None:
-    decision = FilesystemReadPolicy().evaluate("docs/mcp-selection.md")
+    decision = FilesystemReadPolicy().evaluate("docs/integrations/mcp-selection.md")
 
     assert decision.allowed is True
-    assert decision.normalized_path == "docs/mcp-selection.md"
+    assert decision.normalized_path == "docs/integrations/mcp-selection.md"
 
 
 def test_filesystem_policy_allows_agent_asset_file() -> None:
-    decision = FilesystemReadPolicy().evaluate("agent-assets/prompts/test-case-generation.md")
+    decision = FilesystemReadPolicy().evaluate("skills/test-case-generation/SKILL.md")
 
     assert decision.allowed is True
-    assert decision.normalized_path == "agent-assets/prompts/test-case-generation.md"
+    assert decision.normalized_path == "skills/test-case-generation/SKILL.md"
 
 
 def test_filesystem_policy_allows_src_readme() -> None:
-    decision = FilesystemReadPolicy().evaluate("src/ai_test_assistant/orchestrator/README.md")
+    decision = FilesystemReadPolicy().evaluate("src/ai_test_assistant/orchestrator/MODULE.md")
 
     assert decision.allowed is True
-    assert decision.normalized_path == "src/ai_test_assistant/orchestrator/README.md"
+    assert decision.normalized_path == "src/ai_test_assistant/orchestrator/MODULE.md"
 
 
 def test_filesystem_policy_blocks_dotenv() -> None:

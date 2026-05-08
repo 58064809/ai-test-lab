@@ -78,7 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Allure 生成输出目录，默认 allure-report；仅配合 --generate-allure-report 使用",
     )
     parser.add_argument("--show-file-content", action="store_true", help="显式展示允许读取文件的完整内容")
-    parser.add_argument("--config", default="configs/assistant.yaml", help="指定配置文件路径")
+    parser.add_argument("--config", default="configs/runtime/assistant.yaml", help="指定配置文件路径")
     return parser
 
 

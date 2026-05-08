@@ -6,13 +6,13 @@ import yaml
 
 
 def _load_tools() -> list[dict[str, object]]:
-    config = yaml.safe_load(Path("configs/tools.yaml").read_text(encoding="utf-8")) or {}
+    config = yaml.safe_load(Path("configs/registry/tools.yaml").read_text(encoding="utf-8")) or {}
     return list(config.get("tools", []))
 
 
 def test_mcp_selection_docs_exist_and_cover_required_sections() -> None:
-    selection = Path("docs/mcp-selection.md")
-    policy = Path("docs/mcp-security-policy.md")
+    selection = Path("docs/integrations/mcp-selection.md")
+    policy = Path("docs/integrations/mcp-security-policy.md")
 
     assert selection.exists()
     assert policy.exists()
@@ -71,7 +71,7 @@ def test_database_and_redis_tools_stay_readonly_and_non_write_capable() -> None:
 
 
 def test_security_policy_mentions_key_non_default_enable_rules() -> None:
-    text = Path("docs/mcp-security-policy.md").read_text(encoding="utf-8")
+    text = Path("docs/integrations/mcp-security-policy.md").read_text(encoding="utf-8")
 
     assert "shell 永远不能默认 `enabled`" in text
     assert "filesystem write 不能默认 `enabled`" in text

@@ -10,7 +10,7 @@ from ai_test_assistant.tool_registry.registry import ToolRegistry
 
 
 def test_registry_loads_first_batch_tools() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     names = {tool.name for tool in registry.list_tools()}
     assert names == {
@@ -38,7 +38,7 @@ def test_registry_loads_first_batch_tools() -> None:
 
 
 def test_registry_exposes_status_and_risk_level() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     memory_read_tool = registry.get_tool("memory_read")
     assert memory_read_tool.status is ToolStatus.ENABLED
@@ -82,7 +82,7 @@ def test_registry_exposes_status_and_risk_level() -> None:
 
 
 def test_github_read_enabled_and_high_risk_write_shell_boundaries_disabled() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     github_read_tool = registry.get_tool("github_read")
     github_write_tool = registry.get_tool("github_write")
@@ -97,7 +97,7 @@ def test_github_read_enabled_and_high_risk_write_shell_boundaries_disabled() -> 
 
 
 def test_enabled_read_only_tool_is_allowed_by_default() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     decision = registry.evaluate_execution("filesystem_read")
     mcp_decision = registry.evaluate_execution("filesystem_mcp_read")
@@ -112,7 +112,7 @@ def test_enabled_read_only_tool_is_allowed_by_default() -> None:
 
 @pytest.mark.parametrize("tool_name", ["pytest_runner", "playwright_mcp", "keploy", "shell", "database_readonly"])
 def test_non_enabled_tools_are_not_executable(tool_name: str) -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     decision = registry.evaluate_execution(tool_name)
 
@@ -126,7 +126,7 @@ def test_non_enabled_tools_are_not_executable(tool_name: str) -> None:
 
 
 def test_memory_write_is_denied_by_default_even_before_real_execution_exists() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     decision = registry.evaluate_execution("memory_write")
 
@@ -135,7 +135,7 @@ def test_memory_write_is_denied_by_default_even_before_real_execution_exists() -
 
 
 def test_write_project_files_requires_explicit_approval() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
 
     tool = registry.get_tool("filesystem")
     enabled_tool = replace(tool, status=ToolStatus.ENABLED)
@@ -153,7 +153,7 @@ def test_write_project_files_requires_explicit_approval() -> None:
 
 
 def test_execute_local_command_is_denied_in_dry_run_even_if_enabled() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
     tool = registry.get_tool("shell")
     enabled_tool = replace(tool, status=ToolStatus.ENABLED)
     registry = ToolRegistry({"shell": enabled_tool})
@@ -164,7 +164,7 @@ def test_execute_local_command_is_denied_in_dry_run_even_if_enabled() -> None:
 
 
 def test_execute_local_command_requires_explicit_approval_outside_dry_run() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
     tool = registry.get_tool("shell")
     enabled_tool = replace(tool, status=ToolStatus.ENABLED)
     registry = ToolRegistry({"shell": enabled_tool})
@@ -181,7 +181,7 @@ def test_execute_local_command_requires_explicit_approval_outside_dry_run() -> N
 
 
 def test_external_network_requires_confirmation_even_if_enabled() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
     tool = registry.get_tool("github_read")
     registry = ToolRegistry({"github_read": tool})
 
@@ -197,7 +197,7 @@ def test_external_network_requires_confirmation_even_if_enabled() -> None:
 
 
 def test_restricted_action_is_denied_by_default() -> None:
-    registry = ToolRegistry.from_yaml("configs/tools.yaml")
+    registry = ToolRegistry.from_yaml("configs/registry/tools.yaml")
     tool = registry.get_tool("keploy")
     enabled_tool = replace(tool, status=ToolStatus.ENABLED)
     registry = ToolRegistry({"keploy": enabled_tool})

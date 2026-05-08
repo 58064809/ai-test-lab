@@ -9,8 +9,8 @@ from ai_test_assistant.runtime.cli import build_parser, run_cli
 
 def _write_assistant_config(tmp_path: Path, tools_path: Path | None = None) -> Path:
     memory_db_path = (tmp_path / "memory.sqlite3").resolve()
-    intents_path = Path("configs/intents.yaml").resolve()
-    tools_path = tools_path or Path("configs/tools.yaml").resolve()
+    intents_path = Path("configs/routing/intents.yaml").resolve()
+    tools_path = tools_path or Path("configs/registry/tools.yaml").resolve()
     assistant_config = tmp_path / "assistant.yaml"
     assistant_config.write_text(
         "\n".join(
@@ -40,7 +40,7 @@ def test_cli_parser_supports_required_arguments() -> None:
             "README.md",
             "--show-file-content",
             "--config",
-            "configs/assistant.yaml",
+            "configs/runtime/assistant.yaml",
         ]
     )
 
@@ -49,13 +49,13 @@ def test_cli_parser_supports_required_arguments() -> None:
     assert args.write_memory is True
     assert args.read_file == "README.md"
     assert args.show_file_content is True
-    assert args.config == "configs/assistant.yaml"
+    assert args.config == "configs/runtime/assistant.yaml"
     assert args.dry_run is True
 
 
 def test_cli_parser_supports_run_pytest_with_default_target() -> None:
     parser = build_parser()
-    args = parser.parse_args(["请运行 pytest", "--run-pytest", "--config", "configs/assistant.yaml"])
+    args = parser.parse_args(["请运行 pytest", "--run-pytest", "--config", "configs/runtime/assistant.yaml"])
 
     assert args.run_pytest == "tests"
 
@@ -68,7 +68,7 @@ def test_cli_parser_supports_run_pytest_with_explicit_target() -> None:
             "--run-pytest",
             "tests/test_runtime_cli.py",
             "--config",
-            "configs/assistant.yaml",
+            "configs/runtime/assistant.yaml",
         ]
     )
 
@@ -83,7 +83,7 @@ def test_cli_parser_supports_mcp_read_file_argument() -> None:
             "--mcp-read-file",
             "README.md",
             "--config",
-            "configs/assistant.yaml",
+            "configs/runtime/assistant.yaml",
         ]
     )
 
@@ -100,7 +100,7 @@ def test_cli_intent_only_outputs_intent_result(tmp_path: Path, capsys) -> None:
     assert exit_code == 0
     assert "识别意图：log_analysis" in captured
     assert "是否需要澄清：否" in captured
-    assert "推荐 workflow：agent-assets/prompts/log-analysis.md" in captured
+    assert "推荐 workflow：skills/log-analysis/SKILL.md" in captured
 
 
 def test_cli_dry_run_outputs_plan(tmp_path: Path, capsys) -> None:

@@ -18,7 +18,7 @@ class MemoryService:
         self.store = store
 
     @classmethod
-    def from_config(cls, config_path: str | Path = "configs/assistant.yaml") -> "MemoryService":
+    def from_config(cls, config_path: str | Path = "configs/runtime/assistant.yaml") -> "MemoryService":
         config_file = Path(config_path)
         config_data = yaml.safe_load(config_file.read_text(encoding="utf-8")) or {}
         memory_config = config_data.get("memory", {})

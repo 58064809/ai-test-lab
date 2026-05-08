@@ -1,7 +1,15 @@
 .assistant/
+.deepeval/
+.idea/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest-tmp/
 .venv/
 .env
-
+*.egg-info/
+allure-report/
+allure-results/
+pytest-cache-files*/
+pytest_cache_check*/
+pytest_tmp_check*/

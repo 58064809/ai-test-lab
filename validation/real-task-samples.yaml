@@ -4,7 +4,7 @@ samples:
     task_text: "请做这个登录 PRD 的需求分析，并梳理测试范围和风险"
     expected_intent: requirement_analysis
     expected_clarification_required: false
-    expected_workflow: agent-assets/prompts/requirement-analysis.md
+    expected_workflow: skills/requirement-analysis/SKILL.md
     expected_risk_level: low
     notes: "通用需求分析样本"
 
@@ -13,7 +13,7 @@ samples:
     task_text: "根据这个登录需求生成测试用例"
     expected_intent: test_case_generation
     expected_clarification_required: false
-    expected_workflow: agent-assets/prompts/test-case-generation.md
+    expected_workflow: skills/test-case-generation/SKILL.md
     expected_risk_level: low
     expected_recommended_tools: ["memory_read"]
     expected_tool_statuses:
@@ -27,7 +27,7 @@ samples:
     task_text: "请基于 OpenAPI 文档设计接口测试场景"
     expected_intent: api_test_design
     expected_clarification_required: false
-    expected_workflow: agent-assets/workflows/api-test-workflow.md
+    expected_workflow: skills/api-testing/SKILL.md
     expected_risk_level: medium
     expected_recommended_tools: ["schemathesis"]
     expected_tool_statuses:
@@ -41,7 +41,7 @@ samples:
     task_text: "请设计这个页面的 UI 自动化和页面回归方案"
     expected_intent: ui_test_design
     expected_clarification_required: false
-    expected_workflow: agent-assets/workflows/ui-test-workflow.md
+    expected_workflow: skills/ui-automation/SKILL.md
     expected_risk_level: medium
     expected_recommended_tools: ["playwright_mcp"]
     expected_tool_statuses:
@@ -55,7 +55,7 @@ samples:
     task_text: "请运行 pytest 并分析 Allure 结果"
     expected_intent: pytest_execution
     expected_clarification_required: false
-    expected_workflow: docs/tools/pytest-allure.md
+    expected_workflow: references/tooling/qa-automation/pytest-allure.md
     expected_risk_level: medium
     expected_recommended_tools: ["pytest_runner", "allure_generate", "allure_report"]
     expected_tool_statuses:
@@ -73,7 +73,7 @@ samples:
     task_text: "请分析这段错误日志并定位问题"
     expected_intent: log_analysis
     expected_clarification_required: false
-    expected_workflow: agent-assets/prompts/log-analysis.md
+    expected_workflow: skills/log-analysis/SKILL.md
     expected_risk_level: low
     notes: "日志分析样本"
 
@@ -82,7 +82,7 @@ samples:
     task_text: "请整理一个缺陷报告，补全复现步骤和预期结果"
     expected_intent: bug_report
     expected_clarification_required: false
-    expected_workflow: agent-assets/prompts/bug-report.md
+    expected_workflow: skills/bug-report/SKILL.md
     expected_risk_level: low
     notes: "缺陷报告样本"
 
@@ -119,7 +119,7 @@ samples:
     task_text: "请调研工具接入方式，重点看看 MCP 和 GitHub 集成"
     expected_intent: tool_research
     expected_clarification_required: false
-    expected_workflow: docs/tools/sources.md
+    expected_workflow: references/tooling/sources.md
     expected_risk_level: medium
     expected_recommended_tools: ["github_read"]
     expected_tool_statuses:
@@ -133,7 +133,7 @@ samples:
     task_text: "请记住这个输出偏好并更新记忆"
     expected_intent: memory_update
     expected_clarification_required: false
-    expected_workflow: src/ai_test_assistant/memory/README.md
+    expected_workflow: src/ai_test_assistant/memory/MODULE.md
     expected_risk_level: medium
     expected_recommended_tools: ["memory_write"]
     expected_tool_statuses:
@@ -147,7 +147,7 @@ samples:
     task_text: "请更新工作流并补充提示词资产"
     expected_intent: workflow_update
     expected_clarification_required: false
-    expected_workflow: agent-assets/workflows/defect-analysis-workflow.md
+    expected_workflow: skills/defect-analysis/SKILL.md
     expected_risk_level: medium
     expected_recommended_tools: ["filesystem"]
     expected_tool_statuses:
@@ -184,7 +184,7 @@ samples:
     task_text: "请修改仓库配置并更新工作流"
     expected_intent: workflow_update
     expected_clarification_required: true
-    expected_workflow: agent-assets/workflows/defect-analysis-workflow.md
+    expected_workflow: skills/defect-analysis/SKILL.md
     expected_risk_level: medium
     expected_recommended_tools: ["filesystem"]
     expected_tool_statuses:
@@ -197,7 +197,7 @@ samples:
     task_text: "请运行 pytest 并生成 Allure 报告"
     expected_intent: pytest_execution
     expected_clarification_required: false
-    expected_workflow: docs/tools/pytest-allure.md
+    expected_workflow: references/tooling/qa-automation/pytest-allure.md
     expected_risk_level: medium
     expected_recommended_tools: ["pytest_runner", "allure_generate", "allure_report"]
     expected_tool_statuses:
@@ -215,7 +215,7 @@ samples:
     task_text: "请分析 Allure 报告并输出测试总结"
     expected_intent: pytest_execution
     expected_clarification_required: false
-    expected_workflow: docs/tools/pytest-allure.md
+    expected_workflow: references/tooling/qa-automation/pytest-allure.md
     expected_risk_level: medium
     expected_recommended_tools: ["allure_report"]
     expected_tool_statuses:
@@ -229,7 +229,7 @@ samples:
     task_text: "请读取 README 分析项目状态"
     expected_intent: tool_research
     expected_clarification_required: false
-    expected_workflow: docs/tools/sources.md
+    expected_workflow: references/tooling/sources.md
     expected_risk_level: medium
     expected_recommended_tools: ["github_read"]
     expected_tool_statuses:
@@ -243,7 +243,7 @@ samples:
     task_text: "请读取 GitHub README 分析项目状态"
     expected_intent: tool_research
     expected_clarification_required: false
-    expected_workflow: docs/tools/sources.md
+    expected_workflow: references/tooling/sources.md
     expected_risk_level: medium
     expected_recommended_tools: ["github_read"]
     expected_tool_statuses:
@@ -257,7 +257,7 @@ samples:
     task_text: "请读取错误日志文件并定位异常栈问题"
     expected_intent: log_analysis
     expected_clarification_required: false
-    expected_workflow: agent-assets/prompts/log-analysis.md
+    expected_workflow: skills/log-analysis/SKILL.md
     expected_risk_level: low
     notes: "真实任务样本：读取日志文件定位异常"
 
@@ -266,7 +266,7 @@ samples:
     task_text: "请根据需求生成测试用例"
     expected_intent: test_case_generation
     expected_clarification_required: false
-    expected_workflow: agent-assets/prompts/test-case-generation.md
+    expected_workflow: skills/test-case-generation/SKILL.md
     expected_risk_level: low
     expected_recommended_tools: ["memory_read"]
     expected_tool_statuses:
@@ -280,7 +280,7 @@ samples:
     task_text: "请根据 OpenAPI 接口文档设计接口测试场景"
     expected_intent: api_test_design
     expected_clarification_required: false
-    expected_workflow: agent-assets/workflows/api-test-workflow.md
+    expected_workflow: skills/api-testing/SKILL.md
     expected_risk_level: medium
     expected_recommended_tools: ["schemathesis"]
     expected_tool_statuses:
@@ -294,7 +294,7 @@ samples:
     task_text: "请根据失败测试结果整理缺陷报告"
     expected_intent: bug_report
     expected_clarification_required: false
-    expected_workflow: agent-assets/prompts/bug-report.md
+    expected_workflow: skills/bug-report/SKILL.md
     expected_risk_level: low
     notes: "真实任务样本：根据失败测试结果生成缺陷报告"
 
@@ -317,7 +317,7 @@ samples:
     task_text: "请评估是否需要接入 Schemathesis 这个成熟工具"
     expected_intent: tool_research
     expected_clarification_required: false
-    expected_workflow: docs/tools/sources.md
+    expected_workflow: references/tooling/sources.md
     expected_risk_level: medium
     expected_recommended_tools: ["github_read"]
     expected_tool_statuses:

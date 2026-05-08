@@ -2,11 +2,11 @@ from pathlib import Path
 
 
 def test_local_environment_prerequisites_doc_exists() -> None:
-    assert Path("docs/local-environment-prerequisites.md").exists()
+    assert Path("docs/runtime/local-environment-prerequisites.md").exists()
 
 
 def test_local_environment_prerequisites_doc_contains_required_markers() -> None:
-    content = Path("docs/local-environment-prerequisites.md").read_text(encoding="utf-8")
+    content = Path("docs/runtime/local-environment-prerequisites.md").read_text(encoding="utf-8")
 
     for marker in (
         "pyproject.toml",
@@ -41,6 +41,6 @@ def test_local_environment_prerequisites_doc_contains_required_markers() -> None
 
 
 def test_local_environment_prerequisites_doc_contains_expected_workspace_bootstrap_command() -> None:
-    content = Path("docs/local-environment-prerequisites.md").read_text(encoding="utf-8")
+    content = Path("docs/runtime/local-environment-prerequisites.md").read_text(encoding="utf-8")
 
     assert "cd D:\\TestHome\\ai-test-lab" in content

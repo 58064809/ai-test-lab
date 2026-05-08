@@ -36,6 +36,15 @@
 
 优先采用工业级通用工具、成熟生态、开源项目、标准协议和已有工程实践。
 
+Agentic QA 是当前仓库主线。任何 Agentic QA 方案设计、Agent 定义、Skill 编写、Template 设计、质量标准或工程实现，都必须以 `docs/architecture/agentic-qa-blueprint.md` 为准，并在实现前查阅 `references/research/agentic-qa-research-guide.md`。
+
+非必要情况不得自研。新增能力前必须先回答：
+
+1. 是否已有成熟工具、官方生态或当前 runtime 能力可以复用；
+2. 是否只是缺少文档、模板、Skill 或工作流，而不是缺少代码；
+3. 是否会引入平台化、复杂多 Agent、复杂 workflow engine 或高风险写能力；
+4. 是否有真实任务验证收益。
+
 例如：
 
 - 做 Agent 项目级规则，优先使用 `AGENTS.md`
@@ -171,22 +180,57 @@ Agent 接到自然语言任务后，应先判断任务类型：
 - 接口测试生成：Schemathesis 可评估接入。
 - API 测试与 Mock：Keploy 可规划接入。
 
+### 4.4 Agentic QA 文档加载
+
+涉及 Agentic QA 方案设计、Agent 定义、Skill 编写、Template 设计、质量标准或工程实现时，应主动读取：
+
+1. `docs/architecture/agentic-qa-blueprint.md`
+2. `references/research/agentic-qa-research-guide.md`
+
+蓝图负责说明本仓库怎么做，调研指南负责说明外部资料怎么看。两者不能覆盖 `AGENTS.md` 的项目级规则。
+
+如果实现涉及具体外部工具或框架，应优先根据调研指南中的官方资料入口确认能力边界，再决定是否落入 `docs/`、`references/`、`standards/`、`skills/`、`templates/` 或 `src/`。不要只凭印象自研替代成熟工具。
+
 ## 5. 当前推荐落地结构
 
-建议仓库保持轻量结构：
+仓库结构应服务于 Agentic QA 六层架构，而不是按临时任务或零散文档堆放。
+
+六层架构映射：
+
+| 架构层 | 仓库位置 | 职责 |
+| --- | --- | --- |
+| User Interface | `scripts/`、`src/ai_test_assistant/runtime/`、`docs/runtime/` | CLI、IDE、Chat、未来 API 的入口与使用说明 |
+| Orchestrator Layer | `src/ai_test_assistant/orchestrator/`、`configs/runtime/`、`docs/architecture/` | QAWorkflow、State Machine、任务路由与编排 |
+| Agent Layer | `agents/`、`skills/` | Agent 职责分工与可复用测试工程方法 |
+| Tool Layer | `configs/registry/`、`configs/mcp/`、`src/ai_test_assistant/tool_registry/`、`docs/integrations/` | File、GitHub、Pytest、Allure、MCP、未来 DB/Redis/Log 工具边界 |
+| Knowledge Layer | `standards/`、`templates/`、`examples/`、`references/research/`、`validation/` | Rules、Prompts、Schemas、Historical Assets、验证样本 |
+| Output Layer | `templates/`、`examples/`、`validation/`、`docs/operations/` | Test Cases、Reports、Execution Result、交接与验证记录 |
+
+建议仓库保持以下轻量结构：
 
 ```text
 .
 ├── AGENTS.md
 ├── README.md
-├── agent-assets/
-│   ├── prompts/
-│   ├── workflows/
-│   ├── templates/
-│   └── examples/
+├── agents/
 ├── configs/
+│   ├── runtime/
+│   ├── routing/
+│   ├── registry/
+│   └── mcp/
 ├── docs/
-│   └── tools/
+│   ├── architecture/
+│   ├── runtime/
+│   ├── integrations/
+│   ├── operations/
+│   └── roadmap/
+├── references/
+│   ├── research/
+│   └── tooling/
+├── standards/
+├── skills/
+├── templates/
+├── examples/
 ├── scripts/
 ├── src/
 │   └── ai_test_assistant/
@@ -208,9 +252,22 @@ Agent 接到自然语言任务后，应先判断任务类型：
 
 - `AGENTS.md`：AI Agent 的主入口规则。
 - `README.md`：给人看的项目说明。
-- `agent-assets/`：沉淀高频提示词、流程、模板和样例。
-- `configs/`：runtime 配置、intent 规则、tool registry 配置。
-- `docs/`：工具说明、CLI 示例、后续任务说明。
+- `agents/`：Agentic QA 角色分工和职责边界。
+- `configs/runtime/`：runtime 装配配置，例如 memory、intent router、tool registry 的入口路径。
+- `configs/routing/`：意图路由规则配置。
+- `configs/registry/`：受控工具注册表、状态、风险等级和授权边界配置。
+- `configs/mcp/`：MCP server 示例配置，不承载业务规则。
+- `docs/architecture/`：架构蓝图、能力地图、工作流和编排设计。
+- `docs/runtime/`：runtime 当前状态、CLI 示例、环境前置条件和本地只读策略。
+- `docs/integrations/`：MCP、GitHub、filesystem、工具接入和安全策略。
+- `docs/operations/`：交接、运行记录、人工检查清单等操作性文档。
+- `docs/roadmap/`：后续任务和阶段规划。
+- `references/research/`：外部调研指南和研究资料。
+- `references/tooling/`：成熟工具的官方来源、适用场景、接入状态与验证命令；不放在 `docs/` 下。
+- `standards/`：AI 输出评估、测试设计、缺陷和质量判断标准。
+- `skills/`：可复用测试工程能力方法。
+- `templates/`：测试用例、缺陷报告、测试总结等输出模板。
+- `examples/`：真实任务样例和可复用示例。
 - `scripts/`：命令行入口脚本。
 - `src/ai_test_assistant/`：Python runtime 工程代码。
 - `tests/`：自动化测试。
